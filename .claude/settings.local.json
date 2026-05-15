@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd:*)",
+      "Bash(curl:*)",
+      "Bash(*)",
+      "ReadFileSystem(*)",
+      "WriteFileSystem(*)",
+      "ListFiles(*)",
+      "PowerShell($size = \\(Get-Item \"D:\\\\111Work\\\\1111New Project\\\\Equipment management system for small business\\\\equip-track\\\\equiptrack.tar\"\\).length / 1MB; Write-Output \"Size: $\\([math]::Round\\($size, 1\\)\\) MB\")"
+    ]
+  }
+}

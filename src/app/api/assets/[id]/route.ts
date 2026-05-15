@@ -1,0 +1,107 @@
+// Path: src/app/api/assets/[id]/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getSessionWithRole } from "@/lib/role-guard";
+import { z } from "zod";
+
+// GET /api/assets/[id]
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const asset = await prisma.asset.findFirst({
+      where: { OR: [{ id }, { code: id }] },
+      include: {
+        photos: { orderBy: { order: "asc" } },
+        assignments: { orderBy: { dateOut: "desc" }, take: 20 },
+        maintenanceRecords: { orderBy: { date: "desc" } },
+        bookings: { orderBy: { dateStart: "desc" }, take: 10 },
+      },
+    });
+
+    if (!asset) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(asset);
+  } catch (error) {
+    console.error("GET /api/assets/[id] error:", error);
+    return NextResponse.json({ error: "Failed" }, { status: 500 });
+  }
+}
+
+// PATCH /api/assets/[id]
+const updateSchema = z.object({
+  name: z.string().min(1).optional(),
+  brand: z.string().optional(),
+  model: z.string().optional(),
+  serialNumber: z.string().optional(),
+  category: z.string().min(1).optional(),
+  status: z.enum(["ACTIVE", "AVAILABLE", "MAINTENANCE", "RETIRED"]).optional(),
+  purchaseDate: z.string().transform((s) => new Date(s)).optional(),
+  purchasePrice: z.number().positive().optional(),
+  expectedLife: z.number().int().positive().optional(),
+  warrantyEnd: z.string().optional().transform((s) => s ? new Date(s) : undefined),
+  nextMaintenance: z.string().optional().transform((s) => s ? new Date(s) : undefined),
+  location: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getSessionWithRole();
+    if (!session || !["ADMIN", "USER"].includes(session.role)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const { id } = await params;
+    const body = await req.json();
+    const data = updateSchema.parse(body);
+
+    const asset = await prisma.asset.update({
+      where: { id },
+      data,
+    });
+
+    return NextResponse.json(asset);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Validation failed", details: error.errors }, { status: 400 });
+    }
+    console.error("PATCH /api/assets/[id] error:", error);
+    return NextResponse.json({ error: "Failed to update" }, { status: 500 });
+  }
+}
+
+// DELETE /api/assets/[id]
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getSessionWithRole();
+    if (!session || session.role !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const { id } = await params;
+    // Delete related records first
+    await prisma.$transaction([
+      prisma.assetPhoto.deleteMany({ where: { assetId: id } }),
+      prisma.assignment.deleteMany({ where: { assetId: id } }),
+      prisma.maintenanceRecord.deleteMany({ where: { assetId: id } }),
+      prisma.booking.deleteMany({ where: { assetId: id } }),
+      prisma.asset.delete({ where: { id } }),
+    ]);
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("DELETE /api/assets/[id] error:", error);
+    return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
+  }
+}

@@ -1,0 +1,44 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # ค่านี้เป็นแค่ fallback ฝั่ง server — QR ฝั่ง browser ใช้ window.location.origin อัตโนมัติ
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-}
+        NEXT_PUBLIC_COMPANY_NAME: ${NEXT_PUBLIC_COMPANY_NAME:-EquipTrack}
+    container_name: equiptrack
+    restart: unless-stopped
+    ports:
+      - "3003:3000"
+
+    environment:
+      # ── Database (SQLite — เก็บไฟล์บน volume /app/data) ──
+      DATABASE_URL: "file:/app/data/prod.db"
+      DIRECT_URL: "file:/app/data/prod.db"
+
+      # ── NextAuth ──
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+
+      # ── Google OAuth (optional) ──
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+
+      # ── Email / Cron / AI ──
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      ALERT_FROM_EMAIL: ${ALERT_FROM_EMAIL:-}
+      ALERT_TO_EMAIL: ${ALERT_TO_EMAIL:-}
+      CRON_SECRET: ${CRON_SECRET:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+
+      # ── App ──
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-}
+      NEXT_PUBLIC_COMPANY_NAME: ${NEXT_PUBLIC_COMPANY_NAME:-EquipTrack}
+
+    volumes:
+      # SQLite DB เก็บไว้นอก container เพื่อไม่ให้หายเวลา rebuild
+      - equiptrack-data:/app/data
+
+volumes:
+  equiptrack-data:

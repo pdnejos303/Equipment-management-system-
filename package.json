@@ -1,0 +1,75 @@
+{
+  "name": "equip-track",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "db:push": "prisma db push",
+    "db:seed": "prisma db seed",
+    "db:studio": "prisma studio",
+    "db:use-local": "bash scripts/switch-db.sh local",
+    "db:use-cloud": "bash scripts/switch-db.sh cloud",
+    "db:status": "bash scripts/switch-db.sh status",
+    "db:reset": "tsx prisma/reset.ts",
+    "db:seed-bulk": "tsx prisma/seed-bulk.ts",
+    "db:seed-bulk:reset": "tsx prisma/seed-bulk.ts --reset",
+    "db:import-csv": "tsx prisma/import-csv.ts",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@next-auth/prisma-adapter": "^1.0.7",
+    "@prisma/client": "^5.14.0",
+    "@radix-ui/react-dialog": "^1.0.5",
+    "@radix-ui/react-dropdown-menu": "^2.0.6",
+    "@radix-ui/react-select": "^2.0.0",
+    "@radix-ui/react-tabs": "^1.0.4",
+    "@supabase/supabase-js": "^2.43.0",
+    "@types/adm-zip": "^0.5.8",
+    "adm-zip": "^0.5.16",
+    "bcryptjs": "^2.4.3",
+    "clsx": "^2.1.0",
+    "date-fns": "^3.6.0",
+    "html5-qrcode": "^2.3.8",
+    "jsbarcode": "^3.11.6",
+    "lucide-react": "^0.378.0",
+    "next": "^15.5.14",
+    "next-auth": "^4.24.0",
+    "nextjs-toploader": "^3.9.17",
+    "openai": "^6.32.0",
+    "qrcode": "^1.5.3",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "recharts": "^3.8.0",
+    "resend": "^3.2.0",
+    "sweetalert2": "^11.26.23",
+    "tailwind-merge": "^2.3.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20.12.0",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.7",
+    "autoprefixer": "^10.4.0",
+    "eslint": "^10.0.3",
+    "postcss": "^8.4.0",
+    "prisma": "^5.14.0",
+    "tailwindcss": "^3.4.0",
+    "tsx": "^4.10.0",
+    "typescript": "^5.4.0"
+  },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "esbuild",
+      "prisma"
+    ]
+  }
+}

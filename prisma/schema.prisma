@@ -1,0 +1,202 @@
+// ============================================================
+// File: schema.prisma
+// Path: equip-track/prisma/schema.prisma
+// Desc: Database schema — ทุก table ของระบบ Equipment Management
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ── Auth (NextAuth.js) ──────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  hashedPassword String?
+  role          String    @default("USER")
+
+  accounts    Account[]
+  sessions    Session[]
+  assignments Assignment[]
+  bookings    Booking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ── Category (managed) ──────────────────────────────────────
+
+model Category {
+  id        String   @id @default(cuid())
+  key       String   @unique // LAPTOP, DRONE, etc. (uppercase, no spaces)
+  label     String           // Display name (Thai/English/any)
+  emoji     String?          // Optional icon
+  order     Int      @default(0)
+  isDefault Boolean  @default(false) // Seeded defaults — cannot be deleted
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+}
+
+// ── Core: Asset Registry ────────────────────────────────────
+
+model Asset {
+  id             String   @id @default(cuid())
+  code           String   @unique // EQ-001, EQ-002, ...
+  name           String
+  brand          String?
+  model          String?
+  serialNumber   String?  @unique
+  category       String   // LAPTOP, MONITOR, VEHICLE, etc.
+  status         String   @default("AVAILABLE") // ACTIVE, AVAILABLE, MAINTENANCE, RETIRED
+  purchaseDate   DateTime
+  purchasePrice  Float
+  expectedLife   Int      // ปี
+  warrantyEnd    DateTime?
+  nextMaintenance DateTime?
+  location       String?  // สถานที่เก็บ
+  notes          String?
+
+  // Photos — เก็บ URL จาก Storage
+  photos         AssetPhoto[]
+
+  // Relations
+  assignments    Assignment[]
+  maintenanceRecords MaintenanceRecord[]
+  bookings       Booking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // make it fast
+  @@index([category])
+  @@index([status])
+  @@index([code])
+}
+
+model AssetPhoto {
+  id       String @id @default(cuid())
+  assetId  String
+  url      String
+  caption  String?
+  isPrimary Boolean @default(false)
+  order    Int     @default(0)
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([assetId])
+}
+
+// ── Assignment (การมอบหมาย) ─────────────────────────────────
+
+model Assignment {
+  id         String    @id @default(cuid())
+  assetId    String
+  userId     String?
+  personName String
+  department String?
+  dateOut    DateTime  @default(now())
+  dateIn     DateTime?
+  notes      String?
+  signatureUrl String?
+
+  asset Asset @relation(fields: [assetId], references: [id])
+  user  User? @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([assetId])
+  @@index([userId])
+  @@index([dateOut])
+}
+
+// ── Maintenance (ซ่อมบำรุง) ─────────────────────────────────
+
+model MaintenanceRecord {
+  id          String   @id @default(cuid()) // Collision-resistant Unique identifier  Random id to 25 Chracter
+  assetId     String
+  date        DateTime
+  description String
+  cost        Float
+  vendor      String?
+  type        String   @default("REPAIR") // REPAIR, PREVENTIVE, INSPECTION
+  receiptUrl  String?
+  notes       String?
+
+  asset Asset @relation(fields: [assetId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([assetId])
+  @@index([date])
+}
+
+// ── Booking (ยืม-คืน อุปกรณ์กลาง) ──────────────────────────
+
+model Booking {
+  id              String   @id @default(cuid())
+  assetId         String
+  userId          String?
+  personName      String
+  dateStart       DateTime
+  dateEnd         DateTime
+  purpose         String?
+  conditionBefore String?
+  conditionAfter  String?
+  status          String   @default("PENDING") // PENDING, APPROVED, ACTIVE, RETURNED, CANCELLED
+
+  asset Asset @relation(fields: [assetId], references: [id])
+  user  User? @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([assetId])
+  @@index([dateStart, dateEnd])
+}
