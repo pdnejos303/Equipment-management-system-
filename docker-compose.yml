@@ -39,10 +39,6 @@ services:
     volumes:
       # SQLite DB เก็บไว้นอก container เพื่อไม่ให้หายเวลา rebuild
       - equiptrack-data:/app/data
-      # รูปอุปกรณ์ (LocalStorageProvider) — กัน data loss ตอน rebuild image
-      # ถ้าเปลี่ยนไปใช้ Supabase Storage แล้ว volume นี้จะไม่ถูกใช้ ลบทิ้งได้
-      - equiptrack-uploads:/app/public/uploads
 
 volumes:
   equiptrack-data:
-  equiptrack-uploads:

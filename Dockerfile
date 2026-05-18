@@ -24,8 +24,6 @@ ARG NEXT_PUBLIC_COMPANY_NAME="EquipTrack"
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 ENV NEXT_PUBLIC_COMPANY_NAME=$NEXT_PUBLIC_COMPANY_NAME
 ENV OPENAI_API_KEY=build-placeholder
-# เปิด standalone output เฉพาะตอน Docker build (next.config.mjs อ่าน flag นี้)
-ENV BUILD_STANDALONE=1
 
 RUN npx prisma generate
 RUN npm run build
