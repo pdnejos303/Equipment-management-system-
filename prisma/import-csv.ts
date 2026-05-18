@@ -1,18 +1,34 @@
 // Path: prisma/import-csv.ts
 // ============================================================
 // Import legacy CSV → EquipTrack Asset table
+// Prisma schema is the source of truth; CSV columns that don't
+// match are coerced/mapped here, never the reverse.
+//
 // Usage:
-//   npx tsx prisma/import-csv.ts <path-to-csv>
+//   npx tsx prisma/import-csv.ts                    (uses prisma/data.csv)
+//   npx tsx prisma/import-csv.ts <path-to-csv>      (custom path)
 //   docker compose exec app npx tsx prisma/import-csv.ts /app/data/legacy.csv
 //
-// CSV columns (12, no header expected):
-//  1 legacy id  | 2 category   | 3 name        | 4 model/desc
-//  5 quantity   | 6 price      | 7 status      | 8 purchaseDate
-//  9 serial     | 10 codes     | 11 notes      | 12 extra date (ignored)
+// CSV columns (12, no header expected) → Prisma Asset field:
+//   1 legacy id  → (used only to seed fallback `code`, not stored)
+//   2 category   → category   (via mapCategory)
+//   3 name       → name
+//   4 model/desc → model
+//   5 quantity   → expands into N Asset rows (one per code)
+//   6 price      → purchasePrice
+//   7 status     → status     (via mapStatus → ACTIVE/AVAILABLE/MAINTENANCE/RETIRED)
+//   8 date       → purchaseDate
+//   9 serial     → serialNumber (only first row of an expanded group; column is @unique)
+//   10 codes     → code        (range "(A-001) - (A-012)" or "A,B" or single)
+//   11 notes     → notes
+//   12 extra     → ignored
+//
+// Fields not present in CSV (kept null/default):
+//   brand, location, warrantyEnd, nextMaintenance
 // ============================================================
 
 import { PrismaClient } from "@prisma/client";
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { resolve } from "path";
 
 const prisma = new PrismaClient();
@@ -49,10 +65,17 @@ function expectedLifeFor(category: string): number {
 }
 
 // ── Status mapping ──────────────────────────────────────────
-function mapStatus(raw: string): "ACTIVE" | "RETIRED" {
+// Prisma Asset.status enum: ACTIVE | AVAILABLE | MAINTENANCE | RETIRED (default AVAILABLE)
+type AssetStatus = "ACTIVE" | "AVAILABLE" | "MAINTENANCE" | "RETIRED";
+
+function mapStatus(raw: string): AssetStatus {
   const v = (raw ?? "").trim().toLowerCase();
-  if (v === "not use" || v === "broken" || v === "retired") return "RETIRED";
-  return "ACTIVE";
+  if (!v || v === "null" || v === "unknow" || v === "unknown") return "AVAILABLE";
+  if (v === "use" || v === "in use" || v === "in-use" || v === "active") return "ACTIVE";
+  if (v === "available" || v === "free" || v === "not use" || v === "not-use" || v === "unused") return "AVAILABLE";
+  if (v === "maintenance" || v === "repair" || v === "repairing" || v === "fixing") return "MAINTENANCE";
+  if (v === "broken" || v === "retired" || v === "disposed" || v === "scrapped") return "RETIRED";
+  return "AVAILABLE";
 }
 
 // ── Date parsing ────────────────────────────────────────────
@@ -141,13 +164,21 @@ function parseCsvLine(line: string): string[] {
 
 // ── Main ────────────────────────────────────────────────────
 async function main() {
-  const csvPath = process.argv[2];
-  if (!csvPath) {
-    console.error("Usage: npx tsx prisma/import-csv.ts <path-to-csv>");
+  const argPath = process.argv[2];
+  const defaultPath = resolve(__dirname, "data.csv");
+  const fullPath = argPath ? resolve(argPath) : defaultPath;
+
+  if (!existsSync(fullPath)) {
+    if (argPath) {
+      console.error(`File not found: ${fullPath}`);
+    } else {
+      console.error(`No CSV file found at: ${fullPath}`);
+      console.error(`Drop a "data.csv" into the prisma/ folder, or run:`);
+      console.error(`   npx tsx prisma/import-csv.ts <path-to-csv>`);
+    }
     process.exit(1);
   }
 
-  const fullPath = resolve(csvPath);
   console.log(`Reading: ${fullPath}`);
   const raw = readFileSync(fullPath, "utf8");
   const lines = raw

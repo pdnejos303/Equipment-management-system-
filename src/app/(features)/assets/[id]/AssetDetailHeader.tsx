@@ -13,14 +13,16 @@ interface Props {
   model: string;
   serialNumber: string;
   status: string;
+  category: string;
   statusBg: string;
   statusColor: string;
   assignedTo: string | null;
+  currentAssignment: { id: string; personName: string } | null;
 }
 
 export function AssetDetailHeader({
   assetId, assetName, assetCode, brand, model, serialNumber,
-  status, statusBg, statusColor, assignedTo,
+  status, category, statusBg, statusColor, assignedTo, currentAssignment,
 }: Props) {
   const { t } = useI18n();
 
@@ -44,7 +46,16 @@ export function AssetDetailHeader({
             <span className="font-mono text-xs block">S/N: {serialNumber || "-"}</span>
           </>
         }
-        actions={<AssetActions assetId={assetId} assetName={assetName} />}
+        actions={
+          <AssetActions
+            assetId={assetId}
+            assetName={assetName}
+            assetCode={assetCode}
+            assetStatus={status}
+            assetCategory={category}
+            currentAssignment={currentAssignment}
+          />
+        }
       />
 
       {assignedTo && (

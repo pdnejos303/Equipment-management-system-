@@ -1,23 +1,27 @@
 // Path: src/components/forms/AddBookingForm.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { FormFooter } from "@/components/ui/FormFooter";
+import { SearchablePicker, type PickerItem } from "@/components/ui/SearchablePicker";
 import { useI18n } from "@/lib/i18n";
 import { useFormSubmit } from "@/lib/useFormSubmit";
+import { useCategories } from "@/lib/useCategories";
 import { showError } from "@/lib/swal";
 
 interface Props {
   open: boolean;
   onClose: () => void;
   assets: { id: string; code: string; name: string; category: string }[];
+  preselectedAssetId?: string;
 }
 
-export function AddBookingForm({ open, onClose, assets }: Props) {
+export function AddBookingForm({ open, onClose, assets, preselectedAssetId }: Props) {
   const { t } = useI18n();
+  const { labelFor } = useCategories();
   const [form, setForm] = useState({
-    assetId: "",
+    assetId: preselectedAssetId || "",
     personName: "",
     dateStart: "",
     dateEnd: "",
@@ -25,7 +29,29 @@ export function AddBookingForm({ open, onClose, assets }: Props) {
     conditionBefore: "",
   });
 
-  const bookable = assets.filter((a) => ["CAMERA", "PROJECTOR", "VEHICLE"].includes(a.category));
+  useEffect(() => {
+    if (open) {
+      setForm((f) => ({ ...f, assetId: preselectedAssetId || "" }));
+    }
+  }, [open, preselectedAssetId]);
+
+  const preselectedAsset = useMemo(
+    () => assets.find((a) => a.id === preselectedAssetId),
+    [assets, preselectedAssetId]
+  );
+
+  const pickerItems: PickerItem[] = useMemo(
+    () =>
+      assets.map((a) => ({
+        id: a.id,
+        primary: a.code,
+        secondary: a.name,
+        tertiary: labelFor(a.category),
+        searchText: `${a.code} ${a.name} ${labelFor(a.category)}`,
+      })),
+    [assets, labelFor]
+  );
+
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   const { submit, loading } = useFormSubmit({
@@ -36,6 +62,7 @@ export function AddBookingForm({ open, onClose, assets }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.assetId) return;
     if (form.dateStart && form.dateEnd && form.dateEnd < form.dateStart) {
       showError(t("forms.error"), t("forms.dateEndBeforeStart"));
       return;
@@ -46,13 +73,23 @@ export function AddBookingForm({ open, onClose, assets }: Props) {
   return (
     <Modal open={open} onClose={onClose} title={t("forms.bookAsset")}>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-xs text-gray-500 font-semibold mb-1">{t("forms.selectEquip")} *</label>
-          <select value={form.assetId} onChange={(e) => set("assetId", e.target.value)} required className="input">
-            <option value="">{t("forms.selectPlaceholder")}</option>
-            {bookable.map((a) => <option key={a.id} value={a.id}>{a.code} — {a.name}</option>)}
-          </select>
-        </div>
+        {preselectedAsset ? (
+          <div className="rounded-lg border border-border bg-surface-dark px-3 py-2.5">
+            <p className="text-xs text-gray-500 font-semibold mb-0.5">{t("forms.selectEquip")}</p>
+            <p className="font-mono text-sm text-brand-500">{preselectedAsset.code}</p>
+            <p className="text-sm" style={{ color: "var(--text-default)" }}>{preselectedAsset.name}</p>
+          </div>
+        ) : (
+          <div>
+            <label className="block text-xs text-gray-500 font-semibold mb-2">{t("forms.selectEquip")} *</label>
+            <SearchablePicker
+              items={pickerItems}
+              selectedId={form.assetId}
+              onSelect={(id) => set("assetId", id)}
+              autoFocus
+            />
+          </div>
+        )}
         <div>
           <label className="block text-xs text-gray-500 font-semibold mb-1">{t("forms.bookerName")} *</label>
           <input value={form.personName} onChange={(e) => set("personName", e.target.value)} required maxLength={100} className="input" />
@@ -81,6 +118,7 @@ export function AddBookingForm({ open, onClose, assets }: Props) {
           submitLabel={t("forms.bookBtn")}
           submittingLabel={t("forms.booking")}
           submitting={loading}
+          disabled={!form.assetId}
         />
       </form>
     </Modal>

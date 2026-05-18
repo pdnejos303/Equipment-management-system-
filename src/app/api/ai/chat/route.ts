@@ -48,7 +48,7 @@ async function getSystemContext(locale: string) {
       category: a.category,
       status: a.status,
       location: a.location,
-      description: a.description,
+      notes: a.notes,
       purchasePrice: Number(a.purchasePrice),
       purchaseDate: a.purchaseDate?.toISOString().slice(0, 10) || null,
       expectedLife: a.expectedLife,

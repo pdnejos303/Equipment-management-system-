@@ -7,10 +7,9 @@
 
 import { prisma } from "@/lib/prisma";
 import { calculateDepreciation } from "@/lib/depreciation";
-import { STATUS_CONFIG, CATEGORY_CONFIG } from "@/lib/utils";
+import { STATUS_CONFIG } from "@/lib/utils";
 import { notFound } from "next/navigation";
 import { AssetDetailClient } from "./AssetDetailClient";
-import { AssetActions } from "@/components/AssetActions";
 import { AssetDetailHeader } from "./AssetDetailHeader";
 
 export const dynamic = "force-dynamic";
@@ -76,9 +75,15 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
         model={asset.model || ""}
         serialNumber={asset.serialNumber || ""}
         status={asset.status}
+        category={asset.category}
         statusBg={st.bg}
         statusColor={st.color}
         assignedTo={currentAssignment?.personName || null}
+        currentAssignment={
+          currentAssignment
+            ? { id: currentAssignment.id, personName: currentAssignment.personName }
+            : null
+        }
       />
 
       <AssetDetailClient

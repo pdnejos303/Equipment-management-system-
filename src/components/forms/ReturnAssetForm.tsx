@@ -1,9 +1,10 @@
 // Path: src/components/forms/ReturnAssetForm.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { FormFooter } from "@/components/ui/FormFooter";
+import { SearchablePicker, type PickerItem } from "@/components/ui/SearchablePicker";
 import { useI18n } from "@/lib/i18n";
 import { useFormSubmit } from "@/lib/useFormSubmit";
 
@@ -18,12 +19,32 @@ interface Props {
   open: boolean;
   onClose: () => void;
   assignments: CurrentAssignment[];
+  preselectedAssignmentId?: string;
 }
 
-export function ReturnAssetForm({ open, onClose, assignments }: Props) {
+export function ReturnAssetForm({ open, onClose, assignments, preselectedAssignmentId }: Props) {
   const { t } = useI18n();
-  const [selectedId, setSelectedId] = useState("");
+  const [selectedId, setSelectedId] = useState(preselectedAssignmentId || "");
   const [notes, setNotes] = useState("");
+
+  useEffect(() => {
+    if (open) {
+      setSelectedId(preselectedAssignmentId || "");
+      setNotes("");
+    }
+  }, [open, preselectedAssignmentId]);
+
+  const pickerItems: PickerItem[] = useMemo(
+    () =>
+      assignments.map((a) => ({
+        id: a.id,
+        primary: a.assetCode,
+        secondary: a.assetName,
+        tertiary: a.personName,
+        searchText: `${a.assetCode} ${a.assetName} ${a.personName}`,
+      })),
+    [assignments]
+  );
 
   const { submit, loading } = useFormSubmit({
     url: selectedId ? `/api/assignments/${selectedId}` : "",
@@ -42,13 +63,13 @@ export function ReturnAssetForm({ open, onClose, assignments }: Props) {
     <Modal open={open} onClose={onClose} title={t("forms.returnAsset")}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-xs text-gray-500 font-semibold mb-1">{t("forms.selectReturn")} *</label>
-          <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)} required className="input">
-            <option value="">{t("forms.selectReturnPlaceholder")}</option>
-            {assignments.map((a) => (
-              <option key={a.id} value={a.id}>{a.assetCode} {a.assetName} — {a.personName}</option>
-            ))}
-          </select>
+          <label className="block text-xs text-gray-500 font-semibold mb-2">{t("forms.selectReturn")} *</label>
+          <SearchablePicker
+            items={pickerItems}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+            autoFocus={!preselectedAssignmentId}
+          />
         </div>
         <div>
           <label className="block text-xs text-gray-500 font-semibold mb-1">{t("forms.notes")}</label>

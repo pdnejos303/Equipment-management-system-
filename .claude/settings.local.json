@@ -7,7 +7,10 @@
       "ReadFileSystem(*)",
       "WriteFileSystem(*)",
       "ListFiles(*)",
-      "PowerShell($size = \\(Get-Item \"D:\\\\111Work\\\\1111New Project\\\\Equipment management system for small business\\\\equip-track\\\\equiptrack.tar\"\\).length / 1MB; Write-Output \"Size: $\\([math]::Round\\($size, 1\\)\\) MB\")"
+      "PowerShell($size = \\(Get-Item \"D:\\\\111Work\\\\1111New Project\\\\Equipment management system for small business\\\\equip-track\\\\equiptrack.tar\"\\).length / 1MB; Write-Output \"Size: $\\([math]::Round\\($size, 1\\)\\) MB\")",
+      "PowerShell($lines = Get-Content -Path 'D:\\\\111Work\\\\1111New Project\\\\Equipment management system for small business\\\\equip-track\\\\prisma\\\\data.csv'; Write-Host \"Total lines: $\\($lines.Count\\)\"; Write-Host '---First 3 lines---'; $lines | Select-Object -First 3; Write-Host '---Last 3 lines---'; $lines | Select-Object -Last 3)",
+      "PowerShell($lines = Get-Content -Path 'D:\\\\111Work\\\\1111New Project\\\\Equipment management system for small business\\\\equip-track\\\\prisma\\\\data.csv'; $statuses = @{}; $cats = @{}; foreach \\($l in $lines\\) { $cells = $l -split ','; if \\($cells.Length -ge 7\\) { $s=$cells[6]; $c=$cells[1]; if\\($statuses.ContainsKey\\($s\\)\\){$statuses[$s]++}else{$statuses[$s]=1}; if\\($cats.ContainsKey\\($c\\)\\){$cats[$c]++}else{$cats[$c]=1} } }; Write-Host 'STATUSES:'; $statuses.GetEnumerator\\(\\) | Sort-Object Value -Descending | Format-Table -AutoSize; Write-Host 'CATEGORIES:'; $cats.GetEnumerator\\(\\) | Sort-Object Value -Descending | Format-Table -AutoSize)",
+      "PowerShell(Get-NetTCPConnection *)"
     ]
   }
 }

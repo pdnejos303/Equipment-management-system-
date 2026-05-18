@@ -17,6 +17,7 @@ import {
   RadialBarChart, RadialBar, ComposedChart, Line,
 } from "recharts";
 import { AIInsights } from "@/components/AIInsights";
+import { CategorySunburst } from "@/components/charts/CategorySunburst";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { DateRangePicker, type RangePreset } from "@/components/ui/DateRangePicker";
 import type { Alert } from "@/lib/alerts";
@@ -452,30 +453,63 @@ export function DashboardClient({ data }: { data?: ServerData }) {
         </div>
       )}
 
-      {/* Category + Top Maintenance Cost */}
+      {/* Category Sunburst + Recent Maintenance */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Category Value Bar Chart */}
+        {/* Category Sunburst */}
         <div className="card">
-          <h3 className="text-[11px] font-semibold uppercase tracking-widest mb-4">
-            {t("dashboard.byCategory")} — {t("dashboard.valueLabel")}
+          <h3 className="text-[11px] font-semibold uppercase tracking-widest mb-2">
+            {t("dashboard.byCategory")}
           </h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={categoryBarData} layout="vertical" margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
-                <XAxis type="number" tick={{ fill: "var(--text-subtle)", fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={(v) => v >= 1000 ? `${v / 1000}k` : `${v}`} />
-                <YAxis type="category" dataKey="name" width={90} tick={{ fill: "#999", fontSize: 11 }} tickLine={false} axisLine={false} />
-                <Tooltip content={<ChartTooltip formatter={(v: number) => fmt(v)} />} />
-                <Bar dataKey={d ? "value" : "count"} radius={[0, 6, 6, 0]} barSize={18} name={t("dashboard.valueLabel")}>
-                  {categoryBarData.map((entry, i) => (
-                    <Cell key={i} fill={entry.fill} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <CategorySunburst />
         </div>
 
+        {/* Recent Maintenance */}
+        <div className="card">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-[11px] font-semibold uppercase tracking-widest">
+              {t("dashboard.recentMaint")}
+            </h3>
+            <Link href="/maintenance" className="text-xs text-brand-500 hover:underline">{t("dashboard.viewAll")}</Link>
+          </div>
+          {recentMaint.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+              <Wrench size={32} className="mb-2 opacity-30" />
+              <p className="text-sm">{t("dashboard.noMaintHistory")}</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {recentMaint.map((m) => (
+                <div key={m.id} className="rounded-xl p-3 transition-all duration-200 border border-transparent hover:border-[var(--border)]" style={{ background: "var(--surface-hover)" }}>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate" style={{ color: "var(--text-default)" }}>{m.description}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs font-mono text-brand-500">{m.asset.code}</span>
+                        <span className="text-xs text-gray-500">{m.asset.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-md ${
+                          m.type === "REPAIR" ? "bg-red-500/10 text-red-400" :
+                          m.type === "PREVENTIVE" ? "bg-blue-500/10 text-blue-400" :
+                          "bg-green-500/10 text-green-400"
+                        }`}>
+                          {m.type === "REPAIR" ? <Wrench size={10} /> : m.type === "PREVENTIVE" ? <Clock size={10} /> : <CheckCircle2 size={10} />}
+                          {t(`maintType.${m.type}`)}
+                        </span>
+                        <span className="text-[10px] text-gray-600">{formatDate(m.date, locale)}</span>
+                      </div>
+                    </div>
+                    <span className="text-sm font-mono font-semibold text-brand-400 ml-3 whitespace-nowrap">{fmt(m.cost)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Top Maintenance Cost + Asset Depreciation */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Maintenance Cost by Asset */}
         <div className="card">
           <h3 className="text-[11px] font-semibold uppercase tracking-widest mb-4">
@@ -517,65 +551,7 @@ export function DashboardClient({ data }: { data?: ServerData }) {
             </div>
           )}
         </div>
-      </div>
 
-      {/* Booking & Assignment Trends */}
-      {d && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Booking Activity */}
-          <div className="card">
-            <h3 className="text-[11px] font-semibold uppercase tracking-widest mb-4">
-              {t("dashboard.monthlyBookingActivity")}
-            </h3>
-            <div className="h-56">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={d.bookingTrend} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                  <XAxis dataKey="month" tick={{ fill: "var(--text-subtle)", fontSize: 11 }} tickLine={false} axisLine={false} />
-                  <YAxis tick={{ fill: "var(--text-subtle)", fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
-                  <Tooltip content={<ChartTooltip />} />
-                  <Bar dataKey="active" stackId="a" fill="#22c55e" name={t("bookingStatus.ACTIVE")} />
-                  <Bar dataKey="returned" stackId="a" fill="#3b82f6" name={t("bookingStatus.RETURNED")} />
-                  <Bar dataKey="pending" stackId="a" fill="#f59e0b" name={t("bookingStatus.PENDING")} />
-                  <Bar dataKey="cancelled" stackId="a" fill="#ef4444" radius={[4, 4, 0, 0]} name={t("bookingStatus.CANCELLED")} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Assignment Activity */}
-          <div className="card">
-            <h3 className="text-[11px] font-semibold uppercase tracking-widest mb-4">
-              {t("dashboard.monthlyAssignments")}
-            </h3>
-            <div className="h-56">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={d.assignmentTrend} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                  <defs>
-                    <linearGradient id="assignGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.4} />
-                      <stop offset="100%" stopColor="#f59e0b" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="returnGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#22c55e" stopOpacity={0.4} />
-                      <stop offset="100%" stopColor="#22c55e" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                  <XAxis dataKey="month" tick={{ fill: "var(--text-subtle)", fontSize: 11 }} tickLine={false} axisLine={false} />
-                  <YAxis tick={{ fill: "var(--text-subtle)", fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
-                  <Tooltip content={<ChartTooltip />} />
-                  <Area type="monotone" dataKey="assigned" fill="url(#assignGrad)" stroke="#f59e0b" strokeWidth={2} name={t("dashboard.assignedLabel")} />
-                  <Area type="monotone" dataKey="returned" fill="url(#returnGrad)" stroke="#22c55e" strokeWidth={2} name={t("dashboard.returnedLabel")} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Depreciation + Recent Maintenance */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Asset Depreciation Ranking */}
         <div className="card">
           <h3 className="text-[11px] font-semibold uppercase tracking-widest mb-4">
@@ -654,51 +630,62 @@ export function DashboardClient({ data }: { data?: ServerData }) {
             </div>
           </div>
         </div>
-
-        {/* Recent Maintenance */}
-        <div className="card">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-[11px] font-semibold uppercase tracking-widest">
-              {t("dashboard.recentMaint")}
-            </h3>
-            <Link href="/maintenance" className="text-xs text-brand-500 hover:underline">{t("dashboard.viewAll")}</Link>
-          </div>
-          {recentMaint.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-              <Wrench size={32} className="mb-2 opacity-30" />
-              <p className="text-sm">{t("dashboard.noMaintHistory")}</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {recentMaint.map((m) => (
-                <div key={m.id} className="rounded-xl p-3 transition-all duration-200 border border-transparent hover:border-[var(--border)]" style={{ background: "var(--surface-hover)" }}>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate" style={{ color: "var(--text-default)" }}>{m.description}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs font-mono text-brand-500">{m.asset.code}</span>
-                        <span className="text-xs text-gray-500">{m.asset.name}</span>
-                      </div>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-md ${
-                          m.type === "REPAIR" ? "bg-red-500/10 text-red-400" :
-                          m.type === "PREVENTIVE" ? "bg-blue-500/10 text-blue-400" :
-                          "bg-green-500/10 text-green-400"
-                        }`}>
-                          {m.type === "REPAIR" ? <Wrench size={10} /> : m.type === "PREVENTIVE" ? <Clock size={10} /> : <CheckCircle2 size={10} />}
-                          {t(`maintType.${m.type}`)}
-                        </span>
-                        <span className="text-[10px] text-gray-600">{formatDate(m.date, locale)}</span>
-                      </div>
-                    </div>
-                    <span className="text-sm font-mono font-semibold text-brand-400 ml-3 whitespace-nowrap">{fmt(m.cost)}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
+
+      {/* Booking & Assignment Trends */}
+      {d && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Booking Activity */}
+          <div className="card">
+            <h3 className="text-[11px] font-semibold uppercase tracking-widest mb-4">
+              {t("dashboard.monthlyBookingActivity")}
+            </h3>
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={d.bookingTrend} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                  <XAxis dataKey="month" tick={{ fill: "var(--text-subtle)", fontSize: 11 }} tickLine={false} axisLine={false} />
+                  <YAxis tick={{ fill: "var(--text-subtle)", fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <Tooltip content={<ChartTooltip />} />
+                  <Bar dataKey="active" stackId="a" fill="#22c55e" name={t("bookingStatus.ACTIVE")} />
+                  <Bar dataKey="returned" stackId="a" fill="#3b82f6" name={t("bookingStatus.RETURNED")} />
+                  <Bar dataKey="pending" stackId="a" fill="#f59e0b" name={t("bookingStatus.PENDING")} />
+                  <Bar dataKey="cancelled" stackId="a" fill="#ef4444" radius={[4, 4, 0, 0]} name={t("bookingStatus.CANCELLED")} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Assignment Activity */}
+          <div className="card">
+            <h3 className="text-[11px] font-semibold uppercase tracking-widest mb-4">
+              {t("dashboard.monthlyAssignments")}
+            </h3>
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={d.assignmentTrend} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                  <defs>
+                    <linearGradient id="assignGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.4} />
+                      <stop offset="100%" stopColor="#f59e0b" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="returnGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#22c55e" stopOpacity={0.4} />
+                      <stop offset="100%" stopColor="#22c55e" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                  <XAxis dataKey="month" tick={{ fill: "var(--text-subtle)", fontSize: 11 }} tickLine={false} axisLine={false} />
+                  <YAxis tick={{ fill: "var(--text-subtle)", fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <Tooltip content={<ChartTooltip />} />
+                  <Area type="monotone" dataKey="assigned" fill="url(#assignGrad)" stroke="#f59e0b" strokeWidth={2} name={t("dashboard.assignedLabel")} />
+                  <Area type="monotone" dataKey="returned" fill="url(#returnGrad)" stroke="#22c55e" strokeWidth={2} name={t("dashboard.returnedLabel")} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* AI Insights */}
       <AIInsights />

@@ -155,7 +155,7 @@ export function AlertsClient({ alerts }: { alerts: Alert[] }) {
   }, [alerts, tab, typeFilter, query]);
 
   const groups = useMemo(() => groupByAsset(filtered), [filtered]);
-  const { items: pagedGroups, total: groupsTotal } = usePagination(groups, 15);
+  const { items: pagedGroups, total: groupsTotal } = usePagination(groups, 10);
 
   const toggleExpanded = (code: string) => {
     setExpanded((prev) => {
@@ -448,7 +448,7 @@ export function AlertsClient({ alerts }: { alerts: Alert[] }) {
                   </div>
                 );
               })}
-              <Pagination total={groupsTotal} pageSize={15} />
+              <Pagination total={groupsTotal} pageSize={10} />
             </div>
           )}
         </>

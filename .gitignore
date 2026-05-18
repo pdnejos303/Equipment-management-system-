@@ -8,6 +8,8 @@
 
 # testing
 /coverage
+prisma/dev.db
+prisma/data.csv
 
 # next.js
 /.next/

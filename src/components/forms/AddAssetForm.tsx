@@ -37,10 +37,13 @@ function Field({
   );
 }
 
+const RESET_FIELDS = { code: "", name: "", brand: "", model: "", serialNumber: "", notes: "" };
+
 export function AddAssetForm({ open, onClose }: Props) {
   const { t } = useI18n();
   const router = useRouter();
   const { categories } = useCategories();
+  const [addAnother, setAddAnother] = useState(false);
   const [form, setForm] = useState({
     code: "",
     name: "",
@@ -74,13 +77,24 @@ export function AddAssetForm({ open, onClose }: Props) {
       warrantyEnd: f.warrantyEnd || undefined,
     }),
     onSuccess: () => {
-      onClose();
+      if (addAnother) {
+        setForm((f) => ({ ...f, ...RESET_FIELDS }));
+        setAddAnother(false);
+      } else {
+        onClose();
+      }
       router.refresh();
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    submit(form);
+  };
+
+  const handleAddAnother = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAddAnother(true);
     submit(form);
   };
 
@@ -238,6 +252,16 @@ export function AddAssetForm({ open, onClose }: Props) {
           submitLabel={t("newAsset.submit")}
           submittingLabel={t("newAsset.saving")}
           submitting={loading}
+          extras={
+            <button
+              type="button"
+              onClick={handleAddAnother}
+              disabled={loading}
+              className="btn-ghost disabled:opacity-50"
+            >
+              {t("newAsset.saveAndAddAnother")}
+            </button>
+          }
         />
       </form>
     </Modal>

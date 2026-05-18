@@ -1,29 +1,64 @@
 // Path: src/components/forms/AddAssignmentForm.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { FormFooter } from "@/components/ui/FormFooter";
+import { SearchablePicker, type PickerItem } from "@/components/ui/SearchablePicker";
 import { useI18n } from "@/lib/i18n";
 import { useFormSubmit } from "@/lib/useFormSubmit";
+import { useCategories } from "@/lib/useCategories";
+
+interface Asset {
+  id: string;
+  code: string;
+  name: string;
+  status: string;
+  category?: string;
+}
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  assets: { id: string; code: string; name: string; status: string }[];
+  assets: Asset[];
+  preselectedAssetId?: string;
 }
 
-export function AddAssignmentForm({ open, onClose, assets }: Props) {
+export function AddAssignmentForm({ open, onClose, assets, preselectedAssetId }: Props) {
   const { t } = useI18n();
+  const { labelFor } = useCategories();
   const [form, setForm] = useState({
-    assetId: "",
+    assetId: preselectedAssetId || "",
     personName: "",
     department: "",
     dateOut: new Date().toISOString().slice(0, 10),
     notes: "",
   });
 
-  const available = assets.filter((a) => a.status === "AVAILABLE");
+  useEffect(() => {
+    if (open) {
+      setForm((f) => ({ ...f, assetId: preselectedAssetId || "" }));
+    }
+  }, [open, preselectedAssetId]);
+
+  const available = useMemo(() => assets.filter((a) => a.status === "AVAILABLE"), [assets]);
+  const preselectedAsset = useMemo(
+    () => assets.find((a) => a.id === preselectedAssetId),
+    [assets, preselectedAssetId]
+  );
+
+  const pickerItems: PickerItem[] = useMemo(
+    () =>
+      available.map((a) => ({
+        id: a.id,
+        primary: a.code,
+        secondary: a.name,
+        tertiary: a.category ? labelFor(a.category) : undefined,
+        searchText: `${a.code} ${a.name} ${a.category ? labelFor(a.category) : ""}`,
+      })),
+    [available, labelFor]
+  );
+
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   const { submit, loading } = useFormSubmit({
@@ -34,20 +69,33 @@ export function AddAssignmentForm({ open, onClose, assets }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.assetId) return;
     submit(form);
   };
 
   return (
     <Modal open={open} onClose={onClose} title={t("forms.assign")}>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-xs text-gray-500 font-semibold mb-1">{t("forms.availableOnly")} *</label>
-          <select value={form.assetId} onChange={(e) => set("assetId", e.target.value)} required className="input">
-            <option value="">{t("forms.selectPlaceholder")}</option>
-            {available.map((a) => <option key={a.id} value={a.id}>{a.code} — {a.name}</option>)}
-          </select>
-          {available.length === 0 && <p className="text-xs text-amber-400 mt-1">{t("forms.noAvailable")}</p>}
-        </div>
+        {preselectedAsset ? (
+          <div className="rounded-lg border border-border bg-surface-dark px-3 py-2.5">
+            <p className="text-xs text-gray-500 font-semibold mb-0.5">{t("forms.availableOnly")}</p>
+            <p className="font-mono text-sm text-brand-500">{preselectedAsset.code}</p>
+            <p className="text-sm" style={{ color: "var(--text-default)" }}>{preselectedAsset.name}</p>
+          </div>
+        ) : (
+          <div>
+            <label className="block text-xs text-gray-500 font-semibold mb-2">
+              {t("forms.availableOnly")} *
+            </label>
+            <SearchablePicker
+              items={pickerItems}
+              selectedId={form.assetId}
+              onSelect={(id) => set("assetId", id)}
+              emptyText={t("forms.noAvailable")}
+              autoFocus
+            />
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs text-gray-500 font-semibold mb-1">{t("forms.personName")} *</label>
@@ -72,7 +120,7 @@ export function AddAssignmentForm({ open, onClose, assets }: Props) {
           submitLabel={t("forms.assign")}
           submittingLabel={t("forms.saving")}
           submitting={loading}
-          disabled={available.length === 0}
+          disabled={available.length === 0 || !form.assetId}
         />
       </form>
     </Modal>

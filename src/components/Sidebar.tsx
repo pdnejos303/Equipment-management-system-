@@ -7,9 +7,9 @@ import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
-  Package, Users, Wrench, Bell, CalendarClock, BarChart3, Calendar,
+  Package, Bell, CalendarClock, BarChart3, Calendar,
   ChevronLeft, ChevronRight, LayoutDashboard, X,
-  DatabaseBackup, UserCog, ScanLine, FileCode2,
+  DatabaseBackup, UserCog, ScanLine, FileCode2, UserCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
@@ -18,8 +18,7 @@ const MAIN_NAV = [
   { key: "overview", tKey: "nav.overview", href: "/overview", icon: LayoutDashboard },
   { key: "assets", tKey: "nav.assets", href: "/assets", icon: Package },
   { key: "scan", tKey: "nav.scan", href: "/scan", icon: ScanLine },
-  { key: "assignments", tKey: "nav.assignments", href: "/assignments", icon: Users },
-  { key: "maintenance", tKey: "nav.maintenance", href: "/maintenance", icon: Wrench },
+  { key: "in-use", tKey: "nav.inUse", href: "/in-use", icon: UserCheck },
   { key: "alerts", tKey: "nav.alerts", href: "/alerts", icon: Bell, hasBadge: true },
   { key: "bookings", tKey: "nav.bookings", href: "/bookings", icon: CalendarClock },
   { key: "calendar", tKey: "nav.calendar", href: "/calendar", icon: Calendar },
@@ -73,6 +72,7 @@ export function Sidebar({ alertCount = 0, mobileOpen, onCloseMobile }: SidebarPr
       "/users",
       "/migrate",
       "/migrate-csharp",
+      "/in-use",
     ];
     allRoutes.forEach((href) => router.prefetch(href));
   }, [router]);

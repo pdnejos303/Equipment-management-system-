@@ -8,6 +8,7 @@ import { formatMoney } from "@/lib/utils";
 import { ExportButtons } from "@/components/ExportButtons";
 import { AIInsights } from "@/components/AIInsights";
 import { BarChart3, TrendingUp, TrendingDown, Package, ChevronDown, ChevronRight } from "lucide-react";
+import { CategorySunburst } from "@/components/charts/CategorySunburst";
 
 function CollapsibleSection({
   title,
@@ -135,70 +136,10 @@ export function ReportsClient({ data }: { data: ReportsData }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-stagger">
-        {/* By Status */}
-        <CollapsibleSection title={t("reportPage.statusTitle")}>
-          <div className="space-y-4">
-            {Object.entries(byStatus).map(([status, count]) => {
-              const pct = totalAssets > 0 ? Math.round((count / totalAssets) * 100) : 0;
-              const sc = STATUS_COLORS[status] || { bar: "bg-gray-500", text: "text-gray-400" };
-              return (
-                <div key={status}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className={`text-sm font-medium ${sc.text}`}>{t(`status.${status}`)}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500">{pct}%</span>
-                      <span className={`text-sm font-bold ${sc.text}`}>{count}</span>
-                    </div>
-                  </div>
-                  <div className="h-2 bg-surface-dark rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${sc.bar} animate-progress transition-all`}
-                      style={{ width: `${pct}%` } as React.CSSProperties}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <div className="mt-5 pt-4 border-t border-border flex items-center justify-between text-sm">
-            <span className="text-gray-500">{t("reportPage.assigned")}</span>
-            <span className="text-brand-500 font-bold">{assigned} / {totalAssets}</span>
-          </div>
-        </CollapsibleSection>
-
-        {/* By Category */}
+        {/* Category Sunburst */}
         <CollapsibleSection title={t("reportPage.byCategoryTitle")}>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-2 px-2 text-xs text-gray-500 uppercase">{t("reportPage.type")}</th>
-                  <th className="text-right py-2 px-2 text-xs text-gray-500 uppercase">{t("reportPage.count")}</th>
-                  <th className="text-right py-2 px-2 text-xs text-gray-500 uppercase">{t("reportPage.currentVal")}</th>
-                  <th className="text-right py-2 px-2 text-xs text-gray-500 uppercase">{t("reportPage.repairCost")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(byCategory).map(([cat, d], idx) => (
-                  <tr key={cat} className={`border-b border-border transition-colors ${idx % 2 === 0 ? "" : "bg-surface-dark/40"}`}>
-                    <td className="py-2.5 px-2">
-                      <span className="inline-flex items-center gap-1.5 bg-surface-dark px-2 py-0.5 rounded-full text-xs" style={{ color: "var(--text-muted)" }}>
-                        <span>{emojiFor(cat)}</span>
-                        <span>{labelFor(cat)}</span>
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-2 text-right text-brand-500 font-bold">{d.count}</td>
-                    <td className="py-2.5 px-2 text-right font-mono text-green-400 text-xs">{t("common.baht")}{formatMoney(Math.round(d.current), locale)}</td>
-                    <td className="py-2.5 px-2 text-right font-mono text-red-400 text-xs">{t("common.baht")}{formatMoney(d.repair, locale)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <CategorySunburst />
         </CollapsibleSection>
-
-        {/* AI Insights */}
-        <AIInsights />
 
         {/* Category Value Breakdown */}
         <CollapsibleSection title={t("reportPage.categoryValueTitle")} defaultOpen={true}>
@@ -245,6 +186,40 @@ export function ReportsClient({ data }: { data: ReportsData }) {
             </span>
           </div>
         </CollapsibleSection>
+
+        {/* By Status */}
+        <CollapsibleSection title={t("reportPage.statusTitle")}>
+          <div className="space-y-4">
+            {Object.entries(byStatus).map(([status, count]) => {
+              const pct = totalAssets > 0 ? Math.round((count / totalAssets) * 100) : 0;
+              const sc = STATUS_COLORS[status] || { bar: "bg-gray-500", text: "text-gray-400" };
+              return (
+                <div key={status}>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className={`text-sm font-medium ${sc.text}`}>{t(`status.${status}`)}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">{pct}%</span>
+                      <span className={`text-sm font-bold ${sc.text}`}>{count}</span>
+                    </div>
+                  </div>
+                  <div className="h-2 bg-surface-dark rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${sc.bar} animate-progress transition-all`}
+                      style={{ width: `${pct}%` } as React.CSSProperties}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-5 pt-4 border-t border-border flex items-center justify-between text-sm">
+            <span className="text-gray-500">{t("reportPage.assigned")}</span>
+            <span className="text-brand-500 font-bold">{assigned} / {totalAssets}</span>
+          </div>
+        </CollapsibleSection>
+
+        {/* AI Insights */}
+        <AIInsights />
 
         {/* Depreciation */}
         <div className="lg:col-span-2 animate-fade-in">

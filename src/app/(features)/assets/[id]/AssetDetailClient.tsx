@@ -2,11 +2,17 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { UserPlus, RotateCcw, CalendarPlus, Wrench } from "lucide-react";
 import { formatMoney, formatDate } from "@/lib/utils";
 import { AssetSticker } from "@/components/AssetSticker";
 import { QRCodeDisplay } from "@/components/QRCodeDisplay";
 import { BarcodeDisplay } from "@/components/BarcodeDisplay";
 import { PhotoUpload } from "@/components/PhotoUpload";
+import { AddAssignmentForm } from "@/components/forms/AddAssignmentForm";
+import { ReturnAssetForm } from "@/components/forms/ReturnAssetForm";
+import { AddBookingForm } from "@/components/forms/AddBookingForm";
+import { AddMaintenanceForm } from "@/components/forms/AddMaintenanceForm";
 import { useI18n } from "@/lib/i18n";
 import { useRole } from "@/lib/useRole";
 import type { DepreciationResult } from "@/lib/depreciation";
@@ -25,8 +31,30 @@ type Tab = "info" | "assignments" | "maintenance" | "bookings" | "sticker";
 export function AssetDetailClient({ asset, depreciation, totalRepair, repairRatio }: Props) {
   const [tab, setTab] = useState<Tab>("info");
   const [photos, setPhotos] = useState<AssetPhoto[]>(asset.photos ?? []);
+  const [showAssign, setShowAssign] = useState(false);
+  const [showReturn, setShowReturn] = useState(false);
+  const [showBook, setShowBook] = useState(false);
+  const [showMaint, setShowMaint] = useState(false);
   const { t, locale } = useI18n();
-  const { canEdit } = useRole();
+  const { canEdit, canCreate } = useRole();
+  const router = useRouter();
+
+  // Use the open assignment as source of truth — `status` can drift out of sync.
+  const currentAssignment = asset.assignments.find((a: any) => !a.dateIn) || null;
+  const canBorrow = !currentAssignment && asset.status !== "RETIRED" && asset.status !== "MAINTENANCE";
+
+  const assetForForm = {
+    id: asset.id,
+    code: asset.code,
+    name: asset.name,
+    status: "AVAILABLE",
+    category: asset.category || "OTHER",
+  };
+
+  const closeAndRefresh = (setter: (v: boolean) => void) => () => {
+    setter(false);
+    router.refresh();
+  };
 
   const tabs: { key: Tab; label: string }[] = [
     { key: "info", label: t("assetDetail.info") },
@@ -157,7 +185,27 @@ export function AssetDetailClient({ asset, depreciation, totalRepair, repairRati
 
       {tab === "assignments" && (
         <div className="card tab-content">
-          <h3 className="font-semibold mb-4" style={{ color: "var(--text-default)" }}>{t("assetDetail.assignHistory")}</h3>
+          <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
+            <h3 className="font-semibold" style={{ color: "var(--text-default)" }}>{t("assetDetail.assignHistory")}</h3>
+            <div className="flex gap-2">
+              {canCreate && canBorrow && (
+                <button
+                  onClick={() => setShowAssign(true)}
+                  className="btn-primary text-sm flex items-center gap-1.5"
+                >
+                  <UserPlus size={14} /> {t("forms.assign")}
+                </button>
+              )}
+              {canCreate && currentAssignment && (
+                <button
+                  onClick={() => setShowReturn(true)}
+                  className="btn-primary text-sm flex items-center gap-1.5"
+                >
+                  <RotateCcw size={14} /> {t("forms.returnBtn")}
+                </button>
+              )}
+            </div>
+          </div>
           {asset.assignments.length === 0 ? (
             <p className="text-gray-500 text-center py-8">{t("assetDetail.noHistory")}</p>
           ) : (
@@ -180,7 +228,17 @@ export function AssetDetailClient({ asset, depreciation, totalRepair, repairRati
 
       {tab === "maintenance" && (
         <div className="card tab-content">
-          <h3 className="font-semibold mb-4" style={{ color: "var(--text-default)" }}>{t("assetDetail.maintHistory")}</h3>
+          <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
+            <h3 className="font-semibold" style={{ color: "var(--text-default)" }}>{t("assetDetail.maintHistory")}</h3>
+            {canCreate && (
+              <button
+                onClick={() => setShowMaint(true)}
+                className="btn-primary text-sm flex items-center gap-1.5"
+              >
+                <Wrench size={14} /> {t("forms.addMaint")}
+              </button>
+            )}
+          </div>
           {asset.maintenanceRecords.length === 0 ? (
             <p className="text-gray-500 text-center py-8">{t("assetDetail.noHistory")}</p>
           ) : (
@@ -201,7 +259,17 @@ export function AssetDetailClient({ asset, depreciation, totalRepair, repairRati
 
       {tab === "bookings" && (
         <div className="card tab-content">
-          <h3 className="font-semibold mb-4" style={{ color: "var(--text-default)" }}>{t("assetDetail.bookingHistory")}</h3>
+          <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
+            <h3 className="font-semibold" style={{ color: "var(--text-default)" }}>{t("assetDetail.bookingHistory")}</h3>
+            {canCreate && canBorrow && (
+              <button
+                onClick={() => setShowBook(true)}
+                className="btn-primary text-sm flex items-center gap-1.5"
+              >
+                <CalendarPlus size={14} /> {t("forms.bookBtn")}
+              </button>
+            )}
+          </div>
           {asset.bookings.length === 0 ? (
             <p className="text-gray-500 text-center py-8">{t("assetDetail.noHistory")}</p>
           ) : (
@@ -236,6 +304,43 @@ export function AssetDetailClient({ asset, depreciation, totalRepair, repairRati
           <AssetSticker code={asset.code} name={asset.name} brand={asset.brand || undefined} model={asset.model || undefined} serial={asset.serialNumber || undefined} />
         </div>
       )}
+
+      <AddAssignmentForm
+        open={showAssign}
+        onClose={closeAndRefresh(setShowAssign)}
+        assets={[assetForForm]}
+        preselectedAssetId={asset.id}
+      />
+
+      {currentAssignment && (
+        <ReturnAssetForm
+          open={showReturn}
+          onClose={closeAndRefresh(setShowReturn)}
+          assignments={[
+            {
+              id: currentAssignment.id,
+              assetCode: asset.code,
+              assetName: asset.name,
+              personName: currentAssignment.personName,
+            },
+          ]}
+          preselectedAssignmentId={currentAssignment.id}
+        />
+      )}
+
+      <AddBookingForm
+        open={showBook}
+        onClose={closeAndRefresh(setShowBook)}
+        assets={[assetForForm]}
+        preselectedAssetId={asset.id}
+      />
+
+      <AddMaintenanceForm
+        open={showMaint}
+        onClose={closeAndRefresh(setShowMaint)}
+        assets={[assetForForm]}
+        preselectedAssetId={asset.id}
+      />
     </div>
   );
 }

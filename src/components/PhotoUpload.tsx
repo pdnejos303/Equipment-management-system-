@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+import NextImage from "next/image";
 import { X, Star, Upload, ImagePlus, ZoomIn } from "lucide-react";
 import type { AssetPhoto } from "@/types";
 import { showError } from "@/lib/swal";
@@ -193,12 +194,13 @@ export function PhotoUpload({
         >
           {primaryPhoto ? (
             <>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <NextImage
                 src={primaryPhoto.url}
                 alt="Equipment photo"
-                className="w-full h-full object-cover"
-                loading="lazy"
+                fill
+                sizes="(max-width: 768px) 100vw, 600px"
+                className="object-cover"
+                priority={false}
               />
               {/* Zoom button */}
               <button
@@ -259,13 +261,13 @@ export function PhotoUpload({
           <div className="grid grid-cols-6 gap-2 mt-3">
             {photos.map((photo) => (
               <div key={photo.id} className="relative group aspect-square">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <NextImage
                   src={photo.url}
                   alt=""
-                  loading="lazy"
+                  fill
+                  sizes="120px"
                   className={cn(
-                    "w-full h-full object-cover rounded-lg cursor-pointer border-2 transition-all",
+                    "object-cover rounded-lg cursor-pointer border-2 transition-all",
                     photo.isPrimary
                       ? "border-brand-500 ring-1 ring-brand-500/30"
                       : "border-transparent hover:border-gray-600"
@@ -331,11 +333,13 @@ export function PhotoUpload({
           className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-md animate-overlay-in"
           onClick={() => setLightboxSrc(null)}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <NextImage
             src={lightboxSrc}
             alt="Full size"
-            className="max-w-[90vw] max-h-[90vh] object-contain rounded-xl shadow-2xl"
+            width={1920}
+            height={1920}
+            sizes="90vw"
+            className="max-w-[90vw] max-h-[90vh] w-auto h-auto object-contain rounded-xl shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           />
           <button

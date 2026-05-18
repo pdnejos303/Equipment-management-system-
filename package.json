@@ -14,7 +14,7 @@
     "db:status": "bash scripts/switch-db.sh status",
     "db:reset": "tsx prisma/reset.ts",
     "db:seed-bulk": "tsx prisma/seed-bulk.ts",
-    "db:seed-bulk:reset": "tsx prisma/seed-bulk.ts --reset",
+    "db:reset2": "tsx prisma/seed-reset.ts",
     "db:import-csv": "tsx prisma/import-csv.ts",
     "postinstall": "prisma generate"
   },

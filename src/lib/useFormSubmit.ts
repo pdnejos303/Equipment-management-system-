@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { showSuccess, showError } from "@/lib/swal";
+import { showSuccess, swal } from "@/lib/swal";
 import { useI18n } from "@/lib/i18n";
 
 interface Options {
@@ -36,7 +36,18 @@ export function useFormSubmit<T extends Record<string, any>>({
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        showError(t("forms.error"), data.error);
+        const msg = data.error ?? t("forms.error");
+        const details: { path: string[]; message: string }[] = data.details ?? [];
+        let html = `<p style="color:#9ca3af;font-size:14px;margin:0">${msg}</p>`;
+        if (details.length > 0) {
+          html += `<ul style="text-align:left;margin:10px 0 0;padding:0;list-style:none">`;
+          for (const d of details) {
+            const field = d.path.join(".") || "?";
+            html += `<li style="color:#f87171;font-size:12px;padding:3px 0">• <b>${field}</b>: ${d.message}</li>`;
+          }
+          html += `</ul>`;
+        }
+        swal.fire({ icon: "error", title: t("forms.error"), html });
         setLoading(false);
         return false;
       }
@@ -47,7 +58,7 @@ export function useFormSubmit<T extends Record<string, any>>({
       setLoading(false);
       return true;
     } catch {
-      showError(t("forms.error"));
+      swal.fire({ icon: "error", title: t("forms.error") });
       setLoading(false);
       return false;
     }

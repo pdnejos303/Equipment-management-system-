@@ -8,9 +8,18 @@ import { useRole } from "@/lib/useRole";
 import { useI18n } from "@/lib/i18n";
 import { showConfirm, showSuccess, showError } from "@/lib/swal";
 
+interface CurrentAssignment {
+  id: string;
+  personName: string;
+}
+
 interface Props {
   assetId: string;
   assetName: string;
+  assetCode?: string;
+  assetStatus?: string;
+  assetCategory?: string;
+  currentAssignment?: CurrentAssignment | null;
 }
 
 export function AssetActions({ assetId, assetName }: Props) {
@@ -40,7 +49,7 @@ export function AssetActions({ assetId, assetName }: Props) {
   };
 
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-wrap gap-2">
       {canEdit && (
         <Link href={`/assets/${assetId}/edit`} className="btn-ghost text-sm flex items-center gap-1">
           <Pencil size={14} /> {t("actions.edit")}
