@@ -113,6 +113,7 @@ export function DashboardClient({ data }: { data?: ServerData }) {
   const { labelFor } = useCategories();
   const [chartData, setChartData] = useState<ChartData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fetched, setFetched] = useState(false);
   const [range, setRange] = useState<RangePreset>("90");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
@@ -125,11 +126,16 @@ export function DashboardClient({ data }: { data?: ServerData }) {
         url = `/api/dashboard?from=${customFrom}&to=${customTo}`;
       }
       const res = await fetch(url);
+      if (!res.ok) {
+        setChartData(null);
+        return;
+      }
       const json = await res.json();
       setChartData(json);
     } catch {
-      // silently fail — server data still available
+      setChartData(null);
     } finally {
+      setFetched(true);
       setLoading(false);
     }
   }, [range, customFrom, customTo]);
@@ -248,7 +254,8 @@ export function DashboardClient({ data }: { data?: ServerData }) {
 
   // First load: show skeleton instead of zero-flash. Once data arrives,
   // keep showing it during range changes (stale-while-revalidate).
-  if (!chartData && !data) return <DashboardLoading />;
+  // After fetch completes — even on failure — fall through so we don't hang.
+  if (!chartData && !data && !fetched) return <DashboardLoading />;
 
   return (
     <div className="page-enter space-y-6">

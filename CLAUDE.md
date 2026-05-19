@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-EquipTrack — Equipment Management System for small/medium businesses. Built with Next.js 14 (App Router), Prisma, PostgreSQL (Supabase), and Tailwind CSS. Multi-language UI (Thai/English/Japanese). Dark theme.
+EquipTrack — Equipment Management System for small/medium businesses. Built with Next.js 14 (App Router), Prisma, SQLite (file-based, `prisma/dev.db` locally; `/app/data/prod.db` in Docker), and Tailwind CSS. Multi-language UI (Thai/English/Japanese). Dark theme.
 
 Demo credentials: `admin@company.com` / `admin123`
 
@@ -44,7 +44,7 @@ All API routes are Next.js Route Handlers. Key patterns:
 - `/api/assets`, `/api/assignments`, `/api/maintenance`, `/api/bookings` — standard REST.
 - `/api/ai/*` — AI features (chat, suggest, analyze, predict-maintenance, insights) using OpenAI.
 - `/api/export` — CSV/PDF export with multi-language support.
-- `/api/upload` — Photo upload to Supabase Storage.
+- `/api/upload` — Photo upload via storage abstraction (`src/lib/storage.ts`). Defaults to local filesystem; optionally swaps to Supabase Storage if `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` are set.
 - `/api/cron/` — Vercel Cron for daily alert emails via Resend.
 
 ### Frontend Patterns

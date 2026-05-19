@@ -40,9 +40,10 @@ class LocalStorageProvider implements StorageProvider {
   async delete(url: string): Promise<void> {
     const filename = url.split("/").pop();
     if (!filename) return;
-    // legacy: เก่าเคยเก็บ URL แบบ /uploads/xxx — รองรับลบจาก public/uploads ด้วย
-    const isLegacyPublic = url.startsWith("/uploads/") && !process.env.UPLOADS_DIR;
-    const target = isLegacyPublic
+    // ดู URL prefix ตัดสินที่อยู่จริง — รองรับ DB ที่มี URL ผสม (legacy + ใหม่)
+    //   /uploads/xxx       → public/uploads/  (ของ local dev เก่า)
+    //   /api/photos/xxx    → uploadDir         (volume ใน Docker, หรือ ./uploads ใน dev)
+    const target = url.startsWith("/uploads/")
       ? path.join(process.cwd(), "public", "uploads", filename)
       : path.join(this.uploadDir, filename);
     try {

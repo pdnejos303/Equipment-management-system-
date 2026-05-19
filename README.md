@@ -6,42 +6,36 @@ Equipment Management System สำหรับบริษัทเล็ก-ก
 
 - **Frontend:** Next.js 14 (App Router), Tailwind CSS
 - **Backend:** Next.js API Routes, Zod validation
-- **Database:** PostgreSQL (Supabase)
+- **Database:** SQLite (file-based — `prisma/dev.db` dev / `/app/data/prod.db` Docker)
 - **ORM:** Prisma
 - **Auth:** NextAuth.js (Google OAuth + Email/Password with bcrypt)
-- **Storage:** Supabase Storage (รูปอุปกรณ์)
+- **Storage:** Local filesystem (default) — Supabase Storage เป็น optional cloud option
 - **Email:** Resend (แจ้งเตือน daily)
-- **Hosting:** Vercel + Supabase
+- **Hosting:** Docker (self-hosted) — รูปและ DB เก็บใน named volumes
 
 ## Quick Start
 
-### 1. สร้าง Supabase Project
-
-1. ไปที่ [supabase.com](https://supabase.com) สร้าง project ใหม่
-2. Settings > Database > Connection string — copy ไว้
-3. Storage — สร้าง bucket `asset-photos` ตั้ง **public**
-
-### 2. ตั้งค่า Environment
+### 1. ตั้งค่า Environment
 
 ```bash
 cp .env.example .env.local
 ```
 
-ใส่ค่าตาม comment ใน `.env.local`:
-- DATABASE_URL + DIRECT_URL — จาก Supabase
+ค่า default ใช้ SQLite ที่ `prisma/dev.db` — ไม่ต้องตั้งอะไรเพิ่มสำหรับ DB
+ตั้งค่าที่เหลือตาม comment ใน `.env.local`:
 - NEXTAUTH_SECRET — `openssl rand -base64 32`
 - Google OAuth (optional) — Google Cloud Console
 - CRON_SECRET — `openssl rand -base64 32`
 
-### 3. Install + Setup DB
+### 2. Install + Setup DB
 
 ```bash
 npm install
-npx prisma db push
-npx prisma db seed
+npx prisma db push     # สร้าง tables ใน dev.db
+npx prisma db seed     # (optional) ใส่ข้อมูลตัวอย่าง
 ```
 
-### 4. Run
+### 3. Run
 
 ```bash
 npm run dev
@@ -51,13 +45,15 @@ npm run dev
 
 **Demo:** admin@company.com / admin123
 
-### 5. Deploy
+### 4. Deploy (Docker)
 
 ```bash
-npx vercel
+cp .env.production.example .env
+# แก้ค่าใน .env (NEXTAUTH_URL, NEXTAUTH_SECRET, ฯลฯ)
+docker compose up -d
 ```
 
-ตั้ง env vars ใน Vercel dashboard ให้ครบ (เปลี่ยน NEXT_PUBLIC_APP_URL เป็น domain จริง)
+DB และรูปอุปกรณ์เก็บใน named volumes (`equiptrack-data`, `equiptrack-uploads`) — ไม่หายเวลา rebuild image
 
 ## โครงสร้าง Project (70 ไฟล์)
 
@@ -139,7 +135,7 @@ equip-track/
 
 ### Core
 - ✅ ทะเบียนอุปกรณ์ CRUD + ค้นหา/กรอง/pagination
-- ✅ รูปถ่ายอุปกรณ์ (Supabase Storage, drag-drop, primary photo)
+- ✅ รูปถ่ายอุปกรณ์ (local fs default + optional Supabase Storage, drag-drop, primary photo)
 - ✅ QR Code + Barcode + สติกเกอร์ที่พิมพ์ได้
 - ✅ คำนวณค่าเสื่อมราคา (Straight-line)
 

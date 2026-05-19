@@ -89,14 +89,34 @@ export const authOptions: NextAuthOptions = {
           token.userId = dbUser.id;
           token.role = dbUser.role as "ADMIN" | "USER" | "VIEWER";
         }
+        return token;
+      }
+
+      // Re-validate on every request: if user was deleted (e.g. DB wiped),
+      // clear identity so guards can kick them back to /login.
+      if (token.userId) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.userId as string },
+            select: { role: true },
+          });
+          if (!dbUser) {
+            delete (token as any).userId;
+            delete (token as any).role;
+          } else {
+            token.role = dbUser.role as "ADMIN" | "USER" | "VIEWER";
+          }
+        } catch {
+          // DB unreachable — leave token untouched, don't lock user out on transient failure
+        }
       }
       return token;
     },
 
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).id = token.userId;
-        (session.user as any).role = token.role;
+        (session.user as any).id = token.userId ?? null;
+        (session.user as any).role = token.role ?? null;
       }
       return session;
     },

@@ -89,7 +89,7 @@ const MOCK_TABLES: MockTable[] = [
       { source: "Brand", target: "brand", conversion: "string" },
       { source: "Catagory", target: "category", conversion: "fk-lookup", note: "[typo source] String → enum: Computer→LAPTOP, Camera→CAMERA, Vehicle→VEHICLE, Monitor→MONITOR, Printer→PRINTER, ..." },
       { source: "CreateAt", target: null, conversion: "filter", note: "Auto-set on insert" },
-      { source: "ImageData", target: "AssetPhoto.url", conversion: "computed", note: "varbinary(max) → base64 → upload to Supabase Storage → save URL" },
+      { source: "ImageData", target: "AssetPhoto.url", conversion: "computed", note: "varbinary(max) → base64 → upload via storage provider → save URL" },
       { source: "Name", target: "name", conversion: "string", required: true },
       { source: "Price", target: "purchasePrice", conversion: "number" },
       { source: "SerialNumber", target: "serialNumber", conversion: "string" },
