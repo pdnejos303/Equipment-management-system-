@@ -2,17 +2,19 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { format } from "date-fns";
-import { th, enUS, ja } from "date-fns/locale";
+import { th, enUS, ja, zhCN, fr } from "date-fns/locale";
 import type { Locale } from "./i18n";
 
-const DATE_LOCALES = { th, en: enUS, ja };
+const DATE_LOCALES: Record<Locale, typeof enUS> = { th, en: enUS, ja, zh: zhCN, fr };
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
 export function formatMoney(amount: number, locale: Locale = "th"): string {
-  const localeMap = { th: "th-TH", en: "en-US", ja: "ja-JP" };
+  const localeMap: Record<Locale, string> = {
+    th: "th-TH", en: "en-US", ja: "ja-JP", zh: "zh-CN", fr: "fr-FR",
+  };
   return amount.toLocaleString(localeMap[locale]);
 }
 

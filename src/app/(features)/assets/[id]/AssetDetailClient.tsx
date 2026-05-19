@@ -83,25 +83,25 @@ export function AssetDetailClient({ asset, depreciation, totalRepair, repairRati
       {tab === "info" && (
         <div className="space-y-6 animate-stagger">
 
-          {/* ── Photo section ── */}
-          <div className="card">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold" style={{ color: "var(--text-default)" }}>
-                {t("assetDetail.equipmentPhotos")}
-              </h3>
-              {photos.length > 0 && (
-                <span className="text-xs text-gray-600">{t("assetDetail.photoCount", photos.length)}</span>
-              )}
-            </div>
-            <PhotoUpload
-              assetId={asset.id}
-              photos={photos}
-              onPhotosChange={setPhotos}
-              readOnly={!canEdit}
-            />
-          </div>
-
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* ── Photo section ── */}
+            <div className="card">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold" style={{ color: "var(--text-default)" }}>
+                  {t("assetDetail.equipmentPhotos")}
+                </h3>
+                {photos.length > 0 && (
+                  <span className="text-xs text-gray-600">{t("assetDetail.photoCount", photos.length)}</span>
+                )}
+              </div>
+              <PhotoUpload
+                assetId={asset.id}
+                photos={photos}
+                onPhotosChange={setPhotos}
+                readOnly={!canEdit}
+              />
+            </div>
+
             <div className="card">
               <h3 className="font-semibold mb-3" style={{ color: "var(--text-default)" }}>{t("assetDetail.qrBarcode")}</h3>
               <div className="flex items-center gap-4">

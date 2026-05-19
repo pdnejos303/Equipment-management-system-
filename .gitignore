@@ -44,6 +44,10 @@ next-env.d.ts
 /public/uploads/*
 !/public/uploads/.gitkeep
 
+# legacy images extracted from SQL Server (local dev)
+/uploads/*
+!/uploads/.gitkeep
+
 # internal documentation (not for version control)
 /Docs/
 

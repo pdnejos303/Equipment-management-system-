@@ -51,8 +51,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
-# โฟลเดอร์เก็บ SQLite DB
-RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data
+# โฟลเดอร์เก็บ SQLite DB + รูปอุปกรณ์ (mount เป็น Docker volume)
+RUN mkdir -p /app/data /app/uploads \
+ && chown -R nextjs:nodejs /app/data /app/uploads
 
 USER nextjs
 

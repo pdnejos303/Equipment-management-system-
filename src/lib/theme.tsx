@@ -12,7 +12,7 @@ export type ThemeMode = "dark" | "light";
 export interface ThemeInfo {
   id: Theme;
   mode: ThemeMode;
-  label: { th: string; en: string; ja: string };
+  label: Record<string, string> & { en: string };
   brandColor: string;
   previewBg: string;
 }

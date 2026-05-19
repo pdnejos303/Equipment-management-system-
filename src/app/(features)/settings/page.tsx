@@ -10,6 +10,8 @@ const LOCALE_DESCRIPTIONS: Record<Locale, string> = {
   th: "ภาษาไทย",
   en: "English (US)",
   ja: "日本語",
+  zh: "简体中文",
+  fr: "Français",
 };
 
 function ThemeCard({ th_, isActive, onClick, locale }: {
@@ -63,7 +65,7 @@ export default function SettingsPage() {
   const { locale, setLocale, t } = useI18n();
   const { theme, setTheme } = useTheme();
 
-  const locales: Locale[] = ["th", "en", "ja"];
+  const locales: Locale[] = ["th", "en", "ja", "zh", "fr"];
 
   return (
     <div className="page-enter">

@@ -3,7 +3,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import NextImage from "next/image";
-import { X, Star, Upload, ImagePlus, ZoomIn } from "lucide-react";
+import { X, Star, Upload, ImagePlus } from "lucide-react";
 import type { AssetPhoto } from "@/types";
 import { showError } from "@/lib/swal";
 import { cn } from "@/lib/utils";
@@ -174,10 +174,10 @@ export function PhotoUpload({
   return (
     <>
       <div>
-        {/* Main photo */}
+        {/* Main photo — constrained aspect, fits any orientation */}
         <div
           className={cn(
-            "relative w-full h-52 rounded-xl overflow-hidden border-2 transition-all duration-200",
+            "relative w-full aspect-[4/3] rounded-xl overflow-hidden border-2 transition-all duration-200 bg-surface-dark",
             dragOver ? "border-brand-500 bg-brand-500/10 scale-[0.99]" : "",
             primaryPhoto && !dragOver ? "border-border" : "",
             !primaryPhoto && !dragOver && !readOnly
@@ -193,23 +193,21 @@ export function PhotoUpload({
           onDrop={handleDrop}
         >
           {primaryPhoto ? (
-            <>
+            <button
+              type="button"
+              onClick={() => setLightboxSrc(primaryPhoto.url)}
+              className="absolute inset-0 w-full h-full cursor-zoom-in"
+              aria-label="View full size"
+            >
               <NextImage
                 src={primaryPhoto.url}
                 alt="Equipment photo"
                 fill
-                sizes="(max-width: 768px) 100vw, 600px"
-                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-contain"
                 priority={false}
               />
-              {/* Zoom button */}
-              <button
-                onClick={() => setLightboxSrc(primaryPhoto.url)}
-                className="absolute bottom-2 right-2 w-8 h-8 rounded-lg bg-black/50 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white hover:bg-black/70 transition"
-              >
-                <ZoomIn size={15} />
-              </button>
-            </>
+            </button>
           ) : readOnly ? (
             <div className="flex flex-col items-center justify-center h-full bg-surface-dark text-gray-700">
               <ImagePlus size={28} className="mb-2" />
@@ -258,7 +256,7 @@ export function PhotoUpload({
 
         {/* Thumbnails */}
         {photos.length > 0 && (
-          <div className="grid grid-cols-6 gap-2 mt-3">
+          <div className="grid grid-cols-5 gap-2 mt-3">
             {photos.map((photo) => (
               <div key={photo.id} className="relative group aspect-square">
                 <NextImage

@@ -152,6 +152,7 @@ export function ReportsClient({ data }: { data: ReportsData }) {
               {Object.entries(byCategory)
                 .filter(([, d]) => d.current > 0)
                 .sort(([, a], [, b]) => b.current - a.current)
+                .slice(0, 10)
                 .map(([cat, d]) => {
                   const pct = totalCurrent > 0 ? Math.round((d.current / totalCurrent) * 100) : 0;
                   return (

@@ -5,10 +5,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Menu, Settings, ChevronDown } from "lucide-react";
-import { useI18n, LOCALE_LABELS, LOCALE_FLAGS, type Locale } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n";
 import { useTheme, THEMES } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { useRef, useState, useEffect } from "react";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const PAGE_TITLES: Record<string, { th: string; en: string; ja: string }> = {
   "/overview":    { th: "ภาพรวม",       en: "Overview",    ja: "概要" },
@@ -33,7 +34,7 @@ interface HeaderProps {
 export function Header({ onOpenMobile }: HeaderProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const { locale, setLocale } = useI18n();
+  const { locale } = useI18n();
   const { theme, setTheme } = useTheme();
   const [showThemeDropdown, setShowThemeDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -41,13 +42,12 @@ export function Header({ onOpenMobile }: HeaderProps) {
   const getTitle = () => {
     for (const [path, titles] of Object.entries(PAGE_TITLES)) {
       if (pathname === path || pathname.startsWith(path + "/")) {
-        return titles[locale] ?? titles.en;
+        return (titles as Record<string, string>)[locale] ?? titles.en;
       }
     }
     return "EquipTrack";
   };
 
-  const locales: Locale[] = ["th", "en", "ja"];
   const userInitial = ((session?.user?.name || session?.user?.email || "?")[0]).toUpperCase();
   const userName = session?.user?.name || session?.user?.email || "";
   const userRole = (session?.user as any)?.role ?? "";
@@ -95,26 +95,8 @@ export function Header({ onOpenMobile }: HeaderProps) {
       {/* Right controls — all items same height (h-8) */}
       <div className="flex items-center gap-1.5">
 
-        {/* Language switcher */}
-        <div className="flex items-center gap-0.5">
-          {locales.map((l) => (
-            <button
-              key={l}
-              onClick={() => setLocale(l)}
-              aria-pressed={locale === l}
-              aria-label={`Switch to ${LOCALE_LABELS[l]}`}
-              className={cn(
-                "h-8 px-2 sm:px-2.5 rounded-lg text-xs font-medium transition-all duration-150 flex items-center justify-center gap-1",
-                locale === l
-                  ? "bg-brand-500 text-black"
-                  : "text-[var(--text-muted)] hover:text-[var(--text-default)] hover:bg-[var(--surface-hover)]"
-              )}
-            >
-              <span className="text-sm leading-none">{LOCALE_FLAGS[l]}</span>
-              <span className="hidden sm:inline">{LOCALE_LABELS[l]}</span>
-            </button>
-          ))}
-        </div>
+        {/* Language switcher (dropdown) */}
+        <LanguageSwitcher />
 
         {/* Divider */}
         <div className="hidden sm:block w-px h-5 bg-[var(--border)]" />

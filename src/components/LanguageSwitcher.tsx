@@ -1,55 +1,93 @@
 // Path: src/components/LanguageSwitcher.tsx
 "use client";
 
-import { useI18n, LOCALE_LABELS, type Locale } from "@/lib/i18n";
-import { Globe } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useI18n, LOCALE_LABELS, LOCALE_FLAGS, type Locale } from "@/lib/i18n";
+import { ChevronDown, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const LOCALES: Locale[] = ["th", "en", "ja", "zh", "fr"];
 
 export function LanguageSwitcher({ collapsed = false }: { collapsed?: boolean }) {
   const { locale, setLocale } = useI18n();
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
 
-  const locales: Locale[] = ["th", "en", "ja"];
+  useEffect(() => {
+    function handle(e: MouseEvent) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    if (open) {
+      document.addEventListener("mousedown", handle);
+      return () => document.removeEventListener("mousedown", handle);
+    }
+  }, [open]);
 
-  if (collapsed) {
-    return (
-      <div className="flex flex-col items-center gap-1">
-        {locales.map((l) => (
-          <button
-            key={l}
-            onClick={() => setLocale(l)}
-            aria-label={`Switch to ${LOCALE_LABELS[l]}`}
-            aria-pressed={locale === l}
-            className={`w-10 h-10 rounded text-[10px] font-bold transition-all duration-200 ${
-              locale === l
-                ? "bg-brand-500 text-black"
-                : "text-gray-500 hover:text-gray-300 hover:bg-surface-hover"
-            }`}
-          >
-            {l.toUpperCase()}
-          </button>
-        ))}
-      </div>
-    );
-  }
+  const pick = (l: Locale) => {
+    setLocale(l);
+    setOpen(false);
+  };
 
   return (
-    <div className="flex items-center gap-0.5 px-1 rounded-lg p-0.5 border border-[var(--border)]" style={{ background: "var(--surface-hover)" }}>
-      <Globe size={13} className="flex-shrink-0 ml-1 mr-0.5" style={{ color: "var(--text-subtle)" }} />
-      {locales.map((l) => (
-        <button
-          key={l}
-          onClick={() => setLocale(l)}
-          aria-label={`Switch to ${LOCALE_LABELS[l]}`}
-          aria-pressed={locale === l}
-          className={`px-2.5 py-2 rounded-md text-xs font-medium transition-all duration-200 min-h-[36px] flex items-center justify-center ${
-            locale === l
-              ? "bg-brand-500 text-black"
-              : "hover:bg-[var(--surface-active)]"
-          }`}
-          style={locale === l ? { boxShadow: "0 0 8px rgb(var(--brand-rgb) / 0.15)" } : { color: "var(--text-subtle)" }}
+    <div ref={wrapRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className={cn(
+          "flex items-center gap-1.5 rounded-lg border transition-colors min-h-[36px]",
+          collapsed ? "px-2 py-1.5" : "px-2.5 py-2",
+          "hover:bg-[var(--surface-active)]"
+        )}
+        style={{
+          background: "var(--surface-hover)",
+          borderColor: "var(--border)",
+          color: "var(--text-default)",
+        }}
+      >
+        <span className="text-base leading-none">{LOCALE_FLAGS[locale]}</span>
+        {!collapsed && (
+          <span className="text-xs font-medium">{LOCALE_LABELS[locale]}</span>
+        )}
+        <ChevronDown
+          size={13}
+          className={cn("transition-transform", open && "rotate-180")}
+          style={{ color: "var(--text-subtle)" }}
+        />
+      </button>
+
+      {open && (
+        <ul
+          role="listbox"
+          className="absolute right-0 mt-1.5 min-w-[160px] rounded-lg border shadow-xl overflow-hidden z-50 animate-fade-in"
+          style={{
+            background: "var(--surface)",
+            borderColor: "var(--border)",
+          }}
         >
-          {LOCALE_LABELS[l]}
-        </button>
-      ))}
+          {LOCALES.map((l) => (
+            <li key={l} role="option" aria-selected={locale === l}>
+              <button
+                type="button"
+                onClick={() => pick(l)}
+                className={cn(
+                  "w-full flex items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors",
+                  locale === l
+                    ? "bg-brand-500/10 text-[var(--text-default)]"
+                    : "hover:bg-[var(--surface-hover)] text-[var(--text-muted)]"
+                )}
+              >
+                <span className="text-base leading-none">{LOCALE_FLAGS[l]}</span>
+                <span className="flex-1">{LOCALE_LABELS[l]}</span>
+                {locale === l && <Check size={14} className="text-brand-500" />}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

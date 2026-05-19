@@ -25,19 +25,28 @@ export interface StorageProvider {
 // ─── 1. Local Filesystem Provider ────────────────────────────────────────────
 
 class LocalStorageProvider implements StorageProvider {
-  private uploadDir = path.join(process.cwd(), "public", "uploads");
+  // ถ้าตั้ง UPLOADS_DIR (เช่นใน Docker → /app/uploads) จะเขียนลง volume แทน public/
+  // และเปลี่ยน URL prefix เป็น /api/photos/ ให้ route handler เสิร์ฟไฟล์จาก volume
+  private uploadDir = process.env.UPLOADS_DIR
+    || path.join(process.cwd(), "public", "uploads");
+  private urlPrefix = process.env.UPLOADS_DIR ? "/api/photos" : "/uploads";
 
   async upload(buffer: Buffer, filename: string): Promise<string> {
     await mkdir(this.uploadDir, { recursive: true });
     await writeFile(path.join(this.uploadDir, filename), buffer);
-    return `/uploads/${filename}`;
+    return `${this.urlPrefix}/${filename}`;
   }
 
   async delete(url: string): Promise<void> {
-    if (!url.startsWith("/uploads/")) return;
-    const filePath = path.join(process.cwd(), "public", url);
+    const filename = url.split("/").pop();
+    if (!filename) return;
+    // legacy: เก่าเคยเก็บ URL แบบ /uploads/xxx — รองรับลบจาก public/uploads ด้วย
+    const isLegacyPublic = url.startsWith("/uploads/") && !process.env.UPLOADS_DIR;
+    const target = isLegacyPublic
+      ? path.join(process.cwd(), "public", "uploads", filename)
+      : path.join(this.uploadDir, filename);
     try {
-      await unlink(filePath);
+      await unlink(target);
     } catch {
       // ไฟล์อาจถูกลบไปแล้ว ไม่ต้อง throw
     }
@@ -143,7 +152,8 @@ function createStorageProvider(): StorageProvider {
     console.log("[storage] Using Supabase Storage (cloud)");
     return new SupabaseStorageProvider();
   }
-  console.log("[storage] Using local filesystem (public/uploads/)");
+  const dir = process.env.UPLOADS_DIR || "public/uploads";
+  console.log(`[storage] Using local filesystem (${dir})`);
   return new LocalStorageProvider();
 }
 

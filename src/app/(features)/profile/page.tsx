@@ -7,10 +7,10 @@ import { User, Key, LogOut, Save, Eye, EyeOff, ShieldCheck } from "lucide-react"
 import { useI18n } from "@/lib/i18n";
 import { showSuccess, showError } from "@/lib/swal";
 
-const ROLE_LABELS: Record<string, { th: string; en: string; ja: string }> = {
-  ADMIN: { th: "ผู้ดูแลระบบ", en: "Administrator", ja: "管理者" },
-  USER: { th: "ผู้ใช้งาน", en: "User", ja: "ユーザー" },
-  VIEWER: { th: "ผู้ดูเท่านั้น", en: "Viewer", ja: "閲覧者" },
+const ROLE_LABELS: Record<string, Record<string, string>> = {
+  ADMIN: { th: "ผู้ดูแลระบบ", en: "Administrator", ja: "管理者", zh: "管理员", fr: "Administrateur" },
+  USER: { th: "ผู้ใช้งาน", en: "User", ja: "ユーザー", zh: "用户", fr: "Utilisateur" },
+  VIEWER: { th: "ผู้ดูเท่านั้น", en: "Viewer", ja: "閲覧者", zh: "查看者", fr: "Lecteur" },
 };
 
 const ROLE_BADGE: Record<string, string> = {
@@ -37,7 +37,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [savingPw, setSavingPw] = useState(false);
 
-  const roleLabel = ROLE_LABELS[userRole]?.[locale] ?? userRole;
+  const roleLabel = ROLE_LABELS[userRole]?.[locale] ?? ROLE_LABELS[userRole]?.en ?? userRole;
   const roleBadge = ROLE_BADGE[userRole] ?? ROLE_BADGE.VIEWER;
 
   const handleSaveName = async () => {

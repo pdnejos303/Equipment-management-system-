@@ -17,6 +17,9 @@ services:
       DATABASE_URL: "file:/app/data/prod.db"
       DIRECT_URL: "file:/app/data/prod.db"
 
+      # ── Uploads (รูปจาก legacy + รูปใหม่) เก็บใน volume /app/uploads ──
+      UPLOADS_DIR: "/app/uploads"
+
       # ── NextAuth ──
       NEXTAUTH_URL: ${NEXTAUTH_URL}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
@@ -39,6 +42,9 @@ services:
     volumes:
       # SQLite DB เก็บไว้นอก container เพื่อไม่ให้หายเวลา rebuild
       - equiptrack-data:/app/data
+      # รูปอุปกรณ์ — แยก volume เพื่อ snapshot/backup ได้อิสระ
+      - equiptrack-uploads:/app/uploads
 
 volumes:
   equiptrack-data:
+  equiptrack-uploads:
