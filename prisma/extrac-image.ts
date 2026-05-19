@@ -51,8 +51,7 @@ const config: sql.config = {
   ...(LEGACY_PORT && !LEGACY_INSTANCE ? { port: LEGACY_PORT } : {}),
 };
 
-const UPLOADS_DIR =
-  process.env.UPLOADS_DIR || resolve(__dirname, "../uploads");
+const UPLOADS_DIR = process.env.UPLOADS_DIR || resolve(__dirname, "../uploads");
 const THUMBS_DIR = join(UPLOADS_DIR, "thumbs");
 const THUMB_WIDTH = 1200;
 const THUMB_QUALITY = 80;
@@ -93,6 +92,7 @@ async function main() {
     ? `${LEGACY_SERVER}\\${LEGACY_INSTANCE}`
     : `${LEGACY_SERVER}${LEGACY_PORT ? `:${LEGACY_PORT}` : ""}`;
   console.log(`\nConnecting to SQL Server: ${target} / db=${config.database}`);
+
   try {
     await sql.connect(config);
   } catch (e: any) {
