@@ -14,6 +14,7 @@ import type { LabelAsset } from "@/components/labels";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { AddAssetForm } from "@/components/forms/AddAssetForm";
 import { CategoriesManagerDialog } from "@/components/settings/CategoriesManagerDialog";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { useRole } from "@/lib/useRole";
 import { useCategories } from "@/lib/useCategories";
 import { Plus, Settings2 } from "lucide-react";
@@ -58,8 +59,15 @@ export function AssetsClient({ data }: { data: AssetsData }) {
   const [showBatchPrint, setShowBatchPrint] = useState(false);
   const [showAddAsset, setShowAddAsset] = useState(false);
   const [showManageCategories, setShowManageCategories] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState(searchParams.category || "");
 
   const statuses = ["ACTIVE", "AVAILABLE", "MAINTENANCE", "RETIRED"];
+
+  const categoryOptions = categories.map((c) => ({
+    value: c.key,
+    label: c.label,
+    prefix: c.emoji || undefined,
+  }));
 
   const isAllSelected = assets.length > 0 && selected.size === assets.length;
   const isSomeSelected = selected.size > 0;
@@ -138,10 +146,15 @@ export function AssetsClient({ data }: { data: AssetsData }) {
             <option value="">{t("assets.allStatus")}</option>
             {statuses.map((s) => <option key={s} value={s}>{t(`status.${s}`)}</option>)}
           </select>
-          <select name="category" defaultValue={searchParams.category || ""} className="select flex-1 sm:w-auto sm:flex-none">
-            <option value="">{t("assets.allCategory")}</option>
-            {categories.map((c) => <option key={c.key} value={c.key}>{c.emoji ? `${c.emoji} ` : ""}{c.label}</option>)}
-          </select>
+          <SearchableSelect
+            name="category"
+            value={categoryFilter}
+            onChange={setCategoryFilter}
+            options={categoryOptions}
+            allLabel={t("assets.allCategory")}
+            ariaLabel={t("assets.allCategory")}
+            className="flex-1 sm:w-56 sm:flex-none"
+          />
           {canCreate && (
             <button
               type="button"

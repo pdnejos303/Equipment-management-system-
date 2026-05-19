@@ -13,7 +13,10 @@
       "PowerShell(Get-NetTCPConnection *)",
       "PowerShell(pnpm run *)",
       "PowerShell(npx prisma db push)",
-      "PowerShell(npx tsx prisma/import-csv.ts)"
+      "PowerShell(npx tsx prisma/import-csv.ts)",
+      "PowerShell(Test-NetConnection *)",
+      "PowerShell(pnpm image *)",
+      "PowerShell(npx tsx prisma/verify-photos.ts)"
     ]
   }
 }

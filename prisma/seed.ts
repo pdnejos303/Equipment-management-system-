@@ -58,6 +58,35 @@ async function main() {
     assets[data.code] = await prisma.asset.upsert({ where: { code: data.code }, update: {}, create: data });
   }
 
+  // ── Photos (placeholder ภายนอก) ──
+  // ใช้ picsum.photos เพื่อไม่ผูกกับ filesystem — สลับ DB ไป-มาแล้วรูปยังโชว์ได้
+  // seed ของจริง (real data) จะ upload เข้า storage provider เอง ผ่าน /api/upload
+  const photoCount = await prisma.assetPhoto.count();
+  if (photoCount === 0) {
+    const photoSeeds = [
+      { code: "EQ-001", seeds: ["macbook-1", "macbook-2"] },
+      { code: "EQ-002", seeds: ["monitor-1"] },
+      { code: "EQ-003", seeds: ["vios-1", "vios-2"] },
+      { code: "EQ-004", seeds: ["canon-1"] },
+      { code: "EQ-005", seeds: ["projector-1"] },
+      { code: "EQ-006", seeds: ["thinkpad-1"] },
+      { code: "EQ-007", seeds: ["aeron-1"] },
+      { code: "EQ-008", seeds: ["air-1"] },
+    ];
+    for (const { code, seeds } of photoSeeds) {
+      const asset = assets[code];
+      if (!asset) continue;
+      await prisma.assetPhoto.createMany({
+        data: seeds.map((s, i) => ({
+          assetId: asset.id,
+          url: `https://picsum.photos/seed/${s}/800/600`,
+          isPrimary: i === 0,
+          order: i,
+        })),
+      });
+    }
+  }
+
   // ── Assignments ──
   const assignCount = await prisma.assignment.count();
   if (assignCount === 0) {

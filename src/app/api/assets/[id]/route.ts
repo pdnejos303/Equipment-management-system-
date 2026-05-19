@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionWithRole } from "@/lib/role-guard";
+import { storageProvider } from "@/lib/storage";
 import { z } from "zod";
 
 // GET /api/assets/[id]
@@ -90,7 +91,17 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    // Delete related records first
+
+    // Fetch photo URLs ก่อนลบ row — เอาไว้ลบไฟล์จาก storage ทีหลัง
+    // ใช้ URL ไม่ใช่ filename เพราะ provider แต่ละตัวเก็บคนละที่ (local/Supabase/S3)
+    const photoUrls = (
+      await prisma.assetPhoto.findMany({
+        where: { assetId: id },
+        select: { url: true },
+      })
+    ).map((p) => p.url);
+
+    // ลบ DB rows เป็น atomic transaction ก่อน — ถ้า fail ไฟล์ยังอยู่ครบ ปลอดภัยกว่าฝั่งกลับ
     await prisma.$transaction([
       prisma.assetPhoto.deleteMany({ where: { assetId: id } }),
       prisma.assignment.deleteMany({ where: { assetId: id } }),
@@ -98,6 +109,21 @@ export async function DELETE(
       prisma.booking.deleteMany({ where: { assetId: id } }),
       prisma.asset.delete({ where: { id } }),
     ]);
+
+    // ลบไฟล์จริงจาก storage แบบ best-effort — ถ้าไฟล์เพี้ยน/หายไปแล้ว ไม่ต้อง throw
+    // (ถ้าลบไม่สำเร็จ ก็แค่กลายเป็น orphan file — ดีกว่าทำ request fail หลัง DB ลบไปแล้ว)
+    if (photoUrls.length > 0) {
+      const results = await Promise.allSettled(
+        photoUrls.map((url) => storageProvider.delete(url))
+      );
+      const failed = results.filter((r) => r.status === "rejected");
+      if (failed.length > 0) {
+        console.warn(
+          `[assets DELETE] ${failed.length}/${photoUrls.length} photo files could not be removed`,
+          failed
+        );
+      }
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

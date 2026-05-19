@@ -19,17 +19,36 @@ import { resolve, join } from "path";
 
 const prisma = new PrismaClient();
 
+// Legacy SQL Server connection — overridable via env vars
+//   LEGACY_DB_SERVER     default 192.168.1.21
+//   LEGACY_DB_INSTANCE   default INTERNPRJ   (set empty "" if using a static port)
+//   LEGACY_DB_PORT       optional — set ONLY when there's no instanceName / SQL Browser disabled
+//   LEGACY_DB_NAME       default aspnet-TaeAuthenticationTestDb
+//   LEGACY_DB_USER       default sa
+//   LEGACY_DB_PASSWORD   default 01Password
+//
+// Note: when `instanceName` is set, do NOT also set `port` — tedious uses port
+// as the override and skips SQL Browser lookup → connection times out if the
+// named instance isn't listening on that static port.
+const LEGACY_SERVER = process.env.LEGACY_DB_SERVER || "192.168.1.21";
+const LEGACY_INSTANCE = process.env.LEGACY_DB_INSTANCE ?? "INTERNPRJ";
+const LEGACY_PORT = process.env.LEGACY_DB_PORT
+  ? parseInt(process.env.LEGACY_DB_PORT, 10)
+  : undefined;
+
 const config: sql.config = {
-  server: "192.168.1.21",
-  port: 1433,
-  database: "aspnet-TaeAuthenticationTestDb",
-  user: "sa",
-  password: "01Password",
+  server: LEGACY_SERVER,
+  database: process.env.LEGACY_DB_NAME || "aspnet-TaeAuthenticationTestDb",
+  user: process.env.LEGACY_DB_USER || "sa",
+  password: process.env.LEGACY_DB_PASSWORD || "01Password",
+  connectionTimeout: 30000,
+  requestTimeout: 60000,
   options: {
-    instanceName: "INTERNPRJ",
     encrypt: false,
     trustServerCertificate: true,
+    ...(LEGACY_INSTANCE ? { instanceName: LEGACY_INSTANCE } : {}),
   },
+  ...(LEGACY_PORT && !LEGACY_INSTANCE ? { port: LEGACY_PORT } : {}),
 };
 
 const UPLOADS_DIR =
@@ -70,8 +89,23 @@ async function main() {
   console.log(`Originals: ${UPLOADS_DIR}`);
   console.log(`Thumbnails: ${THUMBS_DIR} (${THUMB_WIDTH}px, q${THUMB_QUALITY})`);
 
-  console.log("\nConnecting to SQL Server...");
-  await sql.connect(config);
+  const target = LEGACY_INSTANCE
+    ? `${LEGACY_SERVER}\\${LEGACY_INSTANCE}`
+    : `${LEGACY_SERVER}${LEGACY_PORT ? `:${LEGACY_PORT}` : ""}`;
+  console.log(`\nConnecting to SQL Server: ${target} / db=${config.database}`);
+  try {
+    await sql.connect(config);
+  } catch (e: any) {
+    console.error(`\nConnection failed: ${e.message}`);
+    console.error(`\nChecklist on the SQL Server host (192.168.1.21):`);
+    console.error(`  1. SQL Server Browser service is running (needed to resolve named instance "${LEGACY_INSTANCE}")`);
+    console.error(`  2. TCP/IP protocol is enabled for instance ${LEGACY_INSTANCE} (SQL Server Configuration Manager)`);
+    console.error(`  3. Windows Firewall allows inbound on UDP 1434 + the instance's TCP port`);
+    console.error(`  4. SQL auth is enabled and login "sa" / password is correct\n`);
+    console.error(`Workaround: if you know the instance's static TCP port, set env vars and retry:`);
+    console.error(`     $env:LEGACY_DB_INSTANCE=""; $env:LEGACY_DB_PORT="<port>"; pnpm image\n`);
+    throw e;
+  }
 
   console.log("Fetching images...");
   const result = await sql.query`
