@@ -1,10 +1,13 @@
 // Path: src/app/(features)/assets/[id]/AssetDetailClient.tsx
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { UserPlus, RotateCcw, CalendarPlus, Wrench } from "lucide-react";
-import { formatMoney, formatDate } from "@/lib/utils";
+import {
+  UserPlus, RotateCcw, CalendarPlus, Wrench, AlertTriangle, Clock,
+  Tag, Calendar, ShieldCheck, MapPin, Hash, Package, Building2, Timer,
+} from "lucide-react";
+import { formatMoney, formatDate, CATEGORY_CONFIG } from "@/lib/utils";
 import { AssetSticker } from "@/components/AssetSticker";
 import { QRCodeDisplay } from "@/components/QRCodeDisplay";
 import { BarcodeDisplay } from "@/components/BarcodeDisplay";
@@ -28,6 +31,22 @@ interface Props {
 
 type Tab = "info" | "assignments" | "maintenance" | "bookings" | "sticker";
 
+type WarrantyState = "expired" | "expiring" | "active";
+interface WarrantyInfo {
+  state: WarrantyState;
+  days: number;
+  date: Date;
+}
+
+function getWarrantyInfo(warrantyEnd: string | null): WarrantyInfo | null {
+  if (!warrantyEnd) return null;
+  const date = new Date(warrantyEnd);
+  const days = Math.ceil((date.getTime() - Date.now()) / 86400000);
+  if (days < 0) return { state: "expired", days: Math.abs(days), date };
+  if (days < 90) return { state: "expiring", days, date };
+  return { state: "active", days, date };
+}
+
 export function AssetDetailClient({ asset, depreciation, totalRepair, repairRatio }: Props) {
   const [tab, setTab] = useState<Tab>("info");
   const [photos, setPhotos] = useState<AssetPhoto[]>(asset.photos ?? []);
@@ -38,6 +57,10 @@ export function AssetDetailClient({ asset, depreciation, totalRepair, repairRati
   const { t, locale } = useI18n();
   const { canEdit, canCreate } = useRole();
   const router = useRouter();
+
+  const warranty = useMemo(() => getWarrantyInfo(asset.warrantyEnd), [asset.warrantyEnd]);
+  const categoryEmoji =
+    CATEGORY_CONFIG[asset.category as keyof typeof CATEGORY_CONFIG]?.emoji || "📦";
 
   // Use the open assignment as source of truth — `status` can drift out of sync.
   const currentAssignment = asset.assignments.find((a: any) => !a.dateIn) || null;
@@ -81,105 +104,164 @@ export function AssetDetailClient({ asset, depreciation, totalRepair, repairRati
       </div>
 
       {tab === "info" && (
-        <div className="space-y-6 animate-stagger">
+        <div className="space-y-4 animate-stagger">
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* ── Photo section ── */}
-            <div className="card">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold" style={{ color: "var(--text-default)" }}>
-                  {t("assetDetail.equipmentPhotos")}
+          {/* ── Warranty alert banner ── */}
+          {warranty?.state === "expired" && (
+            <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 flex items-center gap-3 animate-fade-in">
+              <AlertTriangle className="text-red-400 shrink-0" size={20} />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-red-400">{t("assetDetail.warrantyExpired")}</p>
+                <p className="text-xs text-red-300/70 mt-0.5">
+                  {t("assetDetail.expiredDaysAgo", warranty.days)} · {formatDate(asset.warrantyEnd, locale)}
+                </p>
+              </div>
+            </div>
+          )}
+          {warranty?.state === "expiring" && (
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 flex items-center gap-3 animate-fade-in">
+              <Clock className="text-amber-400 shrink-0" size={20} />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-amber-400">{t("assetDetail.warrantyExpiringSoon")}</p>
+                <p className="text-xs text-amber-300/70 mt-0.5">
+                  {t("assetDetail.daysRemaining", warranty.days)} · {formatDate(asset.warrantyEnd, locale)}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* ── Hero grid: Photo+QR (left, 1 col) / Details+Numbers (right, 2 cols) ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+            {/* LEFT: Photo + QR/Barcode */}
+            <div className="space-y-4 lg:col-span-1">
+              <div className="card">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-sm" style={{ color: "var(--text-default)" }}>
+                    {t("assetDetail.equipmentPhotos")}
+                  </h3>
+                  {photos.length > 0 && (
+                    <span className="text-xs text-gray-600">{t("assetDetail.photoCount", photos.length)}</span>
+                  )}
+                </div>
+                <PhotoUpload
+                  assetId={asset.id}
+                  photos={photos}
+                  onPhotosChange={setPhotos}
+                  readOnly={!canEdit}
+                />
+              </div>
+
+              <div className="card">
+                <h3 className="font-semibold text-sm mb-3" style={{ color: "var(--text-default)" }}>
+                  {t("assetDetail.qrBarcode")}
                 </h3>
-                {photos.length > 0 && (
-                  <span className="text-xs text-gray-600">{t("assetDetail.photoCount", photos.length)}</span>
+                <div className="flex items-center gap-3">
+                  <QRCodeDisplay assetCode={asset.code} size={96} />
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <BarcodeDisplay value={asset.code} height={40} />
+                    <button
+                      onClick={() => setTab("sticker")}
+                      className="w-full text-xs text-gray-400 hover:text-brand-500 transition border border-border rounded-md py-1.5"
+                    >
+                      {t("assetDetail.printSticker")}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT: Overview details + bottom number cards */}
+            <div className="lg:col-span-2 space-y-4">
+
+              {/* Overview — every key field in one place */}
+              <div className="card">
+                <h3 className="font-semibold text-sm mb-4" style={{ color: "var(--text-default)" }}>
+                  {t("assetDetail.overview")}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                  <DetailRow icon={<Tag size={14} />} label={t("assetDetail.category")}
+                    value={<span>{categoryEmoji} {asset.category}</span>} />
+                  <DetailRow icon={<Calendar size={14} />} label={t("assetDetail.purchaseDate")}
+                    value={formatDate(asset.purchaseDate, locale)} />
+                  <DetailRow icon={<Building2 size={14} />} label={t("assetDetail.brand")}
+                    value={asset.brand || "-"} />
+                  <DetailRow icon={<ShieldCheck size={14} />} label={t("assetDetail.warrantyEnd")}
+                    value={
+                      <span className="flex items-center gap-2 flex-wrap justify-end">
+                        <span>{formatDate(asset.warrantyEnd, locale)}</span>
+                        {warranty && <WarrantyBadge warranty={warranty} t={t} />}
+                      </span>
+                    } />
+                  <DetailRow icon={<Package size={14} />} label={t("assetDetail.model")}
+                    value={asset.model || "-"} />
+                  <DetailRow icon={<Wrench size={14} />} label={t("assetDetail.nextMaint")}
+                    value={formatDate(asset.nextMaintenance, locale)} />
+                  <DetailRow icon={<Hash size={14} />} label={t("assetDetail.serial")}
+                    value={<span className="font-mono text-xs">{asset.serialNumber || "-"}</span>} />
+                  <DetailRow icon={<Timer size={14} />} label={t("assetDetail.lifespan")}
+                    value={t("assetDetail.lifespanYears", asset.expectedLife)} />
+                  <DetailRow icon={<MapPin size={14} />} label={t("assetDetail.location")}
+                    value={asset.location || "-"} />
+                </div>
+                {asset.notes && (
+                  <div className="mt-4 pt-3 border-t border-border">
+                    <p className="text-xs text-gray-500 mb-1">{t("assetDetail.notes")}</p>
+                    <p className="text-sm break-words" style={{ color: "var(--text-muted)" }}>{asset.notes}</p>
+                  </div>
                 )}
               </div>
-              <PhotoUpload
-                assetId={asset.id}
-                photos={photos}
-                onPhotosChange={setPhotos}
-                readOnly={!canEdit}
-              />
-            </div>
 
-            <div className="card">
-              <h3 className="font-semibold mb-3" style={{ color: "var(--text-default)" }}>{t("assetDetail.qrBarcode")}</h3>
-              <div className="flex items-center gap-4">
-                <QRCodeDisplay assetCode={asset.code} size={120} />
-                <BarcodeDisplay value={asset.code} height={50} />
-              </div>
-            </div>
-
-            <div className="card">
-              <h3 className="font-semibold mb-3" style={{ color: "var(--text-default)" }}>{t("assetDetail.depreciation")}</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-400">{t("assetDetail.purchasePrice")}</span>
-                  <span className="font-mono">{t("common.baht")}{formatMoney(asset.purchasePrice, locale)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">{t("assetDetail.currentValue")}</span>
-                  <span className="font-mono text-green-500">{t("common.baht")}{formatMoney(Math.round(depreciation.currentValue), locale)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">{t("assetDetail.accDeprec")}</span>
-                  <span className="font-mono text-red-400">{t("common.baht")}{formatMoney(Math.round(depreciation.totalDepreciation), locale)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">{t("assetDetail.annualDeprec")}</span>
-                  <span className="font-mono">{t("common.baht")}{formatMoney(Math.round(depreciation.annualDepreciation), locale)}</span>
-                </div>
-                <div className="mt-3">
-                  <div className="flex justify-between text-xs text-gray-500 mb-1">
-                    <span>{t("assetDetail.usedYears", depreciation.yearsUsed.toFixed(1))}</span>
-                    <span>{depreciation.percentUsed}%</span>
-                  </div>
-                  <div className="h-2 bg-surface-dark rounded-full overflow-hidden">
-                    <div className="h-full rounded-full animate-progress" style={{ width: `${depreciation.percentUsed}%`, background: "linear-gradient(90deg, #22c55e, #f59e0b, #ef4444)" } as React.CSSProperties} />
+              {/* Depreciation + Repair side-by-side */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="card">
+                  <h3 className="font-semibold text-sm mb-3" style={{ color: "var(--text-default)" }}>{t("assetDetail.depreciation")}</h3>
+                  <div className="space-y-1.5 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">{t("assetDetail.purchasePrice")}</span>
+                      <span className="font-mono">{t("common.baht")}{formatMoney(asset.purchasePrice, locale)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">{t("assetDetail.currentValue")}</span>
+                      <span className="font-mono text-green-500">{t("common.baht")}{formatMoney(Math.round(depreciation.currentValue), locale)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">{t("assetDetail.accDeprec")}</span>
+                      <span className="font-mono text-red-400">{t("common.baht")}{formatMoney(Math.round(depreciation.totalDepreciation), locale)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">{t("assetDetail.annualDeprec")}</span>
+                      <span className="font-mono">{t("common.baht")}{formatMoney(Math.round(depreciation.annualDepreciation), locale)}</span>
+                    </div>
+                    <div className="pt-2">
+                      <div className="flex justify-between text-xs text-gray-500 mb-1">
+                        <span>{t("assetDetail.usedYears", depreciation.yearsUsed.toFixed(1))}</span>
+                        <span>{depreciation.percentUsed}%</span>
+                      </div>
+                      <div className="h-2 bg-surface-dark rounded-full overflow-hidden">
+                        <div className="h-full rounded-full animate-progress" style={{ width: `${depreciation.percentUsed}%`, background: "linear-gradient(90deg, #22c55e, #f59e0b, #ef4444)" } as React.CSSProperties} />
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            <div className="card">
-              <h3 className="font-semibold mb-3" style={{ color: "var(--text-default)" }}>{t("assetDetail.details")}</h3>
-              <div className="space-y-2 text-sm">
-                {[
-                  [t("assetDetail.purchaseDate"), formatDate(asset.purchaseDate, locale)],
-                  [t("assetDetail.warrantyEnd"), formatDate(asset.warrantyEnd, locale)],
-                  [t("assetDetail.nextMaint"), formatDate(asset.nextMaintenance, locale)],
-                  [t("assetDetail.lifespan"), t("assetDetail.lifespanYears", asset.expectedLife)],
-                  [t("assetDetail.location"), asset.location || "-"],
-                ].map(([label, val]) => (
-                  <div key={label as string} className="flex justify-between">
-                    <span className="text-gray-400">{label}</span>
-                    <span style={{ color: "var(--text-default)" }}>{val}</span>
+                <div className="card flex flex-col">
+                  <h3 className="font-semibold text-sm mb-3" style={{ color: "var(--text-default)" }}>{t("assetDetail.repairCost")}</h3>
+                  <div className="flex-1 flex flex-col justify-center">
+                    <p className={`text-3xl font-bold font-mono ${repairRatio > 50 ? "text-red-400" : "text-brand-500"}`}>
+                      {t("common.baht")}{formatMoney(totalRepair, locale)}
+                    </p>
+                    <p className={`text-sm mt-1 ${repairRatio > 50 ? "text-red-400" : "text-gray-500"}`}>
+                      {t("assetDetail.ofPurchase", Math.round(repairRatio))}
+                    </p>
                   </div>
-                ))}
-              </div>
-              {asset.notes && (
-                <div className="mt-3 pt-3 border-t border-border">
-                  <p className="text-xs text-gray-500 mb-1">{t("assetDetail.notes")}</p>
-                  <p className="text-sm break-words" style={{ color: "var(--text-muted)" }}>{asset.notes}</p>
                 </div>
-              )}
-            </div>
-
-            <div className="card">
-              <h3 className="font-semibold mb-3" style={{ color: "var(--text-default)" }}>{t("assetDetail.repairCost")}</h3>
-              <p className={`text-2xl font-bold font-mono ${repairRatio > 50 ? "text-red-400" : "text-brand-500"}`}>
-                {t("common.baht")}{formatMoney(totalRepair, locale)}
-              </p>
-              <p className={`text-sm ${repairRatio > 50 ? "text-red-400" : "text-gray-500"}`}>
-                {t("assetDetail.ofPurchase", Math.round(repairRatio))}
-              </p>
-            </div>
-
-            {/* AI Analysis */}
-            <div className="lg:col-span-2">
-              <AIAssetAnalysis assetId={asset.id} />
+              </div>
             </div>
           </div>
+
+          {/* AI Analysis — full width */}
+          <AIAssetAnalysis assetId={asset.id} />
         </div>
       )}
 
@@ -342,5 +424,54 @@ export function AssetDetailClient({ asset, depreciation, totalRepair, repairRati
         preselectedAssetId={asset.id}
       />
     </div>
+  );
+}
+
+// ── Helpers ─────────────────────────────────────────────────
+
+function DetailRow({
+  icon, label, value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 min-w-0">
+      <span className="text-gray-400 flex items-center gap-1.5 shrink-0">
+        <span className="text-gray-500">{icon}</span>
+        {label}
+      </span>
+      <span className="text-right truncate" style={{ color: "var(--text-default)" }}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function WarrantyBadge({
+  warranty, t,
+}: {
+  warranty: WarrantyInfo;
+  t: (key: string, ...args: any[]) => string;
+}) {
+  if (warranty.state === "expired") {
+    return (
+      <span className="badge bg-red-500/10 text-red-400 text-[10px] px-2 py-0.5">
+        {t("assetDetail.expiredDaysAgo", warranty.days)}
+      </span>
+    );
+  }
+  if (warranty.state === "expiring") {
+    return (
+      <span className="badge bg-amber-500/10 text-amber-400 text-[10px] px-2 py-0.5">
+        {t("assetDetail.daysRemaining", warranty.days)}
+      </span>
+    );
+  }
+  return (
+    <span className="badge bg-green-500/10 text-green-400 text-[10px] px-2 py-0.5">
+      {t("assetDetail.warrantyActive")}
+    </span>
   );
 }
