@@ -8,7 +8,7 @@ import {
   Tag, Calendar, ShieldCheck, MapPin, Hash, Package, Building2, Timer,
 } from "lucide-react";
 import { formatMoney, formatDate, CATEGORY_CONFIG } from "@/lib/utils";
-import { AssetSticker } from "@/components/AssetSticker";
+import { LabelTemplate } from "@/components/labels/LabelTemplate";
 import { QRCodeDisplay } from "@/components/QRCodeDisplay";
 import { BarcodeDisplay } from "@/components/BarcodeDisplay";
 import { PhotoUpload } from "@/components/PhotoUpload";
@@ -29,7 +29,7 @@ interface Props {
   repairRatio: number;
 }
 
-type Tab = "info" | "assignments" | "maintenance" | "bookings" | "sticker";
+type Tab = "info" | "assignments" | "maintenance" | "bookings";
 
 type WarrantyState = "expired" | "expiring" | "active";
 interface WarrantyInfo {
@@ -84,8 +84,27 @@ export function AssetDetailClient({ asset, depreciation, totalRepair, repairRati
     { key: "assignments", label: t("assetDetail.assignments") },
     { key: "maintenance", label: t("assetDetail.maintenance") },
     { key: "bookings", label: t("assetDetail.bookings") },
-    { key: "sticker", label: t("assetDetail.sticker") },
   ];
+
+  const handlePrintSticker = () => {
+    const container = document.getElementById(`sticker-print-area-${asset.id}`);
+    if (!container) return;
+    const w = window.open("", "_blank", "width=800,height=600");
+    if (!w) return;
+    w.document.write(`<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>${asset.code} - Label</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+@page{size:80mm 50mm;margin:0}
+body{font-family:'Sarabun',sans-serif;width:80mm;height:50mm}
+.label-template-root>div{border:none !important}
+</style></head>
+<body>${container.innerHTML}</body>
+<script>window.onload=function(){setTimeout(function(){window.print();window.close()},300)};</script>
+</html>`);
+    w.document.close();
+  };
 
   return (
     <div>
@@ -152,16 +171,20 @@ export function AssetDetailClient({ asset, depreciation, totalRepair, repairRati
                 />
               </div>
 
-              <div className="card">
+              <div className="card overflow-hidden">
                 <h3 className="font-semibold text-sm mb-3" style={{ color: "var(--text-default)" }}>
                   {t("assetDetail.qrBarcode")}
                 </h3>
                 <div className="flex items-center gap-3">
-                  <QRCodeDisplay assetCode={asset.code} size={96} />
+                  <div className="shrink-0">
+                    <QRCodeDisplay assetCode={asset.code} size={88} />
+                  </div>
                   <div className="flex-1 min-w-0 space-y-2">
-                    <BarcodeDisplay value={asset.code} height={40} />
+                    <div className="w-full overflow-hidden flex justify-center [&_svg]:!w-full [&_svg]:!h-auto [&_svg]:!max-w-full">
+                      <BarcodeDisplay value={asset.code} height={36} />
+                    </div>
                     <button
-                      onClick={() => setTab("sticker")}
+                      onClick={handlePrintSticker}
                       className="w-full text-xs text-gray-400 hover:text-brand-500 transition border border-border rounded-md py-1.5"
                     >
                       {t("assetDetail.printSticker")}
@@ -381,11 +404,24 @@ export function AssetDetailClient({ asset, depreciation, totalRepair, repairRati
         </div>
       )}
 
-      {tab === "sticker" && (
-        <div className="max-w-sm">
-          <AssetSticker code={asset.code} name={asset.name} brand={asset.brand || undefined} model={asset.model || undefined} serial={asset.serialNumber || undefined} />
-        </div>
-      )}
+      {/* Hidden label for print — kept in DOM so handlePrintSticker can grab it */}
+      <div id={`sticker-print-area-${asset.id}`} style={{ position: "absolute", left: "-9999px", top: 0, pointerEvents: "none" }} aria-hidden="true">
+        <LabelTemplate
+          asset={{
+            id: asset.code,
+            code: asset.code,
+            name: asset.name,
+            brand: asset.brand || undefined,
+            model: asset.model || undefined,
+            serial: asset.serialNumber || undefined,
+          }}
+          template="full"
+          widthMm={80}
+          heightMm={50}
+          scale={1}
+          showBorder={false}
+        />
+      </div>
 
       <AddAssignmentForm
         open={showAssign}

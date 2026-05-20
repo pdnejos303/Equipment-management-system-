@@ -25,9 +25,23 @@ export const LOCALE_FLAGS: Record<Locale, string> = {
   fr: "🇫🇷",
 };
 
-// Nested key access helper
+// Key access helper — supports both nested objects and flat dotted keys.
+// At each level we try the remaining path as a single flat key first
+// (so `labels["template.full"]` is reachable via `t("labels.template.full")`),
+// then fall back to one more step of nested traversal.
 function getNestedValue(obj: any, path: string): string {
-  return path.split(".").reduce((acc, key) => acc?.[key], obj) ?? path;
+  const parts = path.split(".");
+  const walk = (node: any, idx: number): string | undefined => {
+    if (idx >= parts.length) {
+      return typeof node === "string" ? node : undefined;
+    }
+    if (node == null || typeof node !== "object") return undefined;
+    const remaining = parts.slice(idx).join(".");
+    const flatHit = node[remaining];
+    if (typeof flatHit === "string") return flatHit;
+    return walk(node[parts[idx]], idx + 1);
+  };
+  return walk(obj, 0) ?? path;
 }
 
 const translations: Record<Locale, Record<string, any>> = { th, en, ja, zh, fr };

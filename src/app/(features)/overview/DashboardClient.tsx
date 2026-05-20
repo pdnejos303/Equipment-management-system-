@@ -292,7 +292,7 @@ export function DashboardClient({ data }: { data?: ServerData }) {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="text-xs font-semibold leading-snug uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>{s.label}</p>
+                  <p className="text-xs font-semibold leading-snug uppercase tracking-wide line-clamp-1" style={{ color: "var(--text-muted)" }}>{s.label}</p>
                   {"trend" in s && s.trend && (
                     <div className={`flex items-center gap-0.5 text-xs font-semibold flex-shrink-0 px-1.5 py-0.5 rounded-md ${s.trend === "up" ? "text-green-400 bg-green-500/10" : "text-red-400 bg-red-500/10"}`}>
                       {s.trend === "up" ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
@@ -300,8 +300,8 @@ export function DashboardClient({ data }: { data?: ServerData }) {
                     </div>
                   )}
                 </div>
-                <p className={`text-2xl font-bold leading-tight mt-1.5 ${s.color} tracking-tight`}>{s.value}</p>
-                <p className="text-xs mt-1.5 leading-relaxed" style={{ color: "var(--text-subtle)" }}>{s.sub}</p>
+                <p className={`text-2xl font-bold leading-tight mt-1.5 ${s.color} tracking-tight truncate`}>{s.value}</p>
+                <p className="text-xs mt-1.5 leading-relaxed line-clamp-2 min-h-[2.2em]" style={{ color: "var(--text-subtle)" }}>{s.sub}</p>
               </div>
             </div>
           </div>

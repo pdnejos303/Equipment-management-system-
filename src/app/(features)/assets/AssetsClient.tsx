@@ -13,11 +13,13 @@ import { BatchLabelDialog } from "@/components/labels";
 import type { LabelAsset } from "@/components/labels";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { AddAssetForm } from "@/components/forms/AddAssetForm";
+import { BatchEditAssetsForm } from "@/components/forms/BatchEditAssetsForm";
 import { CategoriesManagerDialog } from "@/components/settings/CategoriesManagerDialog";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { useRole } from "@/lib/useRole";
 import { useCategories } from "@/lib/useCategories";
-import { Plus, Settings2 } from "lucide-react";
+import { showConfirm, showSuccess, showError } from "@/lib/swal";
+import { Plus, Settings2, Pencil, Trash2, Printer } from "lucide-react";
 
 const STATUS_BADGE: Record<string, string> = {
   ACTIVE: "badge-active",
@@ -51,12 +53,14 @@ export function AssetsClient({ data }: { data: AssetsData }) {
   const { t, locale } = useI18n(); // t ได้ฟังชั่นมา local ได้ค่ามา
 
   const router = useRouter();
-  const { canCreate } = useRole();
+  const { canCreate, canEdit, canDelete } = useRole();
   const { categories, labelFor, emojiFor } = useCategories();
   const { assets, totalValue, searchParams } = data;
   const { items: pagedAssets, total: assetsTotal } = usePagination(assets, 20);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showBatchPrint, setShowBatchPrint] = useState(false);
+  const [showBatchEdit, setShowBatchEdit] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const [showAddAsset, setShowAddAsset] = useState(false);
   const [showManageCategories, setShowManageCategories] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState(searchParams.category || "");
@@ -99,6 +103,43 @@ export function AssetsClient({ data }: { data: AssetsData }) {
       model: a.model || undefined,
       category: labelFor(a.category) || undefined,
     }));
+
+  const selectedIds = Array.from(selected);
+
+  const handleBatchDelete = async () => {
+    const confirmed = await showConfirm({
+      title: t("labels.batchDeleteTitle", selected.size),
+      text: t("labels.batchDeleteMsg", selected.size),
+      confirmText: t("actions.deletePermanent"),
+      cancelText: t("confirm.cancel"),
+      danger: true,
+    });
+    if (!confirmed) return;
+
+    setBulkDeleting(true);
+    const results = await Promise.allSettled(
+      selectedIds.map((id) =>
+        fetch(`/api/assets/${id}`, { method: "DELETE" }).then((r) => {
+          if (!r.ok) throw new Error(String(r.status));
+          return r;
+        })
+      )
+    );
+    const ok = results.filter((r) => r.status === "fulfilled").length;
+    const fail = results.length - ok;
+    setBulkDeleting(false);
+
+    if (fail === 0) {
+      await showSuccess(t("labels.batchDeleteTitle", ok), t("labels.batchDeletedSuccess", ok));
+    } else if (ok === 0) {
+      showError(t("labels.batchDeleteTitle", selected.size), t("labels.batchDeleteFailed"));
+    } else {
+      await showSuccess(t("labels.batchDeleteTitle", ok), t("labels.batchPartialSuccess", ok, fail));
+    }
+
+    setSelected(new Set());
+    router.refresh();
+  };
 
   return (
     <div className="page-enter">
@@ -173,7 +214,7 @@ export function AssetsClient({ data }: { data: AssetsData }) {
 
       {/* Batch action bar */}
       {isSomeSelected && (
-        <div className="flex items-center gap-3 mb-4 px-4 py-3 rounded-xl bg-brand-500/10 border border-brand-500/20 animate-fade-in">
+        <div className="flex flex-wrap items-center gap-2 mb-4 px-4 py-3 rounded-xl bg-brand-500/10 border border-brand-500/20 animate-fade-in">
           <span className="text-sm font-semibold text-brand-400">
             {t("labels.selected", selected.size)}
           </span>
@@ -182,14 +223,31 @@ export function AssetsClient({ data }: { data: AssetsData }) {
             onClick={() => setShowBatchPrint(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-500 text-black font-semibold text-sm hover:bg-brand-400 transition"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-            </svg>
+            <Printer size={14} />
             {t("labels.printLabels")}
           </button>
+          {canEdit && (
+            <button
+              onClick={() => setShowBatchEdit(true)}
+              className="btn-ghost text-sm flex items-center gap-1.5 min-h-[40px]"
+            >
+              <Pencil size={14} />
+              {t("labels.batchEdit")}
+            </button>
+          )}
+          {canDelete && (
+            <button
+              onClick={handleBatchDelete}
+              disabled={bulkDeleting}
+              className="btn-danger text-sm flex items-center gap-1.5 min-h-[40px] disabled:opacity-50"
+            >
+              <Trash2 size={14} />
+              {bulkDeleting ? t("confirm.processing") : t("labels.batchDelete")}
+            </button>
+          )}
           <button
             onClick={() => setSelected(new Set())}
-            className="text-sm text-gray-400 hover:text-gray-200 transition"
+            className="text-sm text-gray-400 hover:text-gray-200 transition px-2"
           >
             {t("labels.clearSelection")}
           </button>
@@ -275,6 +333,15 @@ export function AssetsClient({ data }: { data: AssetsData }) {
           assets={selectedAssets}
           open={showBatchPrint}
           onClose={() => setShowBatchPrint(false)}
+        />
+      )}
+
+      {/* Batch Edit Dialog */}
+      {showBatchEdit && (
+        <BatchEditAssetsForm
+          open={showBatchEdit}
+          onClose={() => setShowBatchEdit(false)}
+          assetIds={selectedIds}
         />
       )}
 

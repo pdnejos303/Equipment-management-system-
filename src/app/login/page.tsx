@@ -111,7 +111,7 @@ function AuthForms() {
   return (
     <div className="w-full">
       {/* Tab Switcher */}
-      <div role="tablist" aria-label="Authentication mode" className="relative flex mb-8 rounded-xl p-1 border border-[var(--border)]" style={{ background: "var(--surface-hover)" }}>
+      <div role="tablist" aria-label="Authentication mode" className="relative flex mb-5 rounded-xl p-1 border border-[var(--border)]" style={{ background: "var(--surface-hover)" }}>
         <div
           className="tab-indicator absolute top-1 bottom-1 bg-brand-500 rounded-lg"
           aria-hidden="true"
@@ -127,7 +127,7 @@ function AuthForms() {
           aria-selected={mode === "login"}
           aria-controls="login-panel"
           onClick={() => switchMode("login")}
-          className={`relative z-10 flex-1 py-2.5 text-sm font-semibold rounded-lg transition-colors duration-300 ${
+          className={`relative z-10 flex-1 py-2 text-sm font-semibold rounded-lg transition-colors duration-300 ${
             mode === "login" ? "text-black" : "text-[var(--text-subtle)] hover:text-[var(--text-default)]"
           }`}
         >
@@ -139,7 +139,7 @@ function AuthForms() {
           aria-selected={mode === "register"}
           aria-controls="register-panel"
           onClick={() => switchMode("register")}
-          className={`relative z-10 flex-1 py-2.5 text-sm font-semibold rounded-lg transition-colors duration-300 ${
+          className={`relative z-10 flex-1 py-2 text-sm font-semibold rounded-lg transition-colors duration-300 ${
             mode === "register" ? "text-black" : "text-[var(--text-subtle)] hover:text-[var(--text-default)]"
           }`}
         >
@@ -150,7 +150,7 @@ function AuthForms() {
       {/* Google Sign In */}
       <button
         onClick={() => signIn("google", { callbackUrl })}
-        className="w-full flex items-center justify-center gap-3 font-semibold py-3 px-4 rounded-xl active:scale-[0.99] transition-all duration-200 text-sm"
+        className="w-full flex items-center justify-center gap-3 font-semibold py-2.5 px-4 rounded-xl active:scale-[0.99] transition-all duration-200 text-sm"
         style={{ background: "var(--surface-hover)", border: "1px solid var(--border)", color: "var(--text-default)", boxShadow: "var(--shadow-sm)" }}
       >
         <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" focusable="false">
@@ -163,7 +163,7 @@ function AuthForms() {
       </button>
 
       {/* Divider */}
-      <div className="flex items-center gap-4 my-6">
+      <div className="flex items-center gap-4 my-4">
         <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, transparent, var(--border), transparent)" }} />
         <span className="text-xs font-medium uppercase tracking-wider" style={{ color: "var(--text-subtle)" }}>{t("login.or")}</span>
         <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, transparent, var(--border), transparent)" }} />
@@ -171,7 +171,7 @@ function AuthForms() {
 
       {/* Login Form */}
       {mode === "login" && (
-        <form id="login-panel" role="tabpanel" aria-labelledby="login-tab" onSubmit={handleLogin} className="space-y-4 animate-fade-in">
+        <form id="login-panel" role="tabpanel" aria-labelledby="login-tab" onSubmit={handleLogin} className="space-y-3 animate-fade-in">
           <div className="space-y-3">
             <div>
               <label htmlFor="login-email" className="block text-xs font-semibold mb-1.5 ml-1" style={{ color: "var(--text-muted)" }}>{t("login.email")}</label>
@@ -222,7 +222,7 @@ function AuthForms() {
           <button
             type="submit"
             disabled={loading}
-            className="btn-primary w-full !py-3 !rounded-xl !text-sm disabled:opacity-50 flex items-center justify-center gap-2"
+            className="btn-primary w-full !py-2.5 !rounded-xl !text-sm disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? (
               <span className="flex items-center gap-2">
@@ -237,11 +237,11 @@ function AuthForms() {
             )}
           </button>
 
-          <p className="text-[11px] text-center mt-3 rounded-lg py-2.5 border border-[var(--border)] font-mono tracking-wide" style={{ color: "var(--text-subtle)", background: "var(--surface-hover)" }}>
+          <p className="text-[11px] text-center mt-2 rounded-lg py-2 border border-[var(--border)] font-mono tracking-wide" style={{ color: "var(--text-subtle)", background: "var(--surface-hover)" }}>
             {t("login.demo")}
           </p>
 
-          <p className="text-center text-sm mt-4" style={{ color: "var(--text-muted)" }}>
+          <p className="text-center text-sm mt-3" style={{ color: "var(--text-muted)" }}>
             {t("login.noAccount")}{" "}
             <button
               type="button"
@@ -256,7 +256,7 @@ function AuthForms() {
 
       {/* Register Form */}
       {mode === "register" && (
-        <form id="register-panel" role="tabpanel" aria-labelledby="register-tab" onSubmit={handleRegister} className="space-y-4 animate-fade-in">
+        <form id="register-panel" role="tabpanel" aria-labelledby="register-tab" onSubmit={handleRegister} className="space-y-3 animate-fade-in">
           <div className="space-y-3">
             <div>
               <label htmlFor="register-name" className="block text-xs font-semibold mb-1.5 ml-1" style={{ color: "var(--text-muted)" }}>{t("login.name")}</label>
@@ -341,7 +341,7 @@ function AuthForms() {
           <button
             type="submit"
             disabled={loading}
-            className="btn-primary w-full !py-3 !rounded-xl !text-sm disabled:opacity-50 flex items-center justify-center gap-2"
+            className="btn-primary w-full !py-2.5 !rounded-xl !text-sm disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? (
               <span className="flex items-center gap-2">
@@ -356,7 +356,7 @@ function AuthForms() {
             )}
           </button>
 
-          <p className="text-center text-sm mt-4" style={{ color: "var(--text-muted)" }}>
+          <p className="text-center text-sm mt-3" style={{ color: "var(--text-muted)" }}>
             {t("login.hasAccount")}{" "}
             <button
               type="button"
@@ -382,7 +382,7 @@ function FeaturePanel() {
   ];
 
   return (
-    <div className="hidden lg:flex flex-col justify-center p-12 xl:p-16 relative overflow-hidden">
+    <div className="hidden lg:flex flex-col justify-center p-10 xl:p-12 relative overflow-hidden">
       {/* Subtle background pattern */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div
@@ -412,7 +412,7 @@ function FeaturePanel() {
 
       <div className="max-w-md relative z-10">
         {/* Logo */}
-        <div className="flex items-center gap-3 mb-12">
+        <div className="flex items-center gap-3 mb-8">
           <div
             className="w-12 h-12 rounded-xl bg-brand-500 flex items-center justify-center text-black font-extrabold text-xl"
             style={{ boxShadow: "0 0 20px rgb(var(--brand-rgb) / 0.25)" }}
@@ -427,12 +427,12 @@ function FeaturePanel() {
         </div>
 
         {/* Welcome text */}
-        <div className="mb-10">
+        <div className="mb-6">
           <h2 className="text-3xl xl:text-4xl font-bold leading-tight" style={{ color: "var(--text-default)" }}>
             {t("login.welcome")}
             <span className="block text-brand-500 mt-1" style={{ textShadow: "0 0 40px rgb(var(--brand-rgb) / 0.2)" }}>EquipTrack</span>
           </h2>
-          <p className="mt-4 text-lg leading-relaxed" style={{ color: "var(--text-muted)" }}>
+          <p className="mt-3 text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
             {t("login.welcomeSub")}
           </p>
         </div>
@@ -442,7 +442,7 @@ function FeaturePanel() {
           {features.map((f, i) => (
             <div
               key={i}
-              className="flex items-center gap-3 p-3 rounded-xl transition-colors duration-200 hover:bg-[var(--surface-hover)]"
+              className="flex items-center gap-3 p-2.5 rounded-xl transition-colors duration-200 hover:bg-[var(--surface-hover)]"
             >
               <div
                 className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -456,7 +456,7 @@ function FeaturePanel() {
         </div>
 
         {/* Trust indicators */}
-        <div className="mt-12 flex items-center gap-6">
+        <div className="mt-8 flex items-center gap-6">
           <div className="flex -space-x-2">
             {["P", "S", "A", "K"].map((letter, i) => (
               <div
@@ -497,19 +497,19 @@ export default function LoginPage() {
       </div>
 
       {/* Right panel — form */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-8">
+      <div className="flex-1 flex items-center justify-center p-5 sm:p-6">
         <div className="w-full max-w-[420px] animate-fade-in-up">
           {/* Mobile logo */}
-          <div className="lg:hidden text-center mb-8">
+          <div className="lg:hidden text-center mb-5">
             <div
-              className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-brand-500 text-black font-extrabold text-xl mb-3"
+              className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-brand-500 text-black font-extrabold text-xl mb-2"
               style={{ boxShadow: "0 0 20px rgb(var(--brand-rgb) / 0.25)" }}
               aria-hidden="true"
             >
               E
             </div>
-            <h1 className="text-2xl font-bold" style={{ color: "var(--text-default)" }}>EquipTrack</h1>
-            <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
+            <h1 className="text-xl font-bold" style={{ color: "var(--text-default)" }}>EquipTrack</h1>
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
               <Suspense fallback="...">
                 <LoginSubtitle />
               </Suspense>
@@ -517,12 +517,12 @@ export default function LoginPage() {
           </div>
 
           {/* Form card */}
-          <div className="card !rounded-2xl p-6 sm:p-8 relative overflow-hidden">
+          <div className="card !rounded-2xl p-5 sm:p-6 relative overflow-hidden">
             {/* Top accent line */}
             <div className="absolute top-0 left-6 right-6 h-px" style={{ background: "linear-gradient(90deg, transparent, rgb(var(--brand-rgb) / 0.25), transparent)" }} />
 
             {/* Language switcher */}
-            <div className="flex justify-end mb-4 -mt-1 -mr-1">
+            <div className="flex justify-end mb-3 -mt-1 -mr-1">
               <LanguageSwitcher />
             </div>
 
@@ -532,7 +532,7 @@ export default function LoginPage() {
           </div>
 
           {/* Footer */}
-          <p className="text-center text-[11px] mt-6" style={{ color: "var(--text-subtle)" }}>
+          <p className="text-center text-[11px] mt-4" style={{ color: "var(--text-subtle)" }}>
             EquipTrack v2.0 — Equipment Management System
           </p>
         </div>
