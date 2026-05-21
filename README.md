@@ -1,4 +1,4 @@
-# EquipTrack — ระบบจัดการอุปกรณ์
+# Asset Management — ระบบจัดการอุปกรณ์
 
 Equipment Management System สำหรับบริษัทเล็ก-กลาง
 

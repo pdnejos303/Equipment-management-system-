@@ -2,7 +2,7 @@
 
 ## ภาพรวม
 
-ระบบรูปภาพของ EquipTrack ออกแบบแบบ **Storage Provider Abstraction** — โค้ดชุดเดียวรองรับหลาย backend:
+ระบบรูปภาพของ Asset Management ออกแบบแบบ **Storage Provider Abstraction** — โค้ดชุดเดียวรองรับหลาย backend:
 
 ```
 Browser → POST /api/upload → storage.ts (auto-detect) → Local FS  หรือ  Supabase

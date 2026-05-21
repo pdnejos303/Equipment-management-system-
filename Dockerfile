@@ -20,7 +20,7 @@ COPY . .
 # NEXT_PUBLIC_APP_URL คือ fallback สำหรับ SSR เท่านั้น
 # Browser QR ใช้ window.location.origin อัตโนมัติ จึงไม่ต้อง bake URL จริงเข้าไป
 ARG NEXT_PUBLIC_APP_URL=""
-ARG NEXT_PUBLIC_COMPANY_NAME="EquipTrack"
+ARG NEXT_PUBLIC_COMPANY_NAME="Asset Management"
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 ENV NEXT_PUBLIC_COMPANY_NAME=$NEXT_PUBLIC_COMPANY_NAME
 ENV OPENAI_API_KEY=build-placeholder

@@ -1,6 +1,7 @@
 // Path: src/app/(features)/assets/[id]/AssetDetailHeader.tsx
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useI18n } from "@/lib/i18n";
 import { AssetActions } from "@/components/AssetActions";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -25,11 +26,14 @@ export function AssetDetailHeader({
   status, category, statusBg, statusColor, assignedTo, currentAssignment,
 }: Props) {
   const { t } = useI18n();
+  const search = useSearchParams();
+  const from = search.get("from");
+  const backHref = from ? `/assets?${from}` : "/assets";
 
   return (
     <>
       <PageHeader
-        backHref="/assets"
+        backHref={backHref}
         backLabel={t("assets.back")}
         title={
           <div className="flex flex-wrap items-center gap-3">

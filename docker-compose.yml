@@ -6,7 +6,7 @@ services:
       args:
         # ค่านี้เป็นแค่ fallback ฝั่ง server — QR ฝั่ง browser ใช้ window.location.origin อัตโนมัติ
         NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-}
-        NEXT_PUBLIC_COMPANY_NAME: ${NEXT_PUBLIC_COMPANY_NAME:-EquipTrack}
+        NEXT_PUBLIC_COMPANY_NAME: ${NEXT_PUBLIC_COMPANY_NAME:-Asset Management}
     container_name: equiptrack
     restart: unless-stopped
     ports:
@@ -37,7 +37,7 @@ services:
 
       # ── App ──
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-}
-      NEXT_PUBLIC_COMPANY_NAME: ${NEXT_PUBLIC_COMPANY_NAME:-EquipTrack}
+      NEXT_PUBLIC_COMPANY_NAME: ${NEXT_PUBLIC_COMPANY_NAME:-Asset Management}
 
     volumes:
       # SQLite DB เก็บไว้นอก container เพื่อไม่ให้หายเวลา rebuild

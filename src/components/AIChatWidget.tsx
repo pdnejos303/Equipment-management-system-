@@ -129,7 +129,7 @@ export function AIChatWidget() {
               <Sparkles size={16} className="text-brand-500" />
             </div>
             <div>
-              <h3 className="text-sm font-bold">EquipTrack AI</h3>
+              <h3 className="text-sm font-bold">Asset Management AI</h3>
               <p className="text-[10px]" style={{ color: "var(--text-subtle)" }}>
                 {locale === "th" ? "ผู้ช่วยอัจฉริยะ" : locale === "ja" ? "AIアシスタント" : "Smart Assistant"}
               </p>

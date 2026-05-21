@@ -1,5 +1,5 @@
 const zh = {
-  app: { title: "EquipTrack", subtitle: "设备管理系统" },
+  app: { title: "Asset Management", subtitle: "设备管理系统" },
   nav: {
     overview: "概览",
     assets: "设备",

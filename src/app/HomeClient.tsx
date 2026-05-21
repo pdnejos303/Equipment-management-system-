@@ -113,9 +113,9 @@ export function HomeClient() {
               className="w-9 h-9 rounded-xl bg-brand-500 flex items-center justify-center text-black font-bold text-lg"
               style={{ boxShadow: "0 0 16px rgb(var(--brand-rgb) / 0.25)" }}
             >
-              E
+              A
             </div>
-            <span className="font-bold text-lg tracking-tight" style={{ color: "var(--text-default)" }}>EquipTrack</span>
+            <span className="font-bold text-lg tracking-tight" style={{ color: "var(--text-default)" }}>Asset Management</span>
           </div>
 
           <Link
@@ -163,7 +163,7 @@ export function HomeClient() {
                 className="text-brand-500 relative z-10"
                 style={{ textShadow: "0 0 60px rgba(245,158,11,0.3)" }}
               >
-                EquipTrack
+                Asset Management
               </span>
               {/* Underline accent */}
               <span
@@ -253,7 +253,7 @@ export function HomeClient() {
       <footer className="relative py-8 text-center">
         <div className="absolute top-0 left-1/4 right-1/4 h-px" style={{ background: "linear-gradient(90deg, transparent, var(--border), transparent)" }} />
         <p className="text-xs" style={{ color: "var(--text-subtle)" }}>
-          EquipTrack v2.0 — ระบบจัดการอุปกรณ์ภายในบริษัท
+          Asset Management v2.0 — ระบบจัดการอุปกรณ์ภายในบริษัท
         </p>
       </footer>
     </div>

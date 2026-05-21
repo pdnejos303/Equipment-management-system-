@@ -60,7 +60,7 @@ async function getSystemContext(locale: string) {
     };
   });
 
-  return `You are EquipTrack AI Assistant — an intelligent equipment management helper for a small business.
+  return `You are Asset Management AI Assistant — an intelligent equipment management helper for a small business.
 Today's date: ${new Date().toISOString().slice(0, 10)}
 
 EQUIPMENT DATABASE (${assets.length} items):
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
 
     // 3. ดึงข้อมูลล่าสุดจาก DB มาสร้าง context
     const systemContext = await getSystemContext(locale);
-    // systemContext = "You are EquipTrack AI...\nDATABASE: [...]"
+    // systemContext = "You are Asset Management AI...\nDATABASE: [...]"
 
     // 4. เรียก OpenAI API
     const completion = await openai.chat.completions.create({

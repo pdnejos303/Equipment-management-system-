@@ -38,7 +38,7 @@ export function DateRangePicker({
   return (
     <div className="flex flex-col gap-2">
       <div
-        className="flex items-center gap-1.5 overflow-x-auto scrollbar-none p-1 rounded-xl border border-[var(--border)]/60"
+        className="flex items-center gap-1.5 overflow-x-auto scrollbar-none p-1 rounded-xl border border-border/60"
         style={{ background: "var(--surface-hover)" }}
       >
         {PRESETS.map((r) => (

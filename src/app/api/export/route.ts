@@ -201,7 +201,7 @@ export async function POST(req: NextRequest) {
 <html lang="${lang}">
 <head>
   <meta charset="UTF-8">
-  <title>EquipTrack — ${s.reportTitle}</title>
+  <title>Asset Management — ${s.reportTitle}</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=Noto+Sans+JP:wght@400;600;700&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -222,7 +222,7 @@ export async function POST(req: NextRequest) {
 </head>
 <body>
   <h1>📋 ${s.reportTitle}</h1>
-  <p class="meta">EquipTrack — ${format(new Date(), "d MMMM yyyy", { locale: dateFnsLocale })} • ${assets.length} ${s.items}</p>
+  <p class="meta">Asset Management — ${format(new Date(), "d MMMM yyyy", { locale: dateFnsLocale })} • ${assets.length} ${s.items}</p>
 
   <div class="summary">
     <div class="summary-card"><div class="label">${s.totalPurchase}</div><div class="value">฿${totalOriginal.toLocaleString()}</div></div>

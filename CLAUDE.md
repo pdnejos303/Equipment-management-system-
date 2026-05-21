@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-EquipTrack — Equipment Management System for small/medium businesses. Built with Next.js 14 (App Router), Prisma, SQLite (file-based, `prisma/dev.db` locally; `/app/data/prod.db` in Docker), and Tailwind CSS. Multi-language UI (Thai/English/Japanese). Dark theme.
+Asset Management — Equipment Management System for small/medium businesses. Built with Next.js 14 (App Router), Prisma, SQLite (file-based, `prisma/dev.db` locally; `/app/data/prod.db` in Docker), and Tailwind CSS. Multi-language UI (Thai/English/Japanese). Dark theme.
 
 Demo credentials: `admin@company.com` / `admin123`
 

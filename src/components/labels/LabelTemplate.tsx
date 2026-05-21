@@ -169,7 +169,7 @@ function FullTemplate({
       {/* Footer */}
       {heightMm >= 35 && (
         <div style={{ fontSize: footerFontSize, color: "#aaa", textAlign: "center", marginTop: 1, lineHeight: 1 }}>
-          Scan to view • EquipTrack
+          Scan to view • Asset Management
         </div>
       )}
     </>

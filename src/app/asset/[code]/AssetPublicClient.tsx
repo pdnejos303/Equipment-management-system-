@@ -46,7 +46,7 @@ export function AssetPublicClient({ asset, depreciation, expectedLife, purchaseD
           <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "rgb(var(--brand-rgb) / 0.1)", border: "1px solid rgb(var(--brand-rgb) / 0.2)" }}>
             <Package size={14} className="text-brand-500" />
           </div>
-          <span className="text-sm font-bold tracking-tight">EquipTrack</span>
+          <span className="text-sm font-bold tracking-tight">Asset Management</span>
         </div>
         <LanguageSwitcher />
       </div>
@@ -140,7 +140,7 @@ export function AssetPublicClient({ asset, depreciation, expectedLife, purchaseD
             <div className="w-4 h-4 rounded flex items-center justify-center" style={{ background: "rgb(var(--brand-rgb) / 0.1)" }}>
               <Package size={9} className="text-brand-500" style={{ opacity: 0.7 }} />
             </div>
-            <span>EquipTrack</span>
+            <span>Asset Management</span>
             {process.env.NEXT_PUBLIC_COMPANY_NAME && (
               <>
                 <span>·</span>

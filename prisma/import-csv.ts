@@ -1,6 +1,6 @@
 // Path: prisma/import-csv.ts
 // ============================================================
-// Import legacy CSV → EquipTrack Asset table
+// Import legacy CSV → Asset Management Asset table
 // Prisma schema is the source of truth; CSV columns that don't
 // match are coerced/mapped here, never the reverse.
 //

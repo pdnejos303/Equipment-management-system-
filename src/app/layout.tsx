@@ -22,8 +22,8 @@ const notoSansThai = Noto_Sans_Thai({
 
 export const metadata: Metadata = {
   title: {
-    default: "EquipTrack — ระบบจัดการอุปกรณ์",
-    template: "%s | EquipTrack",
+    default: "Asset Management — ระบบจัดการอุปกรณ์",
+    template: "%s | Asset Management",
   },
   description:
     "ระบบจัดการอุปกรณ์สำหรับธุรกิจขนาดเล็ก · Equipment management system for small business · 中小企業向け機器管理システム",

@@ -1,5 +1,5 @@
 const fr = {
-  app: { title: "EquipTrack", subtitle: "Gestion d'équipement" },
+  app: { title: "Asset Management", subtitle: "Gestion d'équipement" },
   nav: {
     overview: "Aperçu",
     assets: "Équipements",

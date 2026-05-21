@@ -1,5 +1,5 @@
 const th = {
-  app: { title: "EquipTrack", subtitle: "ระบบจัดการอุปกรณ์" },
+  app: { title: "Asset Management", subtitle: "ระบบจัดการอุปกรณ์" },
   nav: {
     overview: "ภาพรวม",
     assets: "ทะเบียนอุปกรณ์",

@@ -144,7 +144,7 @@ function EquipmentSticker({ asset }) {
         <QRCode text={`https://equip.app/asset/${asset.id}`} cellSize={3} />
       </div>
       <Barcode text={asset.id} height={36} scale={1.2} />
-      <div style={{ fontSize: 9, color: "#999", marginTop: 4, textAlign: "center" }}>สแกนเพื่อดูข้อมูลอุปกรณ์ • EquipTrack</div>
+      <div style={{ fontSize: 9, color: "#999", marginTop: 4, textAlign: "center" }}>สแกนเพื่อดูข้อมูลอุปกรณ์ • Asset Management</div>
     </div>
   );
 }
@@ -894,8 +894,8 @@ export default function App() {
       {/* Sidebar */}
       <nav style={{ width: sidebarOpen ? 220 : 56, background: C.surface, borderRight: `1px solid ${C.border}`, padding: "16px 0", display: "flex", flexDirection: "column", transition: "width .2s", flexShrink: 0, overflow: "hidden" }}>
         <div style={{ padding: "0 16px", marginBottom: 24, display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }} onClick={() => setSidebarOpen(!sidebarOpen)}>
-          <div style={{ width: 28, height: 28, borderRadius: 6, background: C.accent, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, color: "#000", fontSize: 14, flexShrink: 0 }}>E</div>
-          {sidebarOpen && <span style={{ fontWeight: 700, fontSize: 15, whiteSpace: "nowrap" }}>EquipTrack</span>}
+          <div style={{ width: 28, height: 28, borderRadius: 6, background: C.accent, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, color: "#000", fontSize: 14, flexShrink: 0 }}>A</div>
+          {sidebarOpen && <span style={{ fontWeight: 700, fontSize: 15, whiteSpace: "nowrap" }}>Asset Management</span>}
         </div>
         {TABS.map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}

@@ -45,7 +45,7 @@ export function Header({ onOpenMobile }: HeaderProps) {
         return (titles as Record<string, string>)[locale] ?? titles.en;
       }
     }
-    return "EquipTrack";
+    return "Asset Management";
   };
 
   const userInitial = ((session?.user?.name || session?.user?.email || "?")[0]).toUpperCase();

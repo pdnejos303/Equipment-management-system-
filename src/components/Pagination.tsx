@@ -69,7 +69,7 @@ export function Pagination({ total, pageSize = 20, paramKey = "page" }: Props) {
       <p className="text-xs" style={{ color: "var(--text-subtle)" }}>
         {t("pagination.showing", start, end, total)}
       </p>
-      <div className="flex items-center gap-0.5 p-1 rounded-xl border border-[var(--border)]/60" style={{ background: "var(--surface-hover)" }}>
+      <div className="flex items-center gap-0.5 p-1 rounded-xl border border-border/60" style={{ background: "var(--surface-hover)" }}>
         {showFirstLast && (
           <button
             onClick={() => goTo(1)}

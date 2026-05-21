@@ -9,7 +9,7 @@ import { useSession } from "next-auth/react";
 import {
   Package, Bell, CalendarClock, BarChart3, Calendar,
   ChevronLeft, ChevronRight, LayoutDashboard, X,
-  DatabaseBackup, UserCog, ScanLine, FileCode2, UserCheck,
+  DatabaseBackup, UserCog, ScanLine, UserCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
@@ -28,7 +28,6 @@ const MAIN_NAV = [
 const ADMIN_NAV = [
   { key: "users", tKey: "users.nav", href: "/users", icon: UserCog },
   { key: "migrate", tKey: "migrate.nav", href: "/migrate", icon: DatabaseBackup },
-  { key: "migrate-csharp", tKey: "migrateCS.nav", href: "/migrate-csharp", icon: FileCode2 },
 ] as const;
 
 type NavItem = {
@@ -71,7 +70,6 @@ export function Sidebar({ alertCount = 0, mobileOpen, onCloseMobile }: SidebarPr
       ...MAIN_NAV.map((n) => n.href),
       "/users",
       "/migrate",
-      "/migrate-csharp",
       "/in-use",
     ];
     allRoutes.forEach((href) => router.prefetch(href));
@@ -161,11 +159,11 @@ export function Sidebar({ alertCount = 0, mobileOpen, onCloseMobile }: SidebarPr
         {/* Bottom accent line */}
         <div className="absolute bottom-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-[rgb(var(--brand-rgb)/0.12)] to-transparent" />
         <div className="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center text-black font-extrabold text-sm flex-shrink-0" style={{ boxShadow: "0 0 12px rgb(var(--brand-rgb) / 0.2)" }} aria-hidden="true">
-          E
+          A
         </div>
         {showLabel && (
           <span className="font-bold text-[15px] whitespace-nowrap flex-1 tracking-tight">
-            EquipTrack
+            Asset Management
           </span>
         )}
         {showLabel && (

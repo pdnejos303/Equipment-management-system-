@@ -1,5 +1,5 @@
 const ja = {
-  app: { title: "EquipTrack", subtitle: "機器管理システム" },
+  app: { title: "Asset Management", subtitle: "機器管理システム" },
   nav: {
     overview: "概要",
     assets: "機器台帳",

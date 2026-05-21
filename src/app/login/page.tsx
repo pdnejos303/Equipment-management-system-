@@ -7,7 +7,20 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { showError, showSuccess } from "@/lib/swal";
-import { Mail, Lock, User, Eye, EyeOff, Monitor, Bell, QrCode, ChevronRight, Loader2, Package, BarChart3 } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  User,
+  Eye,
+  EyeOff,
+  Monitor,
+  Bell,
+  QrCode,
+  ChevronRight,
+  Loader2,
+  Boxes,
+  ShieldCheck,
+} from "lucide-react";
 
 /* ── Skeleton redirect screen ── */
 function RedirectSkeleton() {
@@ -28,6 +41,45 @@ function RedirectSkeleton() {
           ))}
         </div>
         <div className="h-32 rounded-xl bg-[var(--surface-hover)]/40 border border-[var(--border)] animate-pulse" style={{ animationDelay: "400ms" }} />
+      </div>
+    </div>
+  );
+}
+
+/* ── Brand mark (icon + wordmark) ── */
+function BrandMark({ size = "md" }: { size?: "sm" | "md" }) {
+  const dims =
+    size === "sm"
+      ? { box: "w-9 h-9", icon: 18, title: "text-base" }
+      : { box: "w-11 h-11", icon: 22, title: "text-xl" };
+
+  return (
+    <div className="flex items-center gap-2.5">
+      <div
+        className={`${dims.box} rounded-xl flex items-center justify-center relative`}
+        style={{
+          background:
+            "linear-gradient(135deg, rgb(var(--brand-rgb)) 0%, rgb(var(--brand-dark-rgb)) 100%)",
+          boxShadow:
+            "0 0 0 1px rgb(var(--brand-rgb) / 0.4) inset, 0 8px 24px -8px rgb(var(--brand-rgb) / 0.45)",
+        }}
+        aria-hidden="true"
+      >
+        <Boxes size={dims.icon} className="text-black" strokeWidth={2.25} />
+      </div>
+      <div className="flex flex-col leading-none">
+        <span
+          className={`${dims.title} font-bold tracking-tight`}
+          style={{ color: "var(--text-default)" }}
+        >
+          EquipTrack
+        </span>
+        <span
+          className="text-[10px] font-medium uppercase tracking-[0.18em] mt-1.5"
+          style={{ color: "var(--text-subtle)" }}
+        >
+          Asset Platform
+        </span>
       </div>
     </div>
   );
@@ -111,7 +163,12 @@ function AuthForms() {
   return (
     <div className="w-full">
       {/* Tab Switcher */}
-      <div role="tablist" aria-label="Authentication mode" className="relative flex mb-5 rounded-xl p-1 border border-[var(--border)]" style={{ background: "var(--surface-hover)" }}>
+      <div
+        role="tablist"
+        aria-label="Authentication mode"
+        className="relative flex mb-5 rounded-xl p-1 border border-[var(--border)]"
+        style={{ background: "var(--surface-hover)" }}
+      >
         <div
           className="tab-indicator absolute top-1 bottom-1 bg-brand-500 rounded-lg"
           aria-hidden="true"
@@ -150,8 +207,13 @@ function AuthForms() {
       {/* Google Sign In */}
       <button
         onClick={() => signIn("google", { callbackUrl })}
-        className="w-full flex items-center justify-center gap-3 font-semibold py-2.5 px-4 rounded-xl active:scale-[0.99] transition-all duration-200 text-sm"
-        style={{ background: "var(--surface-hover)", border: "1px solid var(--border)", color: "var(--text-default)", boxShadow: "var(--shadow-sm)" }}
+        className="w-full flex items-center justify-center gap-3 font-semibold py-2.5 px-4 rounded-xl active:scale-[0.99] transition-all duration-200 text-sm hover:border-[var(--border-strong)]"
+        style={{
+          background: "var(--surface-hover)",
+          border: "1px solid var(--border)",
+          color: "var(--text-default)",
+          boxShadow: "var(--shadow-sm)",
+        }}
       >
         <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" focusable="false">
           <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" />
@@ -164,9 +226,24 @@ function AuthForms() {
 
       {/* Divider */}
       <div className="flex items-center gap-4 my-4">
-        <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, transparent, var(--border), transparent)" }} />
-        <span className="text-xs font-medium uppercase tracking-wider" style={{ color: "var(--text-subtle)" }}>{t("login.or")}</span>
-        <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, transparent, var(--border), transparent)" }} />
+        <div
+          className="flex-1 h-px"
+          style={{
+            background: "linear-gradient(90deg, transparent, var(--border), transparent)",
+          }}
+        />
+        <span
+          className="text-[10px] font-semibold uppercase tracking-[0.16em]"
+          style={{ color: "var(--text-subtle)" }}
+        >
+          {t("login.or")}
+        </span>
+        <div
+          className="flex-1 h-px"
+          style={{
+            background: "linear-gradient(90deg, transparent, var(--border), transparent)",
+          }}
+        />
       </div>
 
       {/* Login Form */}
@@ -222,7 +299,7 @@ function AuthForms() {
           <button
             type="submit"
             disabled={loading}
-            className="btn-primary w-full !py-2.5 !rounded-xl !text-sm disabled:opacity-50 flex items-center justify-center gap-2"
+            className="btn-primary w-full !py-3 !rounded-xl !text-sm disabled:opacity-50 flex items-center justify-center gap-2 group"
           >
             {loading ? (
               <span className="flex items-center gap-2">
@@ -232,14 +309,35 @@ function AuthForms() {
             ) : (
               <>
                 {t("login.submit")}
-                <ChevronRight size={16} />
+                <ChevronRight
+                  size={16}
+                  className="transition-transform duration-200 group-hover:translate-x-0.5"
+                />
               </>
             )}
           </button>
 
-          <p className="text-[11px] text-center mt-2 rounded-lg py-2 border border-[var(--border)] font-mono tracking-wide" style={{ color: "var(--text-subtle)", background: "var(--surface-hover)" }}>
-            {t("login.demo")}
-          </p>
+          {/* Demo credentials hint */}
+          <div
+            className="mt-2 flex items-center gap-2 rounded-lg px-3 py-2 border"
+            style={{
+              borderColor: "var(--border)",
+              background:
+                "linear-gradient(180deg, var(--surface-hover) 0%, transparent 100%)",
+            }}
+          >
+            <span
+              className="inline-block w-1.5 h-1.5 rounded-full bg-brand-500 flex-shrink-0"
+              style={{ boxShadow: "0 0 8px rgb(var(--brand-rgb) / 0.7)" }}
+              aria-hidden="true"
+            />
+            <span
+              className="text-[11px] font-mono tracking-wide"
+              style={{ color: "var(--text-subtle)" }}
+            >
+              {t("login.demo")}
+            </span>
+          </div>
 
           <p className="text-center text-sm mt-3" style={{ color: "var(--text-muted)" }}>
             {t("login.noAccount")}{" "}
@@ -341,7 +439,7 @@ function AuthForms() {
           <button
             type="submit"
             disabled={loading}
-            className="btn-primary w-full !py-2.5 !rounded-xl !text-sm disabled:opacity-50 flex items-center justify-center gap-2"
+            className="btn-primary w-full !py-3 !rounded-xl !text-sm disabled:opacity-50 flex items-center justify-center gap-2 group"
           >
             {loading ? (
               <span className="flex items-center gap-2">
@@ -351,7 +449,10 @@ function AuthForms() {
             ) : (
               <>
                 {t("login.registerBtn")}
-                <ChevronRight size={16} />
+                <ChevronRight
+                  size={16}
+                  className="transition-transform duration-200 group-hover:translate-x-0.5"
+                />
               </>
             )}
           </button>
@@ -382,159 +483,286 @@ function FeaturePanel() {
   ];
 
   return (
-    <div className="hidden lg:flex flex-col justify-center p-10 xl:p-12 relative overflow-hidden">
-      {/* Subtle background pattern */}
+    <div className="hidden lg:flex flex-col justify-between p-10 xl:p-14 relative overflow-hidden w-full">
+      {/* Background layers */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+        {/* Grid with radial mask */}
         <div
           className="absolute inset-0"
           style={{
-            opacity: 0.025,
+            opacity: 0.04,
             backgroundImage: `
-              linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)
+              linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)
             `,
-            backgroundSize: "64px 64px",
+            backgroundSize: "56px 56px",
+            maskImage:
+              "radial-gradient(ellipse at 40% 35%, black 0%, transparent 75%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse at 40% 35%, black 0%, transparent 75%)",
           }}
         />
-        {/* Gradient glow */}
+        {/* Top-right glow */}
         <div
           className="absolute"
           style={{
-            top: "10%",
-            right: "-10%",
-            width: "50%",
-            height: "60%",
-            background: "radial-gradient(ellipse at center, rgba(245,158,11,0.05) 0%, transparent 70%)",
-            filter: "blur(40px)",
+            top: "-10%",
+            right: "-20%",
+            width: "70%",
+            height: "70%",
+            background:
+              "radial-gradient(circle at center, rgb(var(--brand-rgb) / 0.10) 0%, transparent 65%)",
+            filter: "blur(60px)",
+          }}
+        />
+        {/* Bottom-left subtle glow */}
+        <div
+          className="absolute"
+          style={{
+            bottom: "-20%",
+            left: "-10%",
+            width: "55%",
+            height: "55%",
+            background:
+              "radial-gradient(circle at center, rgb(var(--brand-rgb) / 0.04) 0%, transparent 70%)",
+            filter: "blur(80px)",
           }}
         />
       </div>
 
-      <div className="max-w-md relative z-10">
-        {/* Logo */}
-        <div className="flex items-center gap-3 mb-8">
-          <div
-            className="w-12 h-12 rounded-xl bg-brand-500 flex items-center justify-center text-black font-extrabold text-xl"
-            style={{ boxShadow: "0 0 20px rgb(var(--brand-rgb) / 0.25)" }}
-            aria-hidden="true"
+      {/* Top: brand */}
+      <div className="relative z-10">
+        <BrandMark size="md" />
+      </div>
+
+      {/* Middle: hero copy + features */}
+      <div className="relative z-10 max-w-md">
+        {/* Eyebrow */}
+        <div className="flex items-center gap-2 mb-5">
+          <span
+            className="h-px w-8"
+            style={{ background: "rgb(var(--brand-rgb) / 0.6)" }}
+          />
+          <span
+            className="text-[10px] font-semibold uppercase tracking-[0.22em]"
+            style={{ color: "var(--brand)" }}
           >
-            E
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight" style={{ color: "var(--text-default)" }}>EquipTrack</h1>
-            <p className="text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>{t("app.subtitle")}</p>
-          </div>
+            Equipment Platform
+          </span>
         </div>
 
-        {/* Welcome text */}
-        <div className="mb-6">
-          <h2 className="text-3xl xl:text-4xl font-bold leading-tight" style={{ color: "var(--text-default)" }}>
-            {t("login.welcome")}
-            <span className="block text-brand-500 mt-1" style={{ textShadow: "0 0 40px rgb(var(--brand-rgb) / 0.2)" }}>EquipTrack</span>
-          </h2>
-          <p className="mt-3 text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
-            {t("login.welcomeSub")}
-          </p>
-        </div>
+        {/* Welcome */}
+        <h2
+          className="text-[2.25rem] xl:text-[2.75rem] font-bold leading-[1.05] tracking-tight"
+          style={{ color: "var(--text-default)" }}
+        >
+          {t("login.welcome")}
+          <br />
+          <span
+            className="inline-block bg-clip-text text-transparent mt-1"
+            style={{
+              backgroundImage:
+                "linear-gradient(120deg, rgb(var(--brand-light-rgb)) 0%, rgb(var(--brand-rgb)) 50%, rgb(var(--brand-dark-rgb)) 100%)",
+            }}
+          >
+            EquipTrack
+          </span>
+        </h2>
+        <p
+          className="mt-4 text-[15px] leading-relaxed max-w-sm"
+          style={{ color: "var(--text-muted)" }}
+        >
+          {t("login.welcomeSub")}
+        </p>
 
         {/* Feature list */}
-        <div className="space-y-2">
+        <ul className="mt-8 space-y-3">
           {features.map((f, i) => (
+            <li
+              key={i}
+              className="flex items-center gap-3 group"
+              style={{
+                animation: `fade-in 0.5s ease-out ${i * 80 + 100}ms both`,
+              }}
+            >
+              <span
+                className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 border transition-colors duration-200 group-hover:border-[rgb(var(--brand-rgb)/0.35)]"
+                style={{
+                  background: "rgb(var(--brand-rgb) / 0.06)",
+                  borderColor: "rgb(var(--brand-rgb) / 0.15)",
+                }}
+              >
+                <f.icon size={15} className="text-brand-500" strokeWidth={2.25} />
+              </span>
+              <span
+                className="text-sm leading-snug transition-colors duration-200 group-hover:text-[var(--text-default)]"
+                style={{ color: "var(--text-muted)" }}
+              >
+                {f.text}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Bottom: metric strip + live status */}
+      <div className="relative z-10">
+        <div
+          className="grid grid-cols-3 gap-px rounded-xl overflow-hidden border"
+          style={{
+            borderColor: "var(--border)",
+            background: "var(--border)",
+          }}
+        >
+          {[
+            { value: "99.9%", label: "Uptime" },
+            { value: "256-bit", label: "Encryption" },
+            { value: "24/7", label: "Monitoring" },
+          ].map((m, i) => (
             <div
               key={i}
-              className="flex items-center gap-3 p-2.5 rounded-xl transition-colors duration-200 hover:bg-[var(--surface-hover)]"
+              className="px-4 py-3"
+              style={{ background: "var(--surface)" }}
             >
               <div
-                className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                style={{ background: "rgb(var(--brand-rgb) / 0.08)", border: "1px solid rgb(var(--brand-rgb) / 0.1)" }}
+                className="text-base font-bold tracking-tight"
+                style={{ color: "var(--text-default)" }}
               >
-                <f.icon size={18} className="text-brand-500" />
+                {m.value}
               </div>
-              <span className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>{f.text}</span>
+              <div
+                className="text-[10px] font-semibold uppercase tracking-[0.12em] mt-0.5"
+                style={{ color: "var(--text-subtle)" }}
+              >
+                {m.label}
+              </div>
             </div>
           ))}
         </div>
 
-        {/* Trust indicators */}
-        <div className="mt-8 flex items-center gap-6">
-          <div className="flex -space-x-2">
-            {["P", "S", "A", "K"].map((letter, i) => (
-              <div
-                key={i}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2"
-                style={{
-                  background: `hsl(${i * 60 + 30}, 60%, 45%)`,
-                  borderColor: "var(--background)",
-                  color: "white",
-                }}
-              >
-                {letter}
-              </div>
-            ))}
+        <div className="mt-4 flex items-center justify-between text-[11px]">
+          <div className="flex items-center gap-2">
+            <span className="relative flex items-center justify-center">
+              <span
+                className="absolute inline-flex h-2 w-2 rounded-full opacity-60 animate-ping"
+                style={{ background: "#34d399" }}
+              />
+              <span
+                className="relative inline-block w-1.5 h-1.5 rounded-full"
+                style={{ background: "#34d399" }}
+              />
+            </span>
+            <span
+              className="font-medium"
+              style={{ color: "var(--text-muted)" }}
+            >
+              All systems operational
+            </span>
           </div>
-          <p className="text-xs" style={{ color: "var(--text-subtle)" }}>
-            ระบบภายในบริษัท · Internal Use Only
-          </p>
+          <span style={{ color: "var(--text-subtle)" }}>
+            v2.0 · Internal
+          </span>
         </div>
       </div>
     </div>
   );
 }
 
-function LoginSubtitle() {
-  const { t } = useI18n();
-  return <>{t("app.subtitle")}</>;
-}
-
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="min-h-screen flex bg-background relative overflow-hidden">
+      {/* Mobile ambient glow */}
+      <div
+        className="absolute inset-0 pointer-events-none lg:hidden"
+        aria-hidden="true"
+      >
+        <div
+          className="absolute"
+          style={{
+            top: "-15%",
+            right: "-25%",
+            width: "70%",
+            height: "60%",
+            background:
+              "radial-gradient(circle at center, rgb(var(--brand-rgb) / 0.08) 0%, transparent 65%)",
+            filter: "blur(60px)",
+          }}
+        />
+      </div>
+
       {/* Left panel — features (desktop only) */}
-      <div className="hidden lg:flex lg:w-[55%] xl:w-[55%] border-r border-[var(--border)]/50">
+      <div className="hidden lg:flex lg:w-[55%] xl:w-[55%] border-r border-[var(--border)]/60 relative">
         <Suspense fallback={null}>
           <FeaturePanel />
         </Suspense>
       </div>
 
       {/* Right panel — form */}
-      <div className="flex-1 flex items-center justify-center p-5 sm:p-6">
+      <div className="flex-1 flex items-center justify-center p-5 sm:p-6 relative">
         <div className="w-full max-w-[420px] animate-fade-in-up">
           {/* Mobile logo */}
-          <div className="lg:hidden text-center mb-5">
-            <div
-              className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-brand-500 text-black font-extrabold text-xl mb-2"
-              style={{ boxShadow: "0 0 20px rgb(var(--brand-rgb) / 0.25)" }}
-              aria-hidden="true"
-            >
-              E
-            </div>
-            <h1 className="text-xl font-bold" style={{ color: "var(--text-default)" }}>EquipTrack</h1>
-            <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
-              <Suspense fallback="...">
-                <LoginSubtitle />
-              </Suspense>
-            </p>
+          <div className="lg:hidden flex justify-center mb-5">
+            <BrandMark size="sm" />
           </div>
 
           {/* Form card */}
-          <div className="card !rounded-2xl p-5 sm:p-6 relative overflow-hidden">
+          <div
+            className="card !rounded-2xl p-5 sm:p-7 relative overflow-hidden"
+            style={{ boxShadow: "var(--shadow-lg)" }}
+          >
             {/* Top accent line */}
-            <div className="absolute top-0 left-6 right-6 h-px" style={{ background: "linear-gradient(90deg, transparent, rgb(var(--brand-rgb) / 0.25), transparent)" }} />
+            <div
+              className="absolute top-0 left-6 right-6 h-px"
+              style={{
+                background:
+                  "linear-gradient(90deg, transparent, rgb(var(--brand-rgb) / 0.45), transparent)",
+              }}
+            />
 
-            {/* Language switcher */}
-            <div className="flex justify-end mb-3 -mt-1 -mr-1">
+            {/* Header row: title + lang switcher */}
+            <div className="flex items-start justify-between gap-3 mb-5">
+              <div className="min-w-0">
+                <h3
+                  className="text-lg font-semibold tracking-tight"
+                  style={{ color: "var(--text-default)" }}
+                >
+                  Sign in to your account
+                </h3>
+                <p
+                  className="text-xs mt-0.5"
+                  style={{ color: "var(--text-subtle)" }}
+                >
+                  Use Google or email · ใช้ Google หรืออีเมล
+                </p>
+              </div>
               <LanguageSwitcher />
             </div>
 
-            <Suspense fallback={<div className="text-center py-12" style={{ color: "var(--text-subtle)" }}>...</div>}>
+            <Suspense
+              fallback={
+                <div
+                  className="text-center py-12"
+                  style={{ color: "var(--text-subtle)" }}
+                >
+                  ...
+                </div>
+              }
+            >
               <AuthForms />
             </Suspense>
           </div>
 
           {/* Footer */}
-          <p className="text-center text-[11px] mt-4" style={{ color: "var(--text-subtle)" }}>
-            EquipTrack v2.0 — Equipment Management System
-          </p>
+          <div className="mt-5 flex items-center justify-center gap-2 text-[11px]">
+            <ShieldCheck
+              size={12}
+              style={{ color: "var(--text-subtle)" }}
+              aria-hidden="true"
+            />
+            <span style={{ color: "var(--text-subtle)" }}>
+              Secured by NextAuth · EquipTrack v2.0
+            </span>
+          </div>
         </div>
       </div>
     </div>

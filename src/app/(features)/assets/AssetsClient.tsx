@@ -4,7 +4,7 @@
 import { useState, useCallback } from "react";
 import { useI18n } from "@/lib/i18n";
 import { formatMoney } from "@/lib/utils";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ExportButtons } from "@/components/ExportButtons";
 import { Pagination } from "@/components/Pagination";
 import { usePagination } from "@/lib/usePagination";
@@ -54,10 +54,16 @@ export function AssetsClient({ data }: { data: AssetsData }) {
   const { t, locale } = useI18n(); // t ได้ฟังชั่นมา local ได้ค่ามา
 
   const router = useRouter();
+  const urlSearchParams = useSearchParams();
   const { canCreate, canEdit, canDelete } = useRole();
   const { categories, labelFor, emojiFor } = useCategories();
   const { assets, totalValue, searchParams } = data;
   const { items: pagedAssets, total: assetsTotal } = usePagination(assets, 20);
+
+  const buildDetailHref = useCallback((id: string) => {
+    const qs = urlSearchParams.toString();
+    return qs ? `/assets/${id}?from=${encodeURIComponent(qs)}` : `/assets/${id}`;
+  }, [urlSearchParams]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showBatchPrint, setShowBatchPrint] = useState(false);
   const [showBatchEdit, setShowBatchEdit] = useState(false);
@@ -295,7 +301,7 @@ export function AssetsClient({ data }: { data: AssetsData }) {
               <tr
                 key={a.id}
                 className={`cursor-pointer ${selected.has(a.id) ? "bg-brand-500/5" : ""}`}
-                onClick={() => router.push(`/assets/${a.id}`)}
+                onClick={() => router.push(buildDetailHref(a.id))}
                 onMouseEnter={() => router.prefetch(`/assets/${a.id}`)}
               >
                 <td className="w-10" onClick={(e) => e.stopPropagation()}>

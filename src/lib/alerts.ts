@@ -127,7 +127,7 @@ export async function sendDailyAlertEmail(): Promise<{ // <> = generic type anno
 
   const html = `
     <div style="font-family: 'Sarabun', sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #f59e0b;">🔔 EquipTrack — แจ้งเตือนรายวัน</h2>
+      <h2 style="color: #f59e0b;">🔔 Asset Management — แจ้งเตือนรายวัน</h2>
       <p>พบ ${alerts.length} รายการที่ต้องดำเนินการ</p>
 
       ${dangerAlerts.length > 0 ? `
@@ -146,7 +146,7 @@ export async function sendDailyAlertEmail(): Promise<{ // <> = generic type anno
       ` : ""}
 
       <hr style="border: 1px solid #e5e7eb; margin: 20px 0;" />
-      <p style="color: #9ca3af; font-size: 12px;">EquipTrack — ${format(new Date(), "d MMMM yyyy", { locale: th })}</p>
+      <p style="color: #9ca3af; font-size: 12px;">Asset Management — ${format(new Date(), "d MMMM yyyy", { locale: th })}</p>
     </div>
   `;
 
@@ -158,7 +158,7 @@ export async function sendDailyAlertEmail(): Promise<{ // <> = generic type anno
   await resend.emails.send({
     from: process.env.ALERT_FROM_EMAIL!,
     to: process.env.ALERT_TO_EMAIL!,
-    subject: `🔔 EquipTrack: ${alerts.length} รายการต้องดำเนินการ${dangerAlerts.length > 0 ? " (มีด่วน!)" : ""}`,
+    subject: `🔔 Asset Management: ${alerts.length} รายการต้องดำเนินการ${dangerAlerts.length > 0 ? " (มีด่วน!)" : ""}`,
     html,
   });
 
