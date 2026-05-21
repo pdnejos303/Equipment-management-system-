@@ -14,12 +14,13 @@ import type { LabelAsset } from "@/components/labels";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { AddAssetForm } from "@/components/forms/AddAssetForm";
 import { BatchEditAssetsForm } from "@/components/forms/BatchEditAssetsForm";
+import { BatchPhotoForm } from "@/components/forms/BatchPhotoForm";
 import { CategoriesManagerDialog } from "@/components/settings/CategoriesManagerDialog";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { useRole } from "@/lib/useRole";
 import { useCategories } from "@/lib/useCategories";
 import { showConfirm, showSuccess, showError } from "@/lib/swal";
-import { Plus, Settings2, Pencil, Trash2, Printer } from "lucide-react";
+import { Plus, Settings2, Pencil, Trash2, Printer, ImagePlus } from "lucide-react";
 
 const STATUS_BADGE: Record<string, string> = {
   ACTIVE: "badge-active",
@@ -60,6 +61,7 @@ export function AssetsClient({ data }: { data: AssetsData }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showBatchPrint, setShowBatchPrint] = useState(false);
   const [showBatchEdit, setShowBatchEdit] = useState(false);
+  const [showBatchPhoto, setShowBatchPhoto] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [showAddAsset, setShowAddAsset] = useState(false);
   const [showManageCategories, setShowManageCategories] = useState(false);
@@ -228,6 +230,15 @@ export function AssetsClient({ data }: { data: AssetsData }) {
           </button>
           {canEdit && (
             <button
+              onClick={() => setShowBatchPhoto(true)}
+              className="btn-ghost text-sm flex items-center gap-1.5 min-h-[40px]"
+            >
+              <ImagePlus size={14} />
+              {t("labels.batchPhoto")}
+            </button>
+          )}
+          {canEdit && (
+            <button
               onClick={() => setShowBatchEdit(true)}
               className="btn-ghost text-sm flex items-center gap-1.5 min-h-[40px]"
             >
@@ -341,6 +352,15 @@ export function AssetsClient({ data }: { data: AssetsData }) {
         <BatchEditAssetsForm
           open={showBatchEdit}
           onClose={() => setShowBatchEdit(false)}
+          assetIds={selectedIds}
+        />
+      )}
+
+      {/* Batch Photo Dialog */}
+      {showBatchPhoto && (
+        <BatchPhotoForm
+          open={showBatchPhoto}
+          onClose={() => setShowBatchPhoto(false)}
           assetIds={selectedIds}
         />
       )}
