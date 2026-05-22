@@ -17,7 +17,9 @@
       "PowerShell(Test-NetConnection *)",
       "PowerShell(pnpm image *)",
       "PowerShell(npx tsx prisma/verify-photos.ts)",
-      "PowerShell(Get-Process *)"
+      "PowerShell(Get-Process *)",
+      "PowerShell(npm run *)",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3000/login\" -UseBasicParsing -TimeoutSec 10; \"Status: $\\($r.StatusCode\\)  Length: $\\($r.Content.Length\\)\" } catch { \"Error: $\\($_.Exception.Message\\)\" })"
     ]
   }
 }

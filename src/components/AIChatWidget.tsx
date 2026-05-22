@@ -2,7 +2,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { MessageCircle, X, Send, Sparkles, Loader2 } from "lucide-react";
+import { MessageCircle, X, Send, Sparkles, Loader2, Trash2 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -11,16 +12,41 @@ interface Message {
   content: string;
 }
 
+const STORAGE_KEY = "ai_chat_history_v1";
+
 export function AIChatWidget() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [toolStatus, setToolStatus] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const fabRef = useRef<HTMLButtonElement>(null);
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
+
+  // Load persisted history on mount
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) setMessages(parsed);
+      }
+    } catch {
+      // ignore corrupt storage
+    }
+  }, []);
+
+  // Persist on change
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+    } catch {
+      // ignore quota errors
+    }
+  }, [messages]);
 
   // Click outside to close
   useEffect(() => {
@@ -42,7 +68,7 @@ export function AIChatWidget() {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, toolStatus]);
 
   useEffect(() => {
     if (open && inputRef.current) {
@@ -50,38 +76,121 @@ export function AIChatWidget() {
     }
   }, [open]);
 
+  const toolLabel = useCallback((name: string) => {
+    const map: Record<string, { th: string; ja: string; en: string }> = {
+      get_summary_stats: { th: "กำลังดูภาพรวม...", ja: "概要を確認中...", en: "Checking overview..." },
+      search_assets: { th: "กำลังค้นหาอุปกรณ์...", ja: "機器を検索中...", en: "Searching equipment..." },
+      get_asset_details: { th: "กำลังดึงรายละเอียด...", ja: "詳細を取得中...", en: "Fetching details..." },
+      get_maintenance_history: { th: "กำลังดึงประวัติซ่อม...", ja: "修理履歴を取得中...", en: "Fetching maintenance history..." },
+      get_assignments: { th: "กำลังดูการเบิกใช้...", ja: "割り当てを確認中...", en: "Checking assignments..." },
+      get_upcoming_attention: { th: "กำลังตรวจสิ่งที่ต้องดูแล...", ja: "注意項目を確認中...", en: "Checking attention items..." },
+    };
+    const entry = map[name];
+    if (!entry) return locale === "th" ? "กำลังดึงข้อมูล..." : locale === "ja" ? "データ取得中..." : "Fetching data...";
+    return entry[(locale as "th" | "ja" | "en") || "en"];
+  }, [locale]);
+
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || loading) return;
 
     const userMsg: Message = { role: "user", content: text.trim() };
-    setMessages((prev) => [...prev, userMsg]);
+    const history = [...messages, userMsg];
+    setMessages(history);
     setInput("");
     setLoading(true);
+    setToolStatus(null);
+
+    // Placeholder assistant message we'll fill as deltas arrive
+    setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
 
     try {
       const res = await fetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: [...messages, userMsg].map((m) => ({ role: m.role, content: m.content })),
+          messages: history.map((m) => ({ role: m.role, content: m.content })),
           locale,
         }),
       });
 
-      const data = await res.json();
-      if (data.error) {
-        setMessages((prev) => [...prev, { role: "assistant", content: `Error: ${data.error}` }]);
-      } else {
-        setMessages((prev) => [...prev, { role: "assistant", content: data.message }]);
+      if (!res.ok || !res.body) {
+        const err = await res.json().catch(() => ({ error: "Connection error" }));
+        setMessages((prev) => {
+          const next = [...prev];
+          next[next.length - 1] = { role: "assistant", content: `⚠️ ${err.error || "Error"}` };
+          return next;
+        });
+        return;
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        // SSE frames separated by blank line
+        const frames = buffer.split("\n\n");
+        buffer = frames.pop() || "";
+
+        for (const frame of frames) {
+          const line = frame.trim();
+          if (!line.startsWith("data:")) continue;
+          const payload = line.slice(5).trim();
+          if (!payload) continue;
+          try {
+            const evt = JSON.parse(payload);
+            if (evt.type === "tool") {
+              setToolStatus(toolLabel(evt.name));
+            } else if (evt.type === "delta") {
+              setToolStatus(null);
+              setMessages((prev) => {
+                const next = [...prev];
+                const last = next[next.length - 1];
+                if (last?.role === "assistant") {
+                  next[next.length - 1] = { ...last, content: last.content + (evt.text || "") };
+                }
+                return next;
+              });
+            } else if (evt.type === "error") {
+              setMessages((prev) => {
+                const next = [...prev];
+                next[next.length - 1] = { role: "assistant", content: `⚠️ ${evt.message}` };
+                return next;
+              });
+            }
+          } catch {
+            // ignore malformed frame
+          }
+        }
       }
     } catch {
-      setMessages((prev) => [...prev, { role: "assistant", content: "Connection error. Please try again." }]);
+      setMessages((prev) => {
+        const next = [...prev];
+        const last = next[next.length - 1];
+        const errMsg = locale === "th" ? "เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง" : locale === "ja" ? "接続エラー。再試行してください" : "Connection error. Please try again.";
+        if (last?.role === "assistant" && !last.content) {
+          next[next.length - 1] = { role: "assistant", content: `⚠️ ${errMsg}` };
+        } else {
+          next.push({ role: "assistant", content: `⚠️ ${errMsg}` });
+        }
+        return next;
+      });
     } finally {
       setLoading(false);
+      setToolStatus(null);
     }
-  }, [loading, messages, locale]);
+  }, [loading, messages, locale, toolLabel]);
 
   const send = useCallback(() => sendMessage(input), [input, sendMessage]);
+
+  const clearChat = useCallback(() => {
+    setMessages([]);
+    try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+  }, []);
 
   const suggestions = useMemo(() =>
     locale === "th"
@@ -119,7 +228,7 @@ export function AIChatWidget() {
       {open && (
         <div
           ref={panelRef}
-          className="fixed z-50 bg-[var(--surface)] border border-[var(--border)] flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 bottom-16 right-3 left-3 h-[55vh] max-h-[400px] rounded-2xl sm:bottom-24 sm:right-6 sm:left-auto sm:w-[380px] sm:h-[480px] sm:max-h-[calc(100vh-120px)] sm:rounded-2xl"
+          className="fixed z-50 bg-[var(--surface)] border border-[var(--border)] flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 bottom-16 right-3 left-3 h-[65vh] max-h-[520px] rounded-2xl sm:bottom-24 sm:right-6 sm:left-auto sm:w-[380px] sm:h-[520px] sm:max-h-[calc(100vh-120px)] sm:rounded-2xl"
           style={{ boxShadow: "0 24px 48px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.03) inset" }}
         >
           {/* Header */}
@@ -128,12 +237,25 @@ export function AIChatWidget() {
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgb(var(--brand-rgb) / 0.1)", border: "1px solid rgb(var(--brand-rgb) / 0.15)" }}>
               <Sparkles size={16} className="text-brand-500" />
             </div>
-            <div>
+            <div className="flex-1 min-w-0">
               <h3 className="text-sm font-bold">Asset Management AI</h3>
               <p className="text-[10px]" style={{ color: "var(--text-subtle)" }}>
                 {locale === "th" ? "ผู้ช่วยอัจฉริยะ" : locale === "ja" ? "AIアシスタント" : "Smart Assistant"}
               </p>
             </div>
+            {messages.length > 0 && (
+              <button
+                onClick={clearChat}
+                disabled={loading}
+                title={locale === "th" ? "ล้างประวัติ" : locale === "ja" ? "履歴をクリア" : "Clear history"}
+                className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors disabled:opacity-30"
+                style={{ color: "var(--text-subtle)" }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--text-default)"; (e.currentTarget as HTMLElement).style.background = "var(--surface-hover)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--text-subtle)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+              >
+                <Trash2 size={14} />
+              </button>
+            )}
           </div>
 
           {/* Messages */}
@@ -177,10 +299,10 @@ export function AIChatWidget() {
               <div
                 key={i}
                 className={cn(
-                  "max-w-[85%] text-sm rounded-2xl px-3.5 py-2.5 whitespace-pre-wrap",
+                  "max-w-[85%] text-sm rounded-2xl px-3.5 py-2.5",
                   msg.role === "user"
-                    ? "ml-auto bg-brand-500 text-black rounded-br-md"
-                    : "rounded-bl-md border"
+                    ? "ml-auto bg-brand-500 text-black rounded-br-md whitespace-pre-wrap"
+                    : "rounded-bl-md border ai-markdown"
                 )}
                 style={msg.role === "assistant" ? {
                   background: "var(--surface-hover)",
@@ -188,14 +310,37 @@ export function AIChatWidget() {
                   color: "var(--text-default)",
                 } : undefined}
               >
-                {msg.content}
+                {msg.role === "assistant" ? (
+                  msg.content ? (
+                    <ReactMarkdown
+                      components={{
+                        p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                        ul: ({ children }) => <ul className="list-disc pl-4 mb-2 last:mb-0 space-y-0.5">{children}</ul>,
+                        ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 last:mb-0 space-y-0.5">{children}</ol>,
+                        li: ({ children }) => <li className="text-sm">{children}</li>,
+                        strong: ({ children }) => <strong className="font-semibold text-brand-400">{children}</strong>,
+                        code: ({ children }) => <code className="px-1 py-0.5 rounded text-[11px]" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>{children}</code>,
+                        a: ({ children, href }) => <a href={href} target="_blank" rel="noreferrer" className="text-brand-500 underline">{children}</a>,
+                        h1: ({ children }) => <h1 className="text-sm font-bold mb-1">{children}</h1>,
+                        h2: ({ children }) => <h2 className="text-sm font-bold mb-1">{children}</h2>,
+                        h3: ({ children }) => <h3 className="text-sm font-bold mb-1">{children}</h3>,
+                      }}
+                    >
+                      {msg.content}
+                    </ReactMarkdown>
+                  ) : (
+                    <span className="inline-block w-1.5 h-3 bg-brand-500 animate-pulse rounded-sm" />
+                  )
+                ) : (
+                  msg.content
+                )}
               </div>
             ))}
 
-            {loading && (
-              <div className="flex items-center gap-2 text-sm" style={{ color: "var(--text-subtle)" }}>
-                <Loader2 size={14} className="animate-spin text-brand-500" />
-                <span>{locale === "th" ? "กำลังคิด..." : locale === "ja" ? "考え中..." : "Thinking..."}</span>
+            {loading && toolStatus && (
+              <div className="flex items-center gap-2 text-xs" style={{ color: "var(--text-subtle)" }}>
+                <Loader2 size={12} className="animate-spin text-brand-500" />
+                <span>{toolStatus}</span>
               </div>
             )}
           </div>
