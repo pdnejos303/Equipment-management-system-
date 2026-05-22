@@ -7,7 +7,8 @@ import { useI18n } from "@/lib/i18n";
 import { showSuccess, showError, showConfirm } from "@/lib/swal";
 import { Pagination } from "@/components/Pagination";
 import { usePagination } from "@/lib/usePagination";
-import { Shield, ShieldCheck, Eye, Plus, Pencil, Trash2, X } from "lucide-react";
+import { Modal } from "@/components/ui/Modal";
+import { Shield, ShieldCheck, Eye, Plus, Pencil, Trash2 } from "lucide-react";
 
 interface User {
   id: string;
@@ -262,109 +263,96 @@ export function UsersClient({ users: initialUsers, currentUserId }: { users: Use
 
       <Pagination total={usersTotal} pageSize={15} />
 
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowModal(false)}>
-          <div className="w-full max-w-md mx-4 rounded-xl border border-border overflow-hidden animate-fade-in shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            {/* Modal Header Gradient */}
-            <div className="bg-gradient-to-r from-surface-dark to-surface px-5 py-4 border-b border-border flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-brand-500/10 flex items-center justify-center">
-                  {editUser ? <Pencil size={15} className="text-brand-500" /> : <Plus size={15} className="text-brand-500" />}
-                </div>
-                <h2 className="text-base font-bold" style={{ color: "var(--text-default)" }}>{editUser ? t("users.editUser") : t("users.addNew")}</h2>
-              </div>
-              <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg hover:bg-surface-hover text-gray-500 hover:text-gray-300 transition">
-                <X size={16} />
-              </button>
-            </div>
+      <Modal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        title={editUser ? t("users.editUser") : t("users.addNew")}
+        width="max-w-md"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-[11px] font-semibold mb-1.5 uppercase tracking-wide" style={{ color: "var(--text-subtle)" }}>{t("users.name")}</label>
+            <input
+              type="text"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className="input"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] font-semibold mb-1.5 uppercase tracking-wide" style={{ color: "var(--text-subtle)" }}>{t("users.email")}</label>
+            <input
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              className="input"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] font-semibold mb-1.5 uppercase tracking-wide" style={{ color: "var(--text-subtle)" }}>
+              {t("users.password")} {editUser && <span className="normal-case" style={{ color: "var(--text-subtle)" }}>({t("users.leaveBlank")})</span>}
+            </label>
+            <input
+              type="password"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              className="input"
+              placeholder="••••••••"
+              {...(!editUser ? { required: true, minLength: 6 } : {})}
+            />
+          </div>
 
-            <div className="bg-surface p-5 space-y-4">
-              <div>
-                <label className="block text-xs text-gray-500 font-semibold mb-1.5 uppercase">{t("users.name")}</label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="input"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 font-semibold mb-1.5 uppercase">{t("users.email")}</label>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="input"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 font-semibold mb-1.5 uppercase">
-                  {t("users.password")} {editUser && <span className="text-gray-600 normal-case">({t("users.leaveBlank")})</span>}
-                </label>
-                <input
-                  type="password"
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  className="input"
-                  placeholder="••••••••"
-                  {...(!editUser ? { required: true, minLength: 6 } : {})}
-                />
-              </div>
-
-              {/* Role visual card selector */}
-              <div>
-                <label className="block text-xs text-gray-500 font-semibold mb-2 uppercase">{t("users.role")}</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(["ADMIN", "USER", "VIEWER"] as const).map((role) => {
-                    const rc = ROLE_CONFIG[role];
-                    const RoleIcon = rc.icon;
-                    const isSelected = form.role === role;
-                    return (
-                      <button
-                        key={role}
-                        type="button"
-                        onClick={() => setForm({ ...form, role })}
-                        className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all text-center ${
-                          isSelected
-                            ? `${rc.bg} ${rc.color} border-current`
-                            : "border-border text-gray-500 hover:border-gray-600 hover:text-gray-400"
-                        }`}
-                      >
-                        <RoleIcon size={20} />
-                        <span className="text-xs font-semibold">{rc.label[locale] || rc.label.en}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Role description */}
-              <div className="rounded-xl border border-border bg-surface-dark p-4 space-y-2">
-                {(["ADMIN", "USER", "VIEWER"] as const).map((role) => {
-                  const rc = ROLE_CONFIG[role];
-                  const isActive = form.role === role;
-                  return (
-                    <div key={role} className={`flex items-start gap-2 text-xs transition-opacity ${isActive ? "opacity-100" : "opacity-40"}`}>
-                      <span className={`${rc.badgeClass} flex-shrink-0 mt-0.5`}>{role}</span>
-                      <span className="text-gray-400">{t(ROLE_DESC_KEYS[role])}</span>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="flex gap-2 pt-1">
-                <button onClick={() => setShowModal(false)} className="btn-ghost flex-1">{t("forms.cancel")}</button>
-                <button onClick={handleSave} disabled={saving} className="btn-primary flex-1 disabled:opacity-50">
-                  {saving ? t("forms.saving") : t("forms.save")}
-                </button>
-              </div>
+          {/* Role visual card selector */}
+          <div>
+            <label className="block text-[11px] font-semibold mb-2 uppercase tracking-wide" style={{ color: "var(--text-subtle)" }}>{t("users.role")}</label>
+            <div className="grid grid-cols-3 gap-2">
+              {(["ADMIN", "USER", "VIEWER"] as const).map((role) => {
+                const rc = ROLE_CONFIG[role];
+                const RoleIcon = rc.icon;
+                const isSelected = form.role === role;
+                return (
+                  <button
+                    key={role}
+                    type="button"
+                    onClick={() => setForm({ ...form, role })}
+                    className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all text-center ${
+                      isSelected
+                        ? `${rc.bg} ${rc.color} border-current`
+                        : "border-border text-gray-500 hover:border-gray-600 hover:text-gray-400"
+                    }`}
+                  >
+                    <RoleIcon size={20} />
+                    <span className="text-xs font-semibold">{rc.label[locale] || rc.label.en}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
+
+          {/* Role description */}
+          <div className="rounded-xl border border-border bg-surface-dark p-4 space-y-2">
+            {(["ADMIN", "USER", "VIEWER"] as const).map((role) => {
+              const rc = ROLE_CONFIG[role];
+              const isActive = form.role === role;
+              return (
+                <div key={role} className={`flex items-start gap-2 text-xs transition-opacity ${isActive ? "opacity-100" : "opacity-40"}`}>
+                  <span className={`${rc.badgeClass} flex-shrink-0 mt-0.5`}>{role}</span>
+                  <span className="text-gray-400">{t(ROLE_DESC_KEYS[role])}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <button onClick={() => setShowModal(false)} className="btn-ghost flex-1">{t("forms.cancel")}</button>
+            <button onClick={handleSave} disabled={saving} className="btn-primary flex-1 disabled:opacity-50">
+              {saving ? t("forms.saving") : t("forms.save")}
+            </button>
+          </div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

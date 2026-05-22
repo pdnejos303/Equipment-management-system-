@@ -16,7 +16,8 @@
       "PowerShell(npx tsx prisma/import-csv.ts)",
       "PowerShell(Test-NetConnection *)",
       "PowerShell(pnpm image *)",
-      "PowerShell(npx tsx prisma/verify-photos.ts)"
+      "PowerShell(npx tsx prisma/verify-photos.ts)",
+      "PowerShell(Get-Process *)"
     ]
   }
 }

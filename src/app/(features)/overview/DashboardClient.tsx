@@ -300,8 +300,8 @@ export function DashboardClient({ data }: { data?: ServerData }) {
                     </div>
                   )}
                 </div>
-                <p className={`text-2xl font-bold leading-tight mt-1.5 ${s.color} tracking-tight truncate`}>{s.value}</p>
-                <p className="text-xs mt-1.5 leading-relaxed line-clamp-2 min-h-[2.2em]" style={{ color: "var(--text-subtle)" }}>{s.sub}</p>
+                <p className={`text-2xl font-bold leading-tight mt-1 ${s.color} tracking-tight truncate`}>{s.value}</p>
+                <p className="text-xs mt-0.5 leading-snug line-clamp-2" style={{ color: "var(--text-subtle)" }}>{s.sub}</p>
               </div>
             </div>
           </div>

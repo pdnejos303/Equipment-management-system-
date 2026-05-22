@@ -238,32 +238,56 @@ export function AlertsClient({ alerts }: { alerts: Alert[] }) {
           {/* Controls */}
           <div className="flex flex-col gap-3 mb-4 animate-fade-in">
             {/* Tabs */}
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            <div
+              className="inline-flex items-center gap-1 overflow-x-auto scrollbar-none p-1 rounded-xl border border-border/60 self-start"
+              style={{ background: "var(--surface-hover)" }}
+            >
               {tabs.map(({ key, labelKey, count }) => {
                 const isActive = tab === key;
-                const activeColor =
-                  key === "danger"
-                    ? "bg-red-500/10 text-red-300 border-red-500/40"
-                    : key === "warning"
-                    ? "bg-amber-500/10 text-amber-300 border-amber-500/40"
-                    : key === "info"
-                    ? "bg-blue-500/10 text-blue-300 border-blue-500/40"
-                    : "bg-brand-500/10 text-brand-400 border-brand-500/40";
+                const severityRgb: Record<string, string> = {
+                  danger:  "239 68 68",
+                  warning: "245 158 11",
+                  info:    "59 130 246",
+                  all:     "var(--brand-rgb)",
+                };
+                const severityText: Record<string, string> = {
+                  danger:  "#ef4444",
+                  warning: "#d97706",
+                  info:    "#2563eb",
+                  all:     "rgb(var(--brand-rgb))",
+                };
+                const rgb = severityRgb[key];
                 return (
                   <button
                     key={key}
                     onClick={() => { setTab(key); resetPage(); }}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium border transition-all whitespace-nowrap ${
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap min-h-[32px]"
+                    style={
                       isActive
-                        ? activeColor
-                        : "bg-transparent text-gray-400 border-white/5 hover:border-white/15 hover:text-gray-200"
-                    }`}
+                        ? { background: `rgb(${rgb} / 0.15)`, color: severityText[key] }
+                        : { color: "var(--text-muted)" }
+                    }
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.color = "var(--text-default)";
+                        e.currentTarget.style.background = "var(--surface-active)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.color = "var(--text-muted)";
+                        e.currentTarget.style.background = "transparent";
+                      }
+                    }}
                   >
                     {t(labelKey)}
                     <span
-                      className={`text-[11px] font-semibold px-1.5 py-0.5 rounded ${
-                        isActive ? "bg-black/30" : "bg-white/5 text-gray-500"
-                      }`}
+                      className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md tabular-nums"
+                      style={
+                        isActive
+                          ? { background: `rgb(${rgb} / 0.28)`, color: "inherit" }
+                          : { background: "var(--surface-active)", color: "var(--text-subtle)" }
+                      }
                     >
                       {count}
                     </span>
