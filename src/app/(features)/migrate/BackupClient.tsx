@@ -1,10 +1,12 @@
 // Path: src/app/(features)/migrate/BackupClient.tsx
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useI18n } from "@/lib/i18n";
-import { Download, Upload, CheckCircle2, AlertTriangle, HardDrive, RefreshCw } from "lucide-react";
-import { showError, showSuccess, showConfirm } from "@/lib/swal";
+import { Download, Upload, CheckCircle2, AlertTriangle, HardDrive, RefreshCw, Lock, ImageIcon, FileText, Eye, EyeOff } from "lucide-react";
+import { showError, showSuccess, showConfirm, showPasswordPrompt } from "@/lib/swal";
+import { Modal } from "@/components/ui/Modal";
+import { format } from "date-fns";
 
 type RestoreMode = "skip" | "replace";
 
@@ -18,30 +20,63 @@ interface RestoreStats {
   images: number;
 }
 
+const ENC_EXT = ".zip.enc";
+
+function defaultFilename(): string {
+  return `equip-backup-${format(new Date(), "yyyyMMdd-HHmmss")}`;
+}
+
 export function BackupClient() {
   const { t } = useI18n();
+
+  // ── Export modal state ──
+  const [exportOpen, setExportOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [fileName, setFileName] = useState(defaultFilename());
+  const [includeImages, setIncludeImages] = useState(true);
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  // ── Restore state ──
   const [restoreMode, setRestoreMode] = useState<RestoreMode>("skip");
   const [restoring, setRestoring] = useState(false);
   const [restoreResult, setRestoreResult] = useState<RestoreStats | null>(null);
 
+  const sanitizedPreview = useMemo(
+    () => (fileName.trim() ? fileName.trim() : defaultFilename()),
+    [fileName]
+  );
+
   // ── Export ──
+
+  const openExportModal = () => {
+    setFileName(defaultFilename());
+    setIncludeImages(true);
+    setPassword("");
+    setShowPassword(false);
+    setExportOpen(true);
+  };
 
   const handleExport = async () => {
     setExporting(true);
     try {
-      const res = await fetch("/api/backup");
+      const params = new URLSearchParams();
+      if (fileName.trim()) params.set("name", fileName.trim());
+      if (!includeImages) params.set("images", "false");
+      if (password) params.set("password", password);
+
+      const res = await fetch(`/api/backup?${params.toString()}`);
       if (!res.ok) throw new Error("Export failed");
 
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      const filename = res.headers.get("Content-Disposition")?.match(/filename="(.+)"/)?.[1]
-        ?? `equip-backup-${Date.now()}.zip`;
+      const headerName = res.headers.get("Content-Disposition")?.match(/filename="(.+)"/)?.[1];
       a.href = url;
-      a.download = filename;
+      a.download = headerName ?? `${sanitizedPreview}${password ? ENC_EXT : ".zip"}`;
       a.click();
       URL.revokeObjectURL(url);
+      setExportOpen(false);
     } catch (err: any) {
       showError(t("backup.exportError"), err.message);
     }
@@ -55,9 +90,24 @@ export function BackupClient() {
     if (!file) return;
     e.target.value = "";
 
-    if (!file.name.endsWith(".zip")) {
+    const isEncrypted = file.name.toLowerCase().endsWith(ENC_EXT);
+    if (!isEncrypted && !file.name.toLowerCase().endsWith(".zip")) {
       showError(t("backup.invalidFile"));
       return;
+    }
+
+    // Prompt for password if encrypted (.zip.enc)
+    let restorePassword = "";
+    if (isEncrypted) {
+      const entered = await showPasswordPrompt({
+        title: t("backup.passwordPromptTitle"),
+        text: t("backup.passwordPromptText"),
+        placeholder: t("backup.passwordPromptPlaceholder"),
+        confirmText: t("confirm.ok"),
+        cancelText: t("confirm.cancel"),
+      });
+      if (!entered) return;
+      restorePassword = entered;
     }
 
     const confirmed = await showConfirm({
@@ -75,10 +125,16 @@ export function BackupClient() {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("mode", restoreMode);
+      if (restorePassword) formData.append("password", restorePassword);
 
       const res = await fetch("/api/backup", { method: "POST", body: formData });
       const result = await res.json();
-      if (!res.ok) throw new Error(result.error);
+      if (!res.ok) {
+        if (result.error === "password_wrong") {
+          throw new Error(t("backup.passwordWrong"));
+        }
+        throw new Error(result.error || result.message);
+      }
 
       setRestoreResult(result.stats);
       showSuccess(t("backup.restoreSuccess"), "");
@@ -116,12 +172,11 @@ export function BackupClient() {
             </div>
 
             <button
-              onClick={handleExport}
-              disabled={exporting}
+              onClick={openExportModal}
               className="btn-primary flex items-center gap-2"
             >
-              {exporting ? <RefreshCw size={16} className="animate-spin" /> : <Download size={16} />}
-              {exporting ? t("backup.exporting") : t("backup.exportBtn")}
+              <Download size={16} />
+              {t("backup.exportBtn")}
             </button>
           </div>
         </div>
@@ -188,12 +243,12 @@ export function BackupClient() {
                 <>
                   <Upload size={28} className="text-gray-500 mb-2" />
                   <span className="text-sm text-gray-400">{t("backup.dropZip")}</span>
-                  <span className="text-xs text-gray-600 mt-1">.zip</span>
+                  <span className="text-xs text-gray-600 mt-1">.zip · .zip.enc</span>
                 </>
               )}
               <input
                 type="file"
-                accept=".zip"
+                accept=".zip,.enc"
                 onChange={handleFile}
                 disabled={restoring}
                 className="hidden"
@@ -228,6 +283,115 @@ export function BackupClient() {
           </div>
         </div>
       )}
+
+      {/* ── Export Options Modal ── */}
+      <Modal
+        open={exportOpen}
+        onClose={() => !exporting && setExportOpen(false)}
+        title={t("backup.exportModalTitle")}
+        width="max-w-md"
+      >
+        <div className="space-y-5">
+          {/* File name */}
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium mb-2" style={{ color: "var(--text-default)" }}>
+              <FileText size={14} className="text-gray-500" />
+              {t("backup.fileNameLabel")}
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={fileName}
+                onChange={(e) => setFileName(e.target.value)}
+                placeholder={defaultFilename()}
+                className="input w-full pr-16"
+                disabled={exporting}
+                spellCheck={false}
+                autoComplete="off"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">
+                {password ? ENC_EXT : ".zip"}
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 mt-1.5">
+              {password
+                ? t("backup.encryptedExt", sanitizedPreview)
+                : t("backup.fileNameHint")}
+            </p>
+          </div>
+
+          {/* Include images toggle */}
+          <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition ${
+            includeImages ? "border-brand-500/40 bg-brand-500/5" : "border-border hover:border-gray-600"
+          }`}>
+            <input
+              type="checkbox"
+              checked={includeImages}
+              onChange={(e) => setIncludeImages(e.target.checked)}
+              disabled={exporting}
+              className="mt-0.5 w-4 h-4 accent-brand-500 cursor-pointer"
+            />
+            <div className="flex-1">
+              <div className="flex items-center gap-2 text-sm font-medium" style={{ color: "var(--text-default)" }}>
+                <ImageIcon size={14} className="text-gray-500" />
+                {t("backup.includeImagesLabel")}
+              </div>
+              <p className="text-xs text-gray-500 mt-0.5">{t("backup.includeImagesHint")}</p>
+            </div>
+          </label>
+
+          {/* Password */}
+          <div>
+            <label className="flex items-center justify-between text-sm font-medium mb-2" style={{ color: "var(--text-default)" }}>
+              <span className="flex items-center gap-2">
+                <Lock size={14} className="text-gray-500" />
+                {t("backup.passwordLabel")}
+              </span>
+              <span className="text-xs text-gray-500 font-normal">{t("backup.passwordOptional")}</span>
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={t("backup.passwordPlaceholder")}
+                className="input w-full pr-10"
+                disabled={exporting}
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-500 hover:text-gray-300 transition"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mt-1.5">{t("backup.passwordHint")}</p>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <button
+              onClick={() => setExportOpen(false)}
+              disabled={exporting}
+              className="px-4 py-2 text-sm rounded-lg border border-border hover:border-gray-500 transition disabled:opacity-50"
+              style={{ color: "var(--text-muted)" }}
+            >
+              {t("backup.cancel")}
+            </button>
+            <button
+              onClick={handleExport}
+              disabled={exporting}
+              className="btn-primary flex items-center gap-2"
+            >
+              {exporting ? <RefreshCw size={16} className="animate-spin" /> : <Download size={16} />}
+              {exporting ? t("backup.exporting") : t("backup.download")}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

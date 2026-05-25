@@ -7,7 +7,7 @@ import { formatMoney, formatDate } from "@/lib/utils";
 import {
   Package, Wrench, DollarSign,
   Activity, Loader2,
-  ArrowUpRight, ArrowDownRight, Clock, CheckCircle2,
+  Clock, CheckCircle2,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState, useCallback, useMemo } from "react";
@@ -17,7 +17,7 @@ import {
   RadialBarChart, RadialBar, ComposedChart, Line,
 } from "recharts";
 import { AIInsights } from "@/components/AIInsights";
-import { CategorySunburst } from "@/components/charts/CategorySunburst";
+import { CategoryBarList } from "@/components/charts/CategoryBarList";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { DateRangePicker, type RangePreset } from "@/components/ui/DateRangePicker";
 import type { Alert } from "@/lib/alerts";
@@ -153,15 +153,9 @@ export function DashboardClient({ data }: { data?: ServerData }) {
   const totalAssets = d?.totalAssets ?? serverData.totalAssets;
   const byStatus = d?.byStatus ?? serverData.byStatus;
   const totalOriginal = d?.totalOriginal ?? serverData.totalOriginal;
-  const totalCurrent = d?.totalCurrent ?? serverData.totalCurrent;
   const totalRepair = d?.totalRepair ?? serverData.totalRepair;
 
   const fmt = useCallback((v: number) => `${t("common.baht")}${formatMoney(v, locale)}`, [t, locale]);
-
-  const depreciationPercent = useMemo(
-    () => (totalOriginal > 0 ? Math.round((totalCurrent / totalOriginal) * 100) : 0),
-    [totalCurrent, totalOriginal]
-  );
 
   // Prepare chart data from API
   const statusPieData = useMemo(
@@ -218,14 +212,12 @@ export function DashboardClient({ data }: { data?: ServerData }) {
         bg: "bg-brand-500/10",
       },
       {
-        label: t("dashboard.currentValue"),
-        value: fmt(totalCurrent),
-        sub: `${t("dashboard.fromPurchase")} ${fmt(totalOriginal)}`,
+        label: t("dashboard.totalPurchase"),
+        value: fmt(totalOriginal),
+        sub: `${totalAssets} ${t("dashboard.totalAssets")}`,
         icon: DollarSign,
         color: "text-green-500",
         bg: "bg-green-500/10",
-        trend: depreciationPercent >= 50 ? ("up" as const) : ("down" as const),
-        trendValue: `${depreciationPercent}%`,
       },
       {
         label: t("dashboard.inRepair"),
@@ -244,7 +236,7 @@ export function DashboardClient({ data }: { data?: ServerData }) {
         bg: "bg-blue-500/10",
       },
     ],
-    [t, totalAssets, byStatus, fmt, totalCurrent, totalOriginal, depreciationPercent, totalRepair, d, serverData.recentMaintenance.length]
+    [t, totalAssets, byStatus, fmt, totalOriginal, totalRepair, d, serverData.recentMaintenance.length]
   );
 
   const recentMaint = useMemo(
@@ -291,15 +283,7 @@ export function DashboardClient({ data }: { data?: ServerData }) {
                 <s.icon size={22} />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-xs font-semibold leading-snug uppercase tracking-wide line-clamp-1" style={{ color: "var(--text-muted)" }}>{s.label}</p>
-                  {"trend" in s && s.trend && (
-                    <div className={`flex items-center gap-0.5 text-xs font-semibold flex-shrink-0 px-1.5 py-0.5 rounded-md ${s.trend === "up" ? "text-green-400 bg-green-500/10" : "text-red-400 bg-red-500/10"}`}>
-                      {s.trend === "up" ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-                      {s.trendValue}
-                    </div>
-                  )}
-                </div>
+                <p className="text-xs font-semibold leading-snug uppercase tracking-wide line-clamp-1" style={{ color: "var(--text-muted)" }}>{s.label}</p>
                 <p className={`text-2xl font-bold leading-tight mt-1 ${s.color} tracking-tight truncate`}>{s.value}</p>
                 <p className="text-xs mt-0.5 leading-snug line-clamp-2" style={{ color: "var(--text-subtle)" }}>{s.sub}</p>
               </div>
@@ -467,7 +451,7 @@ export function DashboardClient({ data }: { data?: ServerData }) {
           <h3 className="text-[11px] font-semibold uppercase tracking-widest mb-2">
             {t("dashboard.byCategory")}
           </h3>
-          <CategorySunburst />
+          <CategoryBarList />
         </div>
 
         {/* Recent Maintenance */}
@@ -515,128 +499,46 @@ export function DashboardClient({ data }: { data?: ServerData }) {
         </div>
       </div>
 
-      {/* Top Maintenance Cost + Asset Depreciation */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Maintenance Cost by Asset */}
-        <div className="card">
-          <h3 className="text-[11px] font-semibold uppercase tracking-widest mb-4">
-            {t("dashboard.topRepairCost")}
-          </h3>
-          {!d || d.topMaintenanceCost.length === 0 ? (
-            <div className="flex items-center justify-center h-64 text-gray-500 text-sm">
-              {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : t("dashboard.noDataInRange")}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {d.topMaintenanceCost.map((item, i) => {
-                const maxCost = d.topMaintenanceCost[0]?.cost || 1;
-                const pct = (item.cost / maxCost) * 100;
-                return (
-                  <div key={item.code}>
-                    <div className="flex items-center justify-between text-sm mb-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono text-brand-500">{item.code}</span>
-                        <span className="truncate max-w-[160px]" style={{ color: "var(--text-muted)" }}>{item.name}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs text-gray-500">{item.count}x</span>
-                        <span className="font-mono text-sm font-semibold text-brand-400">{fmt(item.cost)}</span>
-                      </div>
-                    </div>
-                    <div className="h-1.5 bg-surface-dark rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-700"
-                        style={{
-                          width: `${pct}%`,
-                          background: `linear-gradient(90deg, ${CATEGORY_COLORS[i % CATEGORY_COLORS.length]}, ${CATEGORY_COLORS[(i + 1) % CATEGORY_COLORS.length]})`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Asset Depreciation Ranking */}
-        <div className="card">
-          <h3 className="text-[11px] font-semibold uppercase tracking-widest mb-4">
-            {t("dashboard.mostDepreciated")}
-          </h3>
-          {d && d.assetDepreciation.length > 0 ? (
-            <div className="space-y-3">
-              {d.assetDepreciation.map((item) => (
+      {/* Top Maintenance Cost by Asset */}
+      <div className="card">
+        <h3 className="text-[11px] font-semibold uppercase tracking-widest mb-4">
+          {t("dashboard.topRepairCost")}
+        </h3>
+        {!d || d.topMaintenanceCost.length === 0 ? (
+          <div className="flex items-center justify-center h-64 text-gray-500 text-sm">
+            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : t("dashboard.noDataInRange")}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {d.topMaintenanceCost.map((item, i) => {
+              const maxCost = d.topMaintenanceCost[0]?.cost || 1;
+              const pct = (item.cost / maxCost) * 100;
+              return (
                 <div key={item.code}>
                   <div className="flex items-center justify-between text-sm mb-1">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-mono text-brand-500">{item.code}</span>
                       <span className="truncate max-w-[160px]" style={{ color: "var(--text-muted)" }}>{item.name}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500 line-through">{fmt(item.original)}</span>
-                      <span className="font-mono text-sm font-semibold text-green-400">{fmt(item.current)}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-gray-500">{item.count}x</span>
+                      <span className="font-mono text-sm font-semibold text-brand-400">{fmt(item.cost)}</span>
                     </div>
                   </div>
                   <div className="h-1.5 bg-surface-dark rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-700"
                       style={{
-                        width: `${item.percent}%`,
-                        background: item.percent > 80
-                          ? "linear-gradient(90deg, #ef4444, #dc2626)"
-                          : item.percent > 50
-                          ? "linear-gradient(90deg, #f59e0b, #d97706)"
-                          : "linear-gradient(90deg, #22c55e, #16a34a)",
+                        width: `${pct}%`,
+                        background: `linear-gradient(90deg, ${CATEGORY_COLORS[i % CATEGORY_COLORS.length]}, ${CATEGORY_COLORS[(i + 1) % CATEGORY_COLORS.length]})`,
                       }}
                     />
                   </div>
-                  <div className="flex justify-between mt-0.5">
-                    <span className="text-[10px] text-gray-600">{t("dashboard.usedLabel")}</span>
-                    <span className={`text-[10px] font-semibold ${item.percent > 80 ? "text-red-400" : item.percent > 50 ? "text-amber-400" : "text-green-400"}`}>
-                      {item.percent}%
-                    </span>
-                  </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-40 text-gray-500 text-sm">
-              {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : t("dashboard.noData")}
-            </div>
-          )}
-
-          {/* Total Depreciation Summary */}
-          <div className="mt-4 pt-4 border-t border-border">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-400">{t("dashboard.totalPurchase")}</span>
-              <span className="font-mono" style={{ color: "var(--text-default)" }}>{fmt(totalOriginal)}</span>
-            </div>
-            <div className="flex justify-between text-sm mt-1">
-              <span className="text-gray-400">{t("dashboard.currentValue")}</span>
-              <span className="font-mono text-green-500">{fmt(totalCurrent)}</span>
-            </div>
-            <div className="flex justify-between text-sm mt-1">
-              <span className="text-gray-400">{t("dashboard.accDeprec")}</span>
-              <span className="font-mono text-red-400">{fmt(totalOriginal - totalCurrent)}</span>
-            </div>
-            <div className="mt-3">
-              <div className="flex justify-between text-xs text-gray-500 mb-1">
-                <span>{t("dashboard.remaining")}</span>
-                <span>{depreciationPercent}%</span>
-              </div>
-              <div className="h-2.5 bg-surface-dark rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full animate-progress"
-                  style={{
-                    width: `${depreciationPercent}%`,
-                    background: "linear-gradient(90deg, #22c55e, #f59e0b)",
-                  } as React.CSSProperties}
-                />
-              </div>
-            </div>
+              );
+            })}
           </div>
-        </div>
+        )}
       </div>
 
       {/* Booking & Assignment Trends */}

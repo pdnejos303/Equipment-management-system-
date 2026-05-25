@@ -7,8 +7,8 @@ import { useCategories } from "@/lib/useCategories";
 import { formatMoney } from "@/lib/utils";
 import { ExportButtons } from "@/components/ExportButtons";
 import { AIInsights } from "@/components/AIInsights";
-import { BarChart3, TrendingUp, TrendingDown, Package, ChevronDown, ChevronRight, ClipboardCheck, Loader2 } from "lucide-react";
-import { CategorySunburst } from "@/components/charts/CategorySunburst";
+import { BarChart3, TrendingDown, Package, ChevronDown, ChevronRight, ClipboardCheck, Loader2, Filter } from "lucide-react";
+import { CategoryBarList } from "@/components/charts/CategoryBarList";
 import { ReportsFilters, type ReportFilters } from "./ReportsFilters";
 
 function CollapsibleSection({
@@ -73,15 +73,21 @@ const STATUS_COLORS: Record<string, { bar: string; text: string }> = {
 export function ReportsClient({ data }: { data: ReportsData }) {
   const { t, locale } = useI18n();
   const { labelFor, emojiFor } = useCategories();
-  const { totalAssets, totalOriginal, totalCurrent, totalRepair, byStatus, byCategory, assigned, locations, filters } = data;
+  const { totalAssets, totalOriginal, totalRepair, byStatus, byCategory, assigned, locations, filters } = data;
 
   const hasFilters = !!(filters.asOf || filters.category || filters.status || filters.location);
+  const activeFilterCount =
+    (filters.asOf ? 1 : 0) +
+    (filters.category ? 1 : 0) +
+    (filters.status ? 1 : 0) +
+    (filters.location ? 1 : 0);
   const exportParams: Record<string, string> = {};
   if (filters.asOf) exportParams.asOf = filters.asOf;
   if (filters.category) exportParams.category = filters.category;
   if (filters.status) exportParams.status = filters.status;
   if (filters.location) exportParams.location = filters.location;
 
+  const [filtersOpen, setFiltersOpen] = useState(hasFilters);
   const [auditLoading, setAuditLoading] = useState(false);
   const downloadAudit = async () => {
     if (auditLoading) return;
@@ -123,18 +129,9 @@ export function ReportsClient({ data }: { data: ReportsData }) {
     {
       label: t("reportPage.purchaseValue"),
       value: `${t("common.baht")}${formatMoney(totalOriginal, locale)}`,
-      color: "text-[var(--text-default)]",
-      borderColor: "border-t-gray-400",
-      icon: Package,
-      iconColor: "text-gray-400",
-      bgIcon: "bg-gray-500/10",
-    },
-    {
-      label: t("reportPage.currentValue"),
-      value: `${t("common.baht")}${formatMoney(Math.round(totalCurrent), locale)}`,
       color: "text-green-400",
       borderColor: "border-t-green-500",
-      icon: TrendingUp,
+      icon: Package,
       iconColor: "text-green-400",
       bgIcon: "bg-green-500/10",
     },
@@ -160,7 +157,25 @@ export function ReportsClient({ data }: { data: ReportsData }) {
             </p>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => setFiltersOpen(o => !o)}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border transition-all duration-200 ${
+              filtersOpen || hasFilters
+                ? "border-brand-500/40 text-brand-400 bg-brand-500/10"
+                : "border-[var(--border)] hover:text-brand-400 hover:bg-brand-500/5"
+            }`}
+            style={!filtersOpen && !hasFilters ? { color: "var(--text-muted)", background: "var(--surface-hover)" } : undefined}
+            aria-expanded={filtersOpen}
+            title={t("reportPage.filters")}
+          >
+            <Filter size={14} />
+            <span className="font-medium">
+              {activeFilterCount > 0
+                ? t("reportPage.activeFilters", activeFilterCount)
+                : t("reportPage.filters")}
+            </span>
+          </button>
           <button
             onClick={downloadAudit}
             disabled={auditLoading}
@@ -175,7 +190,9 @@ export function ReportsClient({ data }: { data: ReportsData }) {
         </div>
       </div>
 
-      <ReportsFilters filters={filters} locations={locations} />
+      {filtersOpen && (
+        <ReportsFilters filters={filters} locations={locations} />
+      )}
 
       {hasFilters && (
         <p className="text-xs text-gray-500 mb-3 animate-fade-in">
@@ -183,27 +200,41 @@ export function ReportsClient({ data }: { data: ReportsData }) {
         </p>
       )}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6 animate-stagger">
-        {statCards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <div key={card.label} className={`card stat-card border-t-2 ${card.borderColor} pt-4`}>
-              <div className="flex items-start justify-between mb-3">
-                <p className="text-xs text-gray-500 uppercase leading-tight">{card.label}</p>
-                <div className={`w-8 h-8 rounded-lg ${card.bgIcon} flex items-center justify-center flex-shrink-0`}>
-                  <Icon size={16} className={card.iconColor} />
+      <CollapsibleSection
+        title={t("reportPage.kpiSummary")}
+        defaultOpen={false}
+        summary={
+          <div className="flex items-center gap-3 text-xs whitespace-nowrap overflow-hidden">
+            <span className="text-brand-500 font-mono font-bold">{totalAssets}</span>
+            <span className="text-gray-600">·</span>
+            <span className="font-mono text-green-400 font-bold">{t("common.baht")}{formatMoney(totalOriginal, locale)}</span>
+          </div>
+        }
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 animate-stagger">
+          {statCards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <div key={card.label} className={`card stat-card border-t-2 ${card.borderColor} pt-4`}>
+                <div className="flex items-start justify-between mb-3">
+                  <p className="text-xs text-gray-500 uppercase leading-tight">{card.label}</p>
+                  <div className={`w-8 h-8 rounded-lg ${card.bgIcon} flex items-center justify-center flex-shrink-0`}>
+                    <Icon size={16} className={card.iconColor} />
+                  </div>
                 </div>
+                <p className={`text-2xl font-bold font-mono ${card.color}`}>{card.value}</p>
               </div>
-              <p className={`text-2xl font-bold font-mono ${card.color}`}>{card.value}</p>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      </CollapsibleSection>
+
+      <div className="h-6" />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-stagger">
         {/* Category Sunburst */}
         <CollapsibleSection title={t("reportPage.byCategoryTitle")}>
-          <CategorySunburst />
+          <CategoryBarList />
         </CollapsibleSection>
 
         {/* Category Value Breakdown */}
@@ -215,11 +246,11 @@ export function ReportsClient({ data }: { data: ReportsData }) {
           ) : (
             <div className="space-y-3">
               {Object.entries(byCategory)
-                .filter(([, d]) => d.current > 0)
-                .sort(([, a], [, b]) => b.current - a.current)
+                .filter(([, d]) => d.original > 0)
+                .sort(([, a], [, b]) => b.original - a.original)
                 .slice(0, 10)
                 .map(([cat, d]) => {
-                  const pct = totalCurrent > 0 ? Math.round((d.current / totalCurrent) * 100) : 0;
+                  const pct = totalOriginal > 0 ? Math.round((d.original / totalOriginal) * 100) : 0;
                   return (
                     <div key={cat}>
                       <div className="flex items-center justify-between mb-1.5">
@@ -230,7 +261,7 @@ export function ReportsClient({ data }: { data: ReportsData }) {
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-gray-500">{pct}%</span>
                           <span className="text-xs font-mono text-green-400">
-                            {t("common.baht")}{formatMoney(Math.round(d.current), locale)}
+                            {t("common.baht")}{formatMoney(Math.round(d.original), locale)}
                           </span>
                         </div>
                       </div>
@@ -246,9 +277,9 @@ export function ReportsClient({ data }: { data: ReportsData }) {
             </div>
           )}
           <div className="mt-5 pt-4 border-t border-border flex items-center justify-between text-sm">
-            <span className="text-gray-500">{t("reportPage.totalCurrentShort")}</span>
+            <span className="text-gray-500">{t("reportPage.totalPurchase")}</span>
             <span className="text-green-400 font-bold font-mono">
-              {t("common.baht")}{formatMoney(Math.round(totalCurrent), locale)}
+              {t("common.baht")}{formatMoney(totalOriginal, locale)}
             </span>
           </div>
         </CollapsibleSection>
@@ -286,60 +317,6 @@ export function ReportsClient({ data }: { data: ReportsData }) {
 
         {/* AI Insights */}
         <AIInsights />
-
-        {/* Depreciation */}
-        <div className="lg:col-span-2 animate-fade-in">
-          {(() => {
-            const remainingPct = totalOriginal > 0 ? Math.round((totalCurrent / totalOriginal) * 100) : 0;
-            const deprecPct = 100 - remainingPct;
-            const depreciationSummary = (
-              <div className="flex items-center gap-3 text-xs">
-                <span className="text-gray-500">{t("reportPage.remaining")}</span>
-                <span className="font-mono font-bold text-green-400">{t("common.baht")}{formatMoney(Math.round(totalCurrent), locale)}</span>
-                <span className="text-gray-600">·</span>
-                <span className="text-gray-500">{t("reportPage.accDeprec")}</span>
-                <span className="font-mono font-bold text-red-400">{deprecPct}%</span>
-              </div>
-            );
-            return (
-              <CollapsibleSection
-                title={t("reportPage.depreciationTitle")}
-                summary={depreciationSummary}
-                defaultOpen={true}
-              >
-                <div className="grid grid-cols-3 gap-6 mb-6">
-                  <div className="space-y-1">
-                    <p className="text-xs text-gray-500 uppercase tracking-wide">{t("reportPage.totalPurchase")}</p>
-                    <p className="text-xl font-mono font-bold" style={{ color: "var(--text-default)" }}>{t("common.baht")}{formatMoney(totalOriginal, locale)}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-xs text-gray-500 uppercase tracking-wide">{t("reportPage.remaining")}</p>
-                    <p className="text-xl font-mono font-bold text-green-400">{t("common.baht")}{formatMoney(Math.round(totalCurrent), locale)}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-xs text-gray-500 uppercase tracking-wide">{t("reportPage.accDeprec")}</p>
-                    <p className="text-xl font-mono font-bold text-red-400">{t("common.baht")}{formatMoney(Math.round(totalOriginal - totalCurrent), locale)}</p>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-xs text-gray-500 mb-2">
-                    <span>{t("reportPage.remaining")}</span>
-                    <span className="font-semibold" style={{ color: "var(--text-muted)" }}>{remainingPct}%</span>
-                  </div>
-                  <div className="h-3 bg-surface-dark rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full animate-progress"
-                      style={{
-                        width: `${remainingPct}%`,
-                        background: "linear-gradient(90deg, #22c55e, #f59e0b)",
-                      } as React.CSSProperties}
-                    />
-                  </div>
-                </div>
-              </CollapsibleSection>
-            );
-          })()}
-        </div>
       </div>
     </div>
   );

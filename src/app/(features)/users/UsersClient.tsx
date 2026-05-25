@@ -1,14 +1,14 @@
 // Path: src/app/(features)/users/UsersClient.tsx
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n";
 import { showSuccess, showError, showConfirm } from "@/lib/swal";
 import { Pagination } from "@/components/Pagination";
 import { usePagination } from "@/lib/usePagination";
 import { Modal } from "@/components/ui/Modal";
-import { Shield, ShieldCheck, Eye, Plus, Pencil, Trash2 } from "lucide-react";
+import { Shield, ShieldCheck, Eye, Plus, Pencil, Trash2, UserCog } from "lucide-react";
 
 interface User {
   id: string;
@@ -80,6 +80,49 @@ export function UsersClient({ users: initialUsers, currentUserId }: { users: Use
   const [form, setForm] = useState({ name: "", email: "", password: "", role: "USER" });
   const [saving, setSaving] = useState(false);
 
+  // Bulk selection state
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [showBulkRoleModal, setShowBulkRoleModal] = useState(false);
+  const [bulkRole, setBulkRole] = useState<"ADMIN" | "USER" | "VIEWER">("USER");
+
+  const pagedIds = useMemo(() => pagedUsers.map((u) => u.id), [pagedUsers]);
+  const selectableOnPage = useMemo(
+    () => pagedIds.filter((id) => id !== currentUserId),
+    [pagedIds, currentUserId]
+  );
+  const isAllSelected =
+    selectableOnPage.length > 0 && selectableOnPage.every((id) => selected.has(id));
+  const isSomeSelected = selected.size > 0;
+  const selectedExcludingSelf = useMemo(
+    () => Array.from(selected).filter((id) => id !== currentUserId),
+    [selected, currentUserId]
+  );
+
+  const toggleOne = (id: string) => {
+    if (id === currentUserId) return;
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (isAllSelected) {
+        selectableOnPage.forEach((id) => next.delete(id));
+      } else {
+        selectableOnPage.forEach((id) => next.add(id));
+      }
+      return next;
+    });
+  };
+
+  const clearSelection = () => setSelected(new Set());
+
   const openCreate = () => {
     setEditUser(null);
     setForm({ name: "", email: "", password: "", role: "USER" });
@@ -96,7 +139,6 @@ export function UsersClient({ users: initialUsers, currentUserId }: { users: Use
     setSaving(true);
     try {
       if (editUser) {
-        // Update
         const body: any = { name: form.name, email: form.email, role: form.role };
         if (form.password) body.password = form.password;
 
@@ -111,7 +153,6 @@ export function UsersClient({ users: initialUsers, currentUserId }: { users: Use
         }
         showSuccess(t("users.updated"));
       } else {
-        // Create
         if (!form.password) {
           showError(t("users.passwordRequired"));
           setSaving(false);
@@ -162,6 +203,78 @@ export function UsersClient({ users: initialUsers, currentUserId }: { users: Use
     }
   };
 
+  const handleBulkDelete = async () => {
+    const count = selectedExcludingSelf.length;
+    if (count === 0) return;
+
+    const confirmed = await showConfirm({
+      title: t("users.bulkDeleteTitle", count),
+      text: t("users.bulkDeleteMsg", count),
+      confirmText: t("common.delete"),
+      cancelText: t("confirm.cancel"),
+      danger: true,
+    });
+    if (!confirmed) return;
+
+    setBulkBusy(true);
+    try {
+      const res = await fetch("/api/users/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: selectedExcludingSelf, action: "delete" }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed");
+      }
+      const data = await res.json();
+      setUsers((prev) => prev.filter((u) => !selectedExcludingSelf.includes(u.id)));
+      clearSelection();
+      showSuccess(t("users.bulkDeleted", data.count ?? count));
+      router.refresh();
+    } catch (err: any) {
+      showError(err.message || t("forms.error"));
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const handleBulkRoleApply = async () => {
+    const count = selectedExcludingSelf.length;
+    if (count === 0) return;
+
+    setBulkBusy(true);
+    try {
+      const res = await fetch("/api/users/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ids: selectedExcludingSelf,
+          action: "updateRole",
+          role: bulkRole,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed");
+      }
+      const data = await res.json();
+      setUsers((prev) =>
+        prev.map((u) =>
+          selectedExcludingSelf.includes(u.id) ? { ...u, role: bulkRole } : u
+        )
+      );
+      clearSelection();
+      setShowBulkRoleModal(false);
+      showSuccess(t("users.bulkRoleUpdated", data.count ?? count));
+      router.refresh();
+    } catch (err: any) {
+      showError(err.message || t("forms.error"));
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
   return (
     <div className="page-enter">
       <div className="flex items-center justify-between mb-6 animate-fade-in">
@@ -191,10 +304,62 @@ export function UsersClient({ users: initialUsers, currentUserId }: { users: Use
         })}
       </div>
 
+      {/* Bulk action bar */}
+      {isSomeSelected && (
+        <div className="flex flex-wrap items-center gap-2 mb-4 px-4 py-3 rounded-xl bg-brand-500/10 border border-brand-500/20 animate-fade-in">
+          <span className="text-sm font-semibold text-brand-400">
+            {t("users.selected", selectedExcludingSelf.length)}
+          </span>
+          <div className="flex-1" />
+          <button
+            onClick={() => {
+              setBulkRole("USER");
+              setShowBulkRoleModal(true);
+            }}
+            disabled={bulkBusy || selectedExcludingSelf.length === 0}
+            className="btn-ghost text-sm flex items-center gap-1.5 min-h-[40px] disabled:opacity-50"
+          >
+            <UserCog size={14} />
+            {t("users.bulkEditRole")}
+          </button>
+          <button
+            onClick={handleBulkDelete}
+            disabled={bulkBusy || selectedExcludingSelf.length === 0}
+            className="btn-danger text-sm flex items-center gap-1.5 min-h-[40px] disabled:opacity-50"
+          >
+            <Trash2 size={14} />
+            {bulkBusy ? t("confirm.processing") : t("users.bulkDelete")}
+          </button>
+          <button
+            onClick={clearSelection}
+            className="text-sm text-gray-400 hover:text-gray-200 transition px-2"
+          >
+            {t("users.clearSelection")}
+          </button>
+        </div>
+      )}
+
       <div className="table-container">
         <table className="table table-row-hover animate-table-rows">
           <thead>
             <tr>
+              <th className="w-10">
+                <label className="flex items-center justify-center cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    checked={isAllSelected}
+                    ref={(el) => {
+                      if (el) {
+                        const someOnPage = selectableOnPage.some((id) => selected.has(id));
+                        el.indeterminate = someOnPage && !isAllSelected;
+                      }
+                    }}
+                    onChange={toggleAll}
+                    disabled={selectableOnPage.length === 0}
+                    className="w-4 h-4 rounded border-gray-600 bg-surface-dark text-brand-500 focus:ring-brand-500 focus:ring-offset-0 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                  />
+                </label>
+              </th>
               <th>{t("users.name")}</th>
               <th>{t("users.email")}</th>
               <th>{t("users.role")}</th>
@@ -207,10 +372,25 @@ export function UsersClient({ users: initialUsers, currentUserId }: { users: Use
               const config = ROLE_CONFIG[user.role] || ROLE_CONFIG.USER;
               const RoleIcon = config.icon;
               const isSelf = user.id === currentUserId;
+              const isChecked = selected.has(user.id);
               const initials = (user.name || user.email || "?")[0].toUpperCase();
               const gradient = getAvatarGradient(user.email);
               return (
-                <tr key={user.id}>
+                <tr key={user.id} className={isChecked ? "bg-brand-500/5" : ""}>
+                  <td className="w-10" onClick={(e) => e.stopPropagation()}>
+                    <label
+                      className={`flex items-center justify-center ${isSelf ? "cursor-not-allowed" : "cursor-pointer"}`}
+                      title={isSelf ? t("users.cannotDeleteSelf") : ""}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => toggleOne(user.id)}
+                        disabled={isSelf}
+                        className="w-4 h-4 rounded border-gray-600 bg-surface-dark text-brand-500 focus:ring-brand-500 focus:ring-offset-0 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                      />
+                    </label>
+                  </td>
                   <td>
                     <div className="flex items-center gap-3">
                       {user.image ? (
@@ -265,6 +445,7 @@ export function UsersClient({ users: initialUsers, currentUserId }: { users: Use
 
       <Pagination total={usersTotal} pageSize={15} />
 
+      {/* Create / Edit single user modal */}
       <Modal
         open={showModal}
         onClose={() => setShowModal(false)}
@@ -306,7 +487,6 @@ export function UsersClient({ users: initialUsers, currentUserId }: { users: Use
             />
           </div>
 
-          {/* Role visual card selector */}
           <div>
             <label className="block text-[11px] font-semibold mb-2 uppercase tracking-wide" style={{ color: "var(--text-subtle)" }}>{t("users.role")}</label>
             <div className="grid grid-cols-3 gap-2">
@@ -333,7 +513,6 @@ export function UsersClient({ users: initialUsers, currentUserId }: { users: Use
             </div>
           </div>
 
-          {/* Role description */}
           <div className="rounded-xl border border-border bg-surface-dark p-4 space-y-2">
             {(["ADMIN", "USER", "VIEWER"] as const).map((role) => {
               const rc = ROLE_CONFIG[role];
@@ -351,6 +530,69 @@ export function UsersClient({ users: initialUsers, currentUserId }: { users: Use
             <button onClick={() => setShowModal(false)} className="btn-ghost flex-1">{t("forms.cancel")}</button>
             <button onClick={handleSave} disabled={saving} className="btn-primary flex-1 disabled:opacity-50">
               {saving ? t("forms.saving") : t("forms.save")}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Bulk role-change modal */}
+      <Modal
+        open={showBulkRoleModal}
+        onClose={() => setShowBulkRoleModal(false)}
+        title={t("users.bulkRoleTitle")}
+        width="max-w-md"
+      >
+        <div className="space-y-4">
+          <p className="text-sm" style={{ color: "var(--text-subtle)" }}>
+            {t("users.selected", selectedExcludingSelf.length)}
+          </p>
+          <div>
+            <label className="block text-[11px] font-semibold mb-2 uppercase tracking-wide" style={{ color: "var(--text-subtle)" }}>{t("users.role")}</label>
+            <div className="grid grid-cols-3 gap-2">
+              {(["ADMIN", "USER", "VIEWER"] as const).map((role) => {
+                const rc = ROLE_CONFIG[role];
+                const RoleIcon = rc.icon;
+                const isSelected = bulkRole === role;
+                return (
+                  <button
+                    key={role}
+                    type="button"
+                    onClick={() => setBulkRole(role)}
+                    className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all text-center ${
+                      isSelected
+                        ? `${rc.bg} ${rc.color} border-current`
+                        : "border-border text-gray-500 hover:border-gray-600 hover:text-gray-400"
+                    }`}
+                  >
+                    <RoleIcon size={20} />
+                    <span className="text-xs font-semibold">{rc.label[locale] || rc.label.en}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-border bg-surface-dark p-4 space-y-2">
+            {(["ADMIN", "USER", "VIEWER"] as const).map((role) => {
+              const rc = ROLE_CONFIG[role];
+              const isActive = bulkRole === role;
+              return (
+                <div key={role} className={`flex items-start gap-2 text-xs transition-opacity ${isActive ? "opacity-100" : "opacity-40"}`}>
+                  <span className={`${rc.badgeClass} flex-shrink-0 mt-0.5`}>{role}</span>
+                  <span className="text-gray-400">{t(ROLE_DESC_KEYS[role])}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <button onClick={() => setShowBulkRoleModal(false)} className="btn-ghost flex-1">{t("forms.cancel")}</button>
+            <button
+              onClick={handleBulkRoleApply}
+              disabled={bulkBusy || selectedExcludingSelf.length === 0}
+              className="btn-primary flex-1 disabled:opacity-50"
+            >
+              {bulkBusy ? t("forms.saving") : t("users.bulkRoleApply", selectedExcludingSelf.length)}
             </button>
           </div>
         </div>

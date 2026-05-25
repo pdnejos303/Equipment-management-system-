@@ -21,7 +21,6 @@ export const ASSET_COLUMNS: { key: AssetColumnKey; required?: boolean }[] = [
   { key: "status" },
   { key: "user" },
   { key: "purchasePrice" },
-  { key: "currentValue" },
 ];
 
 const DEFAULT_VISIBILITY: Record<AssetColumnKey, boolean> = {
@@ -32,7 +31,7 @@ const DEFAULT_VISIBILITY: Record<AssetColumnKey, boolean> = {
   status: true,
   user: true,
   purchasePrice: true,
-  currentValue: true,
+  currentValue: false,
 };
 
 const STORAGE_KEY = "equip-asset-columns-v1";

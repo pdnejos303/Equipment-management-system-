@@ -6,7 +6,6 @@
 // ============================================================
 
 import { prisma } from "@/lib/prisma";
-import { calculateDepreciation } from "@/lib/depreciation";
 import { notFound } from "next/navigation";
 import { AssetPublicClient } from "./AssetPublicClient";
 
@@ -23,13 +22,6 @@ export default async function AssetPublicPage({ params }: Props) {
 
   if (!asset) notFound();
 
-  const price = Number(asset.purchasePrice);
-  const dep = calculateDepreciation(
-    price,
-    asset.purchaseDate,
-    asset.expectedLife
-  );
-
   return (
     <AssetPublicClient
       asset={{
@@ -42,11 +34,7 @@ export default async function AssetPublicPage({ params }: Props) {
         status: asset.status,
         photo: asset.photos[0]?.url || null,
       }}
-      depreciation={{
-        yearsUsed: dep.yearsUsed,
-        percentUsed: dep.percentUsed,
-      }}
-      expectedLife={asset.expectedLife}
+      purchasePrice={Number(asset.purchasePrice)}
       purchaseDate={asset.purchaseDate.toISOString()}
     />
   );

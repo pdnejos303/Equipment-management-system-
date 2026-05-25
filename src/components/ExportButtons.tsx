@@ -12,6 +12,7 @@ interface Props {
 
 export function ExportButtons({ extraParams }: Props = {}) {
   const { locale } = useI18n();
+  const [csvLoading, setCsvLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
 
   const buildQuery = (extra: Record<string, string> = {}) => {
@@ -19,28 +20,56 @@ export function ExportButtons({ extraParams }: Props = {}) {
     return qs.toString();
   };
 
-  const handleCSV = () => {
-    window.open(`/api/export?${buildQuery({ format: "csv" })}`, "_blank");
+  // Shared blob download — keeps session cookie attached (no popup-blocker risk).
+  const downloadFrom = async (
+    url: string,
+    init: RequestInit,
+    fallbackName: string
+  ) => {
+    const res = await fetch(url, init);
+    if (!res.ok) throw new Error(`Export failed (${res.status})`);
+    const blob = await res.blob();
+    const cd = res.headers.get("Content-Disposition") || "";
+    const match = cd.match(/filename="([^"]+)"/);
+    const filename = match?.[1] || fallbackName;
+    const objectUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = objectUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(objectUrl);
+  };
+
+  const stamp = () => new Date().toISOString().slice(0, 10);
+
+  const handleCSV = async () => {
+    if (csvLoading) return;
+    setCsvLoading(true);
+    try {
+      await downloadFrom(
+        `/api/export?${buildQuery({ format: "csv" })}`,
+        { method: "GET" },
+        `equipment_${stamp()}.csv`
+      );
+    } catch (err) {
+      console.error(err);
+      alert("CSV export failed. See console.");
+    } finally {
+      setCsvLoading(false);
+    }
   };
 
   const handlePDF = async () => {
     if (pdfLoading) return;
     setPdfLoading(true);
     try {
-      const res = await fetch(`/api/export?${buildQuery({ pdf: "1" })}`, { method: "POST" });
-      if (!res.ok) throw new Error(`PDF render failed (${res.status})`);
-      const blob = await res.blob();
-      const cd = res.headers.get("Content-Disposition") || "";
-      const match = cd.match(/filename="([^"]+)"/);
-      const filename = match?.[1] || `equipment_${new Date().toISOString().slice(0, 10)}.pdf`;
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      await downloadFrom(
+        `/api/export?${buildQuery({ pdf: "1" })}`,
+        { method: "POST" },
+        `equipment_${stamp()}.pdf`
+      );
     } catch (err) {
       console.error(err);
       alert("PDF export failed. See console.");
@@ -53,11 +82,12 @@ export function ExportButtons({ extraParams }: Props = {}) {
     <div className="flex items-center rounded-lg border border-[var(--border)] overflow-hidden" style={{ background: "var(--surface-hover)" }}>
       <button
         onClick={handleCSV}
-        className="flex items-center gap-1.5 px-3 py-1.5 text-sm hover:text-green-400 hover:bg-green-500/5 transition-all duration-200 border-r border-[var(--border)]"
+        disabled={csvLoading}
+        className="flex items-center gap-1.5 px-3 py-1.5 text-sm hover:text-green-400 hover:bg-green-500/5 transition-all duration-200 border-r border-[var(--border)] disabled:opacity-50 disabled:cursor-wait"
         style={{ color: "var(--text-muted)" }}
         title="Export CSV"
       >
-        <TableProperties size={14} />
+        {csvLoading ? <Loader2 size={14} className="animate-spin" /> : <TableProperties size={14} />}
         <span className="font-medium">CSV</span>
       </button>
       <button

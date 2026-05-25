@@ -47,7 +47,7 @@ function getWarrantyInfo(warrantyEnd: string | null): WarrantyInfo | null {
   return { state: "active", days, date };
 }
 
-export function AssetDetailClient({ asset, depreciation, totalRepair, repairRatio }: Props) {
+export function AssetDetailClient({ asset, totalRepair, repairRatio }: Props) {
   const [tab, setTab] = useState<Tab>("info");
   const [photos, setPhotos] = useState<AssetPhoto[]>(asset.photos ?? []);
   const [showAssign, setShowAssign] = useState(false);
@@ -235,36 +235,17 @@ body{font-family:'Sarabun',sans-serif;width:80mm;height:50mm}
                 )}
               </div>
 
-              {/* Depreciation + Repair side-by-side */}
+              {/* Purchase Price + Repair side-by-side */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="card">
-                  <h3 className="font-semibold text-sm mb-3" style={{ color: "var(--text-default)" }}>{t("assetDetail.depreciation")}</h3>
-                  <div className="space-y-1.5 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">{t("assetDetail.purchasePrice")}</span>
-                      <span className="font-mono">{t("common.baht")}{formatMoney(asset.purchasePrice, locale)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">{t("assetDetail.currentValue")}</span>
-                      <span className="font-mono text-green-500">{t("common.baht")}{formatMoney(Math.round(depreciation.currentValue), locale)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">{t("assetDetail.accDeprec")}</span>
-                      <span className="font-mono text-red-400">{t("common.baht")}{formatMoney(Math.round(depreciation.totalDepreciation), locale)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">{t("assetDetail.annualDeprec")}</span>
-                      <span className="font-mono">{t("common.baht")}{formatMoney(Math.round(depreciation.annualDepreciation), locale)}</span>
-                    </div>
-                    <div className="pt-2">
-                      <div className="flex justify-between text-xs text-gray-500 mb-1">
-                        <span>{t("assetDetail.usedYears", depreciation.yearsUsed.toFixed(1))}</span>
-                        <span>{depreciation.percentUsed}%</span>
-                      </div>
-                      <div className="h-2 bg-surface-dark rounded-full overflow-hidden">
-                        <div className="h-full rounded-full animate-progress" style={{ width: `${depreciation.percentUsed}%`, background: "linear-gradient(90deg, #22c55e, #f59e0b, #ef4444)" } as React.CSSProperties} />
-                      </div>
-                    </div>
+                <div className="card flex flex-col">
+                  <h3 className="font-semibold text-sm mb-3" style={{ color: "var(--text-default)" }}>{t("assetDetail.purchasePrice")}</h3>
+                  <div className="flex-1 flex flex-col justify-center">
+                    <p className="text-3xl font-bold font-mono text-green-500">
+                      {t("common.baht")}{formatMoney(asset.purchasePrice, locale)}
+                    </p>
+                    <p className="text-sm mt-1 text-gray-500">
+                      {formatDate(asset.purchaseDate, locale)}
+                    </p>
                   </div>
                 </div>
 

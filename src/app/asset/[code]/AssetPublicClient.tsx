@@ -3,7 +3,7 @@
 
 import { useI18n } from "@/lib/i18n";
 import { useCategories } from "@/lib/useCategories";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatMoney } from "@/lib/utils";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Package } from "lucide-react";
 
@@ -18,11 +18,7 @@ interface Props {
     status: string;
     photo: string | null;
   };
-  depreciation: {
-    yearsUsed: number;
-    percentUsed: number;
-  };
-  expectedLife: number;
+  purchasePrice: number;
   purchaseDate: string;
 }
 
@@ -33,7 +29,7 @@ const statusConfig: Record<string, { color: string; bg: string; dot: string }> =
   RETIRED:     { color: "#dc2626", bg: "rgba(220,38,38,0.10)", dot: "#dc2626" },
 };
 
-export function AssetPublicClient({ asset, depreciation, expectedLife, purchaseDate }: Props) {
+export function AssetPublicClient({ asset, purchasePrice, purchaseDate }: Props) {
   const { t, locale } = useI18n();
   const { labelFor } = useCategories();
   const sc = statusConfig[asset.status] || statusConfig.ACTIVE;
@@ -104,34 +100,13 @@ export function AssetPublicClient({ asset, depreciation, expectedLife, purchaseD
             [t("public.category"), labelFor(asset.category)],
             [t("public.serial"), asset.serialNumber || "—"],
             [t("public.purchaseDate"), formatDate(purchaseDate, locale)],
-            [t("public.usedLife"), `${depreciation.yearsUsed} / ${expectedLife} ${t("common.years")}`],
+            [t("assetDetail.purchasePrice"), `${t("common.baht")}${formatMoney(purchasePrice, locale)}`],
           ].map(([label, val]) => (
             <div key={label} className="rounded-xl p-3.5" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
               <p className="text-[10px] uppercase tracking-widest mb-1" style={{ color: "var(--text-subtle)", letterSpacing: "0.06em" }}>{label}</p>
               <p className="text-sm font-semibold leading-snug">{val}</p>
             </div>
           ))}
-        </div>
-
-        {/* Depreciation bar */}
-        <div className="mx-5 rounded-xl p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-          <div className="flex items-center justify-between mb-2.5">
-            <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>{t("public.depreciationLabel")}</p>
-            <span className="text-xs font-bold">{depreciation.percentUsed}%</span>
-          </div>
-          <div className="h-3 rounded-full overflow-hidden" style={{ background: "var(--surface-hover)" }}>
-            <div
-              className="h-full rounded-full transition-all"
-              style={{
-                width: `${depreciation.percentUsed}%`,
-                background: `linear-gradient(90deg, rgb(var(--brand-rgb)) ${100 - depreciation.percentUsed}%, #ef4444 100%)`,
-              }}
-            />
-          </div>
-          <div className="flex justify-between text-[10px] mt-1.5" style={{ color: "var(--text-subtle)" }}>
-            <span>0%</span>
-            <span>100%</span>
-          </div>
         </div>
 
         {/* Footer */}

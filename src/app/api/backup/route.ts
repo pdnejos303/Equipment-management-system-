@@ -7,8 +7,72 @@ import { readdir, readFile, writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { format } from "date-fns";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import {
+  createCipheriv,
+  createDecipheriv,
+  pbkdf2Sync,
+  randomBytes,
+} from "crypto";
 
 export const dynamic = "force-dynamic";
+
+// ── Password protection ──────────────────────────────────────────────────────
+// adm-zip 0.5.x does not write encrypted ZIPs, so when the user sets a password
+// we wrap the produced ZIP buffer in an AES-256-GCM envelope. The output uses
+// the .zip.enc extension to make it obvious it cannot be opened by 7-Zip etc.
+// Layout: magic(9) | salt(16) | iv(12) | authTag(16) | ciphertext
+//
+// Restore detects the magic, prompts the user for the password, decrypts to
+// recover the original ZIP buffer, then feeds it into the existing pipeline.
+
+const ENC_MAGIC = Buffer.from("EQUIPENC1", "utf-8"); // 9 bytes
+const ENC_SALT_LEN = 16;
+const ENC_IV_LEN = 12;
+const ENC_TAG_LEN = 16;
+const ENC_KDF_ITERS = 100_000;
+
+function deriveKey(password: string, salt: Buffer): Buffer {
+  return pbkdf2Sync(password, salt, ENC_KDF_ITERS, 32, "sha256");
+}
+
+function encryptZip(zipBuffer: Buffer, password: string): Buffer {
+  const salt = randomBytes(ENC_SALT_LEN);
+  const iv = randomBytes(ENC_IV_LEN);
+  const key = deriveKey(password, salt);
+  const cipher = createCipheriv("aes-256-gcm", key, iv);
+  const ciphertext = Buffer.concat([cipher.update(zipBuffer), cipher.final()]);
+  const authTag = cipher.getAuthTag();
+  return Buffer.concat([ENC_MAGIC, salt, iv, authTag, ciphertext]);
+}
+
+function isEncryptedBackup(buf: Buffer): boolean {
+  return buf.length >= ENC_MAGIC.length && buf.subarray(0, ENC_MAGIC.length).equals(ENC_MAGIC);
+}
+
+function decryptZip(buf: Buffer, password: string): Buffer {
+  const offset1 = ENC_MAGIC.length;
+  const offset2 = offset1 + ENC_SALT_LEN;
+  const offset3 = offset2 + ENC_IV_LEN;
+  const offset4 = offset3 + ENC_TAG_LEN;
+  const salt = buf.subarray(offset1, offset2);
+  const iv = buf.subarray(offset2, offset3);
+  const authTag = buf.subarray(offset3, offset4);
+  const ciphertext = buf.subarray(offset4);
+  const key = deriveKey(password, salt);
+  const decipher = createDecipheriv("aes-256-gcm", key, iv);
+  decipher.setAuthTag(authTag);
+  return Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+}
+
+// Strip path separators and any character disallowed by Windows/Unix filesystems.
+// Keep Unicode (so Thai/Japanese names survive) but cap length.
+function sanitizeFilename(name: string): string {
+  const cleaned = name
+    .replace(/[\\/:*?"<>|\x00-\x1f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return cleaned.slice(0, 80) || `equip-backup-${format(new Date(), "yyyyMMdd-HHmmss")}`;
+}
 
 // ── Storage adapters ─────────────────────────────────────────────────────────
 // Backup must be portable across environments:
@@ -86,12 +150,21 @@ async function restoreImage(filename: string, buffer: Buffer): Promise<string> {
 }
 
 // ── GET /api/backup — Export full backup as ZIP (Admin only) ─────────────────
+// Query params:
+//   name=<string>      — custom filename (without extension), sanitized server-side
+//   images=false       — skip images to produce a much smaller backup
+//   password=<string>  — wrap the ZIP in an AES-256-GCM envelope (.zip.enc output)
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await getSessionWithRole();
   if (!session || session.role !== "ADMIN") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
+
+  const { searchParams } = new URL(req.url);
+  const requestedName = searchParams.get("name") ?? "";
+  const includeImages = searchParams.get("images") !== "false";
+  const password = searchParams.get("password") ?? "";
 
   try {
     const [users, assets, assetPhotos, assignments, maintenanceRecords, bookings] =
@@ -114,45 +187,65 @@ export async function GET() {
     let imagesBundled = 0;
     let imagesMissing = 0;
 
-    // Pull every photo referenced in DB from its actual storage location
-    for (const photo of assetPhotos) {
-      const got = await readImageByUrl(photo.url);
-      if (!got) { imagesMissing++; continue; }
-      if (seen.has(got.filename)) continue;
-      seen.add(got.filename);
-      zip.addFile(`uploads/${got.filename}`, got.buffer);
-      imagesBundled++;
-    }
+    if (includeImages) {
+      // Pull every photo referenced in DB from its actual storage location
+      for (const photo of assetPhotos) {
+        const got = await readImageByUrl(photo.url);
+        if (!got) { imagesMissing++; continue; }
+        if (seen.has(got.filename)) continue;
+        seen.add(got.filename);
+        zip.addFile(`uploads/${got.filename}`, got.buffer);
+        imagesBundled++;
+      }
 
-    // Sweep local dirs for orphan files (best effort — files referenced only on disk)
-    for (const dir of [LEGACY_PUBLIC_DIR, VOLUME_DIR]) {
-      try {
-        const files = await readdir(dir);
-        for (const file of files) {
-          if (seen.has(file)) continue;
-          try {
-            const buf = await readFile(path.join(dir, file));
-            zip.addFile(`uploads/${file}`, buf);
-            seen.add(file);
-          } catch { /* skip unreadable */ }
-        }
-      } catch { /* dir may not exist */ }
+      // Sweep local dirs for orphan files (best effort — files referenced only on disk)
+      for (const dir of [LEGACY_PUBLIC_DIR, VOLUME_DIR]) {
+        try {
+          const files = await readdir(dir);
+          for (const file of files) {
+            if (seen.has(file)) continue;
+            try {
+              const buf = await readFile(path.join(dir, file));
+              zip.addFile(`uploads/${file}`, buf);
+              seen.add(file);
+            } catch { /* skip unreadable */ }
+          }
+        } catch { /* dir may not exist */ }
+      }
     }
 
     const data = {
       version: "1.1",
       exportedAt: new Date().toISOString(),
-      meta: { imagesBundled, imagesMissing, imagesTotal: assetPhotos.length },
+      meta: {
+        imagesBundled,
+        imagesMissing,
+        imagesTotal: assetPhotos.length,
+        imagesIncluded: includeImages,
+      },
       tables: { users, assets, assetPhotos, assignments, maintenanceRecords, bookings },
     };
     zip.addFile("data.json", Buffer.from(JSON.stringify(data, null, 2), "utf-8"));
 
-    const zipBuffer = zip.toBuffer();
-    const filename = `equip-backup-${format(new Date(), "yyyyMMdd-HHmmss")}.zip`;
+    let payload: Buffer = zip.toBuffer();
+    const baseName = sanitizeFilename(
+      requestedName || `equip-backup-${format(new Date(), "yyyyMMdd-HHmmss")}`
+    );
 
-    return new NextResponse(zipBuffer, {
+    let filename: string;
+    let contentType: string;
+    if (password) {
+      payload = encryptZip(payload, password);
+      filename = `${baseName}.zip.enc`;
+      contentType = "application/octet-stream";
+    } else {
+      filename = `${baseName}.zip`;
+      contentType = "application/zip";
+    }
+
+    return new NextResponse(new Uint8Array(payload), {
       headers: {
-        "Content-Type": "application/zip",
+        "Content-Type": contentType,
         "Content-Disposition": `attachment; filename="${filename}"`,
       },
     });
@@ -176,12 +269,31 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const mode = (formData.get("mode") as string) || "skip";
+    const password = (formData.get("password") as string) || "";
 
     if (!file) {
       return NextResponse.json({ error: "file required" }, { status: 400 });
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
+    let buffer: Buffer = Buffer.from(await file.arrayBuffer());
+
+    if (isEncryptedBackup(buffer)) {
+      if (!password) {
+        return NextResponse.json(
+          { error: "password_required", message: "This backup is password-protected" },
+          { status: 401 }
+        );
+      }
+      try {
+        buffer = decryptZip(buffer, password);
+      } catch {
+        return NextResponse.json(
+          { error: "password_wrong", message: "Incorrect password or corrupted backup" },
+          { status: 401 }
+        );
+      }
+    }
+
     const zip = new AdmZip(buffer);
 
     const dataEntry = zip.getEntry("data.json");

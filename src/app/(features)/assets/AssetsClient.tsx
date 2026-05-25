@@ -39,7 +39,6 @@ interface AssetRow {
   category: string;
   status: string;
   purchasePrice: number;
-  currentValue: number;
   photo: string | null;
   assignedTo: string | null;
 }
@@ -176,7 +175,7 @@ export function AssetsClient({ data }: { data: AssetsData }) {
           { label: t("assets.all"), value: assets.length, color: "text-brand-500" },
           { label: t("assets.using"), value: assets.filter((a) => a.status === "ACTIVE").length, color: "text-green-400" },
           { label: t("assets.available"), value: assets.filter((a) => a.status === "AVAILABLE").length, color: "text-blue-400" },
-          { label: t("assets.currentValue"), value: `${t("common.baht")}${formatMoney(Math.round(totalValue), locale)}`, color: "text-green-400" },
+          { label: t("assets.purchaseValue"), value: `${t("common.baht")}${formatMoney(Math.round(totalValue), locale)}`, color: "text-green-400" },
         ].map((s) => (
           <div key={s.label} className="card stat-card">
             <p className="text-[11px] uppercase tracking-widest font-semibold" style={{ color: "var(--text-muted)", letterSpacing: "0.06em" }}>{s.label}</p>
@@ -295,7 +294,6 @@ export function AssetsClient({ data }: { data: AssetsData }) {
               {isVisible("status") && <th>{t("assets.statusCol")}</th>}
               {isVisible("user") && <th>{t("assets.user")}</th>}
               {isVisible("purchasePrice") && <th>{t("assets.purchasePrice")}</th>}
-              {isVisible("currentValue") && <th>{t("assets.currentVal")}</th>}
             </tr>
           </thead>
           <tbody>
@@ -317,11 +315,11 @@ export function AssetsClient({ data }: { data: AssetsData }) {
                   </label>
                 </td>
                 {isVisible("photo") && (
-                  <td className="w-14">
+                  <td className="w-16">
                     {a.photo ? (
-                      <img src={a.photo} alt="" className="w-9 h-9 rounded-lg object-cover border border-border" />
+                      <img src={a.photo} alt="" className="w-12 h-12 rounded-lg object-cover border border-border" />
                     ) : (
-                      <div className="w-9 h-9 rounded-lg bg-surface-dark flex items-center justify-center text-lg">{emojiFor(a.category)}</div>
+                      <div className="w-12 h-12 rounded-lg bg-surface-dark flex items-center justify-center text-xl">{emojiFor(a.category)}</div>
                     )}
                   </td>
                 )}
@@ -342,16 +340,11 @@ export function AssetsClient({ data }: { data: AssetsData }) {
                 )}
                 {isVisible("user") && <td className="max-w-[120px] truncate">{a.assignedTo || "-"}</td>}
                 {isVisible("purchasePrice") && (
-                  <td className="font-mono">{t("common.baht")}{formatMoney(a.purchasePrice, locale)}</td>
-                )}
-                {isVisible("currentValue") && (
-                  <td className={`font-mono ${a.currentValue < a.purchasePrice * 0.2 ? "text-red-400" : "text-green-400"}`}>
-                    {t("common.baht")}{formatMoney(Math.round(a.currentValue), locale)}
-                  </td>
+                  <td className="font-mono text-green-400">{t("common.baht")}{formatMoney(a.purchasePrice, locale)}</td>
                 )}
               </tr>
             ))}
-            {assets.length === 0 && <tr><td colSpan={9} className="py-12 text-center text-gray-500">{t("assets.notFound")}</td></tr>}
+            {assets.length === 0 && <tr><td colSpan={8} className="py-12 text-center text-gray-500">{t("assets.notFound")}</td></tr>}
           </tbody>
         </table>
       </div>

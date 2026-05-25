@@ -25,9 +25,19 @@ export async function htmlToPdf(html: string, opts: RenderOptions = {}): Promise
   // Lazy-load so puppeteer (and chromium) isn't required at boot time.
   const puppeteer = (await import("puppeteer")).default;
 
+  // In Docker we install /usr/bin/chromium-browser via apk and point puppeteer at it.
+  // Outside Docker (dev), let puppeteer pick its bundled Chrome.
+  const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || undefined;
+
   const browser = await puppeteer.launch({
     headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    executablePath,
+    // --disable-dev-shm-usage avoids /dev/shm exhaustion in containers
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+    ],
   });
 
   try {

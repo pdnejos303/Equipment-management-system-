@@ -53,6 +53,36 @@ export function showWarning(title: string, text?: string) {
   });
 }
 
+/** password prompt — returns the entered password or null if cancelled */
+export async function showPasswordPrompt({
+  title,
+  text,
+  placeholder = "Password",
+  confirmText = "Confirm",
+  cancelText = "Cancel",
+}: {
+  title: string;
+  text: string;
+  placeholder?: string;
+  confirmText?: string;
+  cancelText?: string;
+}): Promise<string | null> {
+  const result = await swal.fire({
+    icon: "info",
+    title,
+    text,
+    input: "password",
+    inputPlaceholder: placeholder,
+    inputAttributes: { autocapitalize: "off", autocorrect: "off" },
+    showCancelButton: true,
+    confirmButtonText: confirmText,
+    cancelButtonText: cancelText,
+    reverseButtons: true,
+    inputValidator: (value) => (!value ? " " : null),
+  });
+  return result.isConfirmed && typeof result.value === "string" ? result.value : null;
+}
+
 /** confirm dialog — return true if confirmed */
 export async function showConfirm({
   title,

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { useI18n } from "@/lib/i18n";
 import { useCategories } from "@/lib/useCategories";
-import { Calendar, Filter, X } from "lucide-react";
+import { Calendar, X } from "lucide-react";
 
 export interface ReportFilters {
   asOf: string;
@@ -44,21 +44,17 @@ export function ReportsFilters({ filters, locations }: Props) {
     <div
       className={`card p-4 mb-6 animate-fade-in transition-opacity ${isPending ? "opacity-60" : ""}`}
     >
-      <div className="flex items-center gap-2 mb-3">
-        <Filter size={14} className="text-gray-500" />
-        <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-          {t("reportPage.filters")}
-        </span>
-        {hasAny && (
+      {hasAny && (
+        <div className="flex items-center justify-end mb-3">
           <button
             onClick={() => apply({ asOf: "", category: "", status: "", location: "" })}
-            className="ml-auto inline-flex items-center gap-1 text-xs text-gray-400 hover:text-red-400 transition-colors"
+            className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-red-400 transition-colors"
           >
             <X size={12} />
             {t("reportPage.clearFilters")}
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <label className="block">

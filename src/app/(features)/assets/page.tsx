@@ -1,6 +1,5 @@
 // Path: src/app/(features)/assets/page.tsx
 import { prisma } from "@/lib/prisma";
-import { calculateDepreciation } from "@/lib/depreciation";
 import { AssetsClient } from "./AssetsClient";
 
 export const dynamic = "force-dynamic";
@@ -32,24 +31,20 @@ export default async function AssetsPage({
     orderBy: { code: "asc" },
   });
 
-  const rows = assets.map((a) => {
-    const dep = calculateDepreciation(a.purchasePrice, a.purchaseDate, a.expectedLife);
-    return {
-      id: a.id,
-      code: a.code,
-      name: a.name,
-      brand: a.brand || "",
-      model: a.model || "",
-      category: a.category,
-      status: a.status,
-      purchasePrice: Number(a.purchasePrice),
-      currentValue: dep.currentValue,
-      photo: a.photos[0]?.url || null,
-      assignedTo: a.assignments[0]?.personName || null,
-    };
-  });
+  const rows = assets.map((a) => ({
+    id: a.id,
+    code: a.code,
+    name: a.name,
+    brand: a.brand || "",
+    model: a.model || "",
+    category: a.category,
+    status: a.status,
+    purchasePrice: Number(a.purchasePrice),
+    photo: a.photos[0]?.url || null,
+    assignedTo: a.assignments[0]?.personName || null,
+  }));
 
-  const totalValue = rows.reduce((s, a) => s + a.currentValue, 0);
+  const totalValue = rows.reduce((s, a) => s + a.purchasePrice, 0);
 
   return (
     <AssetsClient

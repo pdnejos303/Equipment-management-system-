@@ -5,6 +5,11 @@ FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
+# Puppeteer: skip Chrome download — we install system chromium in the runner stage
+# (Alpine glibc-incompatible binary would fail anyway; we use the OS package).
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+
 COPY package.json package-lock.json* ./
 COPY prisma ./prisma
 RUN npm install
@@ -31,7 +36,12 @@ RUN npm run build
 
 # ===== Stage 3: Runner =====
 FROM node:20-alpine AS runner
-RUN apk add --no-cache libc6-compat openssl
+# Chromium + fonts for puppeteer (used by PDF export / audit checklist).
+# Alpine's chromium is the official build, smaller than puppeteer's bundled Chrome.
+RUN apk add --no-cache \
+      libc6-compat openssl \
+      chromium nss freetype harfbuzz ca-certificates ttf-freefont \
+      font-noto font-noto-cjk font-noto-thai
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -39,6 +49,11 @@ ENV PORT=3000
 # Bind dual-stack (IPv6 + IPv4-mapped) — browsers on Windows resolve "localhost" to ::1 first,
 # and Docker Desktop's port forward hangs if the container only listens on IPv4.
 ENV HOSTNAME=::
+
+# Point puppeteer at the system chromium instead of trying to download its own.
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 RUN addgroup --system --gid 1001 nodejs \
  && adduser --system --uid 1001 nextjs
