@@ -7,8 +7,9 @@ import { useCategories } from "@/lib/useCategories";
 import { formatMoney } from "@/lib/utils";
 import { ExportButtons } from "@/components/ExportButtons";
 import { AIInsights } from "@/components/AIInsights";
-import { BarChart3, TrendingUp, TrendingDown, Package, ChevronDown, ChevronRight } from "lucide-react";
+import { BarChart3, TrendingUp, TrendingDown, Package, ChevronDown, ChevronRight, ClipboardCheck, Loader2 } from "lucide-react";
 import { CategorySunburst } from "@/components/charts/CategorySunburst";
+import { ReportsFilters, type ReportFilters } from "./ReportsFilters";
 
 function CollapsibleSection({
   title,
@@ -58,6 +59,8 @@ interface ReportsData {
   byStatus: Record<string, number>;
   byCategory: Record<string, CategoryData>;
   assigned: number;
+  locations: string[];
+  filters: ReportFilters;
 }
 
 const STATUS_COLORS: Record<string, { bar: string; text: string }> = {
@@ -70,7 +73,42 @@ const STATUS_COLORS: Record<string, { bar: string; text: string }> = {
 export function ReportsClient({ data }: { data: ReportsData }) {
   const { t, locale } = useI18n();
   const { labelFor, emojiFor } = useCategories();
-  const { totalAssets, totalOriginal, totalCurrent, totalRepair, byStatus, byCategory, assigned } = data;
+  const { totalAssets, totalOriginal, totalCurrent, totalRepair, byStatus, byCategory, assigned, locations, filters } = data;
+
+  const hasFilters = !!(filters.asOf || filters.category || filters.status || filters.location);
+  const exportParams: Record<string, string> = {};
+  if (filters.asOf) exportParams.asOf = filters.asOf;
+  if (filters.category) exportParams.category = filters.category;
+  if (filters.status) exportParams.status = filters.status;
+  if (filters.location) exportParams.location = filters.location;
+
+  const [auditLoading, setAuditLoading] = useState(false);
+  const downloadAudit = async () => {
+    if (auditLoading) return;
+    setAuditLoading(true);
+    try {
+      const qs = new URLSearchParams({ ...exportParams, lang: locale, pdf: "1" }).toString();
+      const res = await fetch(`/api/export/audit?${qs}`);
+      if (!res.ok) throw new Error(`Audit PDF failed (${res.status})`);
+      const blob = await res.blob();
+      const cd = res.headers.get("Content-Disposition") || "";
+      const match = cd.match(/filename="([^"]+)"/);
+      const filename = match?.[1] || `audit_${new Date().toISOString().slice(0, 10)}.pdf`;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert("Audit PDF export failed.");
+    } finally {
+      setAuditLoading(false);
+    }
+  };
 
   const statCards = [
     {
@@ -113,10 +151,37 @@ export function ReportsClient({ data }: { data: ReportsData }) {
 
   return (
     <div className="page-enter">
-      <div className="flex items-center justify-between mb-6 animate-fade-in">
-        <h1 className="text-2xl font-bold">{t("reportPage.title")}</h1>
-        <ExportButtons />
+      <div className="flex items-center justify-between mb-6 animate-fade-in flex-wrap gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">{t("reportPage.title")}</h1>
+          {filters.asOf && (
+            <p className="text-xs text-gray-500 mt-1 font-mono">
+              {t("reportPage.asOfDate")}: {filters.asOf}
+            </p>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={downloadAudit}
+            disabled={auditLoading}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-[var(--border)] hover:text-amber-400 hover:bg-amber-500/5 transition-all duration-200 disabled:opacity-50 disabled:cursor-wait"
+            style={{ color: "var(--text-muted)", background: "var(--surface-hover)" }}
+            title={t("reportPage.auditChecklist")}
+          >
+            {auditLoading ? <Loader2 size={14} className="animate-spin" /> : <ClipboardCheck size={14} />}
+            <span className="font-medium">{t("reportPage.auditChecklist")}</span>
+          </button>
+          <ExportButtons extraParams={exportParams} />
+        </div>
       </div>
+
+      <ReportsFilters filters={filters} locations={locations} />
+
+      {hasFilters && (
+        <p className="text-xs text-gray-500 mb-3 animate-fade-in">
+          {t("reportPage.filtered", totalAssets)}
+        </p>
+      )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6 animate-stagger">
         {statCards.map((card) => {

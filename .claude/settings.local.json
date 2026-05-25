@@ -19,7 +19,14 @@
       "PowerShell(npx tsx prisma/verify-photos.ts)",
       "PowerShell(Get-Process *)",
       "PowerShell(npm run *)",
-      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3000/login\" -UseBasicParsing -TimeoutSec 10; \"Status: $\\($r.StatusCode\\)  Length: $\\($r.Content.Length\\)\" } catch { \"Error: $\\($_.Exception.Message\\)\" })"
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3000/login\" -UseBasicParsing -TimeoutSec 10; \"Status: $\\($r.StatusCode\\)  Length: $\\($r.Content.Length\\)\" } catch { \"Error: $\\($_.Exception.Message\\)\" })",
+      "PowerShell(Test-Path *)",
+      "PowerShell(Select-String *)",
+      "PowerShell(wsl --status; Write-Output \"---\"; wsl --list --verbose)",
+      "PowerShell(Resolve-DnsName *)",
+      "PowerShell(Out-Null *)",
+      "PowerShell(Get-NetPrefixPolicy *)",
+      "PowerShell(Stop-Process *)"
     ]
   }
 }

@@ -10,8 +10,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { calculateDepreciation } from "@/lib/depreciation";
+import { htmlToPdf } from "@/lib/pdf";
 import { format } from "date-fns";
 import { th, enUS, ja } from "date-fns/locale";
+
+// Puppeteer needs the Node runtime (not edge)
+export const runtime = "nodejs";
 
 export const dynamic = "force-dynamic";
 
@@ -75,24 +79,53 @@ function getStatusLabel(status: string, lang: Lang): string {
   }
 }
 
+function buildFilters(url: URL) {
+  const category = url.searchParams.get("category") || "";
+  const status = url.searchParams.get("status") || "";
+  const location = url.searchParams.get("location") || "";
+  const asOfRaw = url.searchParams.get("asOf") || "";
+
+  let asOf: Date = new Date();
+  if (asOfRaw) {
+    const d = new Date(asOfRaw);
+    if (!Number.isNaN(d.getTime())) {
+      d.setHours(23, 59, 59, 999);
+      asOf = d;
+    }
+  }
+
+  const where: any = {};
+  if (category) where.category = category;
+  if (status) where.status = status;
+  if (location) where.location = { contains: location };
+  if (asOfRaw) where.purchaseDate = { lte: asOf };
+
+  return { where, asOf, asOfRaw, hasFilters: !!(category || status || location || asOfRaw) };
+}
+
 export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
     const fmt = url.searchParams.get("format") || "csv";
     const lang = (url.searchParams.get("lang") as Lang) || "th";
     const s = exportStrings[lang] || exportStrings.th;
+    const { where, asOf, asOfRaw } = buildFilters(url);
 
     const assets = await prisma.asset.findMany({
+      where,
       include: {
         assignments: { where: { dateIn: null }, take: 1, select: { personName: true } },
-        maintenanceRecords: { select: { cost: true } },
+        maintenanceRecords: {
+          where: asOfRaw ? { date: { lte: asOf } } : undefined,
+          select: { cost: true },
+        },
       },
       orderBy: { code: "asc" },
     });
 
     const rows = assets.map((a) => {
       const price = Number(a.purchasePrice);
-      const dep = calculateDepreciation(price, a.purchaseDate, a.expectedLife);
+      const dep = calculateDepreciation(price, a.purchaseDate, a.expectedLife, asOf);
       const totalRepair = a.maintenanceRecords.reduce((sum, m) => sum + Number(m.cost), 0);
       const assigned = a.assignments[0]?.personName || "";
 
@@ -141,7 +174,8 @@ export async function GET(req: NextRequest) {
     ];
 
     const csv = BOM + csvLines.join("\n");
-    const filename = `equipment_${format(new Date(), "yyyyMMdd")}.csv`;
+    const stamp = asOfRaw ? format(asOf, "yyyyMMdd") : format(new Date(), "yyyyMMdd");
+    const filename = `equipment_${stamp}.csv`;
 
     return new NextResponse(csv, {
       headers: {
@@ -163,11 +197,16 @@ export async function POST(req: NextRequest) {
     const lang = (url.searchParams.get("lang") as Lang) || "th";
     const s = exportStrings[lang] || exportStrings.th;
     const dateFnsLocale = DATE_LOCALES[lang] || DATE_LOCALES.th;
+    const { where, asOf, asOfRaw } = buildFilters(url);
 
     const assets = await prisma.asset.findMany({
+      where,
       include: {
         assignments: { where: { dateIn: null }, take: 1, select: { personName: true } },
-        maintenanceRecords: { select: { cost: true } },
+        maintenanceRecords: {
+          where: asOfRaw ? { date: { lte: asOf } } : undefined,
+          select: { cost: true },
+        },
       },
       orderBy: { code: "asc" },
     });
@@ -178,7 +217,7 @@ export async function POST(req: NextRequest) {
 
     const tableRows = assets.map((a) => {
       const price = Number(a.purchasePrice);
-      const dep = calculateDepreciation(price, a.purchaseDate, a.expectedLife);
+      const dep = calculateDepreciation(price, a.purchaseDate, a.expectedLife, asOf);
       const repair = a.maintenanceRecords.reduce((sum, m) => sum + Number(m.cost), 0);
       totalOriginal += price;
       totalCurrent += dep.currentValue;
@@ -222,7 +261,7 @@ export async function POST(req: NextRequest) {
 </head>
 <body>
   <h1>📋 ${s.reportTitle}</h1>
-  <p class="meta">Asset Management — ${format(new Date(), "d MMMM yyyy", { locale: dateFnsLocale })} • ${assets.length} ${s.items}</p>
+  <p class="meta">Asset Management — ${format(asOf, "d MMMM yyyy", { locale: dateFnsLocale })} • ${assets.length} ${s.items}${asOfRaw ? ` • As of ${format(asOf, "yyyy-MM-dd")}` : ""}</p>
 
   <div class="summary">
     <div class="summary-card"><div class="label">${s.totalPurchase}</div><div class="value">฿${totalOriginal.toLocaleString()}</div></div>
@@ -241,6 +280,18 @@ export async function POST(req: NextRequest) {
   <p class="no-print" style="margin-top:20px;color:#888;font-size:11px;text-align:center">${s.printHint}</p>
 </body>
 </html>`;
+
+    const wantPdf = url.searchParams.get("pdf") === "1";
+    if (wantPdf) {
+      const pdf = await htmlToPdf(html, { format: "A4", landscape: false });
+      const stamp = asOfRaw ? format(asOf, "yyyyMMdd") : format(new Date(), "yyyyMMdd");
+      return new NextResponse(new Blob([pdf], { type: "application/pdf" }), {
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": `attachment; filename="equipment_${stamp}.pdf"`,
+        },
+      });
+    }
 
     return new NextResponse(html, {
       headers: { "Content-Type": "text/html; charset=utf-8" },

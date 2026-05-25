@@ -13,14 +13,14 @@ export interface DepreciationResult {
 export function calculateDepreciation(
   purchasePrice: number,
   purchaseDate: Date,
-  expectedLife: number
+  expectedLife: number,
+  asOf: Date = new Date() // "ณ วันที่" ใช้คำนวณ snapshot ย้อนหลังได้
 ): DepreciationResult {
-  const now = new Date(); // วันนี้
-  const msUsed = now.getTime() - new Date(purchaseDate).getTime();
+  const msUsed = asOf.getTime() - new Date(purchaseDate).getTime();
   //             ^^^^^^^^^^^^    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //             milliseconds    milliseconds ของวันซื้อ
 //     = ระยะเวลาที่ผ่านไป (ms)
-  const yearsUsed = msUsed / (365.25 * 24 * 60 * 60 * 1000);
+  const yearsUsed = Math.max(0, msUsed / (365.25 * 24 * 60 * 60 * 1000));
 //                          ^^^^^^  ^^  ^^  ^^  ^^^^
 //                          วัน    ชม. นาที วิ  ms
 //                = แปลง milliseconds → ปี

@@ -1,23 +1,51 @@
 // Path: src/components/ExportButtons.tsx
 "use client";
 
-import { FileText, TableProperties } from "lucide-react";
+import { useState } from "react";
+import { FileText, TableProperties, Loader2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
-export function ExportButtons() {
+interface Props {
+  /** Extra query params (e.g. filters) appended to the export URL. */
+  extraParams?: Record<string, string>;
+}
+
+export function ExportButtons({ extraParams }: Props = {}) {
   const { locale } = useI18n();
+  const [pdfLoading, setPdfLoading] = useState(false);
+
+  const buildQuery = (extra: Record<string, string> = {}) => {
+    const qs = new URLSearchParams({ lang: locale, ...(extraParams || {}), ...extra });
+    return qs.toString();
+  };
 
   const handleCSV = () => {
-    window.open(`/api/export?format=csv&lang=${locale}`, "_blank");
+    window.open(`/api/export?${buildQuery({ format: "csv" })}`, "_blank");
   };
 
   const handlePDF = async () => {
-    const res = await fetch(`/api/export?lang=${locale}`, { method: "POST" });
-    const html = await res.text();
-    const w = window.open("", "_blank");
-    if (w) {
-      w.document.write(html);
-      w.document.close();
+    if (pdfLoading) return;
+    setPdfLoading(true);
+    try {
+      const res = await fetch(`/api/export?${buildQuery({ pdf: "1" })}`, { method: "POST" });
+      if (!res.ok) throw new Error(`PDF render failed (${res.status})`);
+      const blob = await res.blob();
+      const cd = res.headers.get("Content-Disposition") || "";
+      const match = cd.match(/filename="([^"]+)"/);
+      const filename = match?.[1] || `equipment_${new Date().toISOString().slice(0, 10)}.pdf`;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert("PDF export failed. See console.");
+    } finally {
+      setPdfLoading(false);
     }
   };
 
@@ -34,11 +62,12 @@ export function ExportButtons() {
       </button>
       <button
         onClick={handlePDF}
-        className="flex items-center gap-1.5 px-3 py-1.5 text-sm hover:text-red-400 hover:bg-red-500/5 transition-all duration-200"
+        disabled={pdfLoading}
+        className="flex items-center gap-1.5 px-3 py-1.5 text-sm hover:text-red-400 hover:bg-red-500/5 transition-all duration-200 disabled:opacity-50 disabled:cursor-wait"
         style={{ color: "var(--text-muted)" }}
         title="Export PDF"
       >
-        <FileText size={14} />
+        {pdfLoading ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
         <span className="font-medium">PDF</span>
       </button>
     </div>
