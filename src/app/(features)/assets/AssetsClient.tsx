@@ -19,6 +19,7 @@ import { CategoriesManagerDialog } from "@/components/settings/CategoriesManager
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { useRole } from "@/lib/useRole";
 import { useCategories } from "@/lib/useCategories";
+import { useAssetColumns } from "@/lib/useAssetColumns";
 import { showConfirm, showSuccess, showError } from "@/lib/swal";
 import { Plus, Settings2, Pencil, Trash2, Printer, ImagePlus } from "lucide-react";
 
@@ -57,6 +58,7 @@ export function AssetsClient({ data }: { data: AssetsData }) {
   const urlSearchParams = useSearchParams();
   const { canCreate, canEdit, canDelete } = useRole();
   const { categories, labelFor, emojiFor } = useCategories();
+  const { isVisible } = useAssetColumns();
   const { assets, totalValue, searchParams } = data;
   const { items: pagedAssets, total: assetsTotal } = usePagination(assets, 20);
 
@@ -286,14 +288,14 @@ export function AssetsClient({ data }: { data: AssetsData }) {
                   />
                 </label>
               </th>
-              <th>{t("assets.photo")}</th>
-              <th>{t("assets.code")}</th>
-              <th>{t("assets.name")}</th>
-              <th className="hidden md:table-cell">{t("assets.type")}</th>
-              <th>{t("assets.statusCol")}</th>
-              <th className="hidden lg:table-cell">{t("assets.user")}</th>
-              <th className="hidden sm:table-cell">{t("assets.purchasePrice")}</th>
-              <th className="hidden sm:table-cell">{t("assets.currentVal")}</th>
+              {isVisible("photo") && <th>{t("assets.photo")}</th>}
+              {isVisible("code") && <th>{t("assets.code")}</th>}
+              {isVisible("name") && <th>{t("assets.name")}</th>}
+              {isVisible("type") && <th>{t("assets.type")}</th>}
+              {isVisible("status") && <th>{t("assets.statusCol")}</th>}
+              {isVisible("user") && <th>{t("assets.user")}</th>}
+              {isVisible("purchasePrice") && <th>{t("assets.purchasePrice")}</th>}
+              {isVisible("currentValue") && <th>{t("assets.currentVal")}</th>}
             </tr>
           </thead>
           <tbody>
@@ -314,27 +316,39 @@ export function AssetsClient({ data }: { data: AssetsData }) {
                     />
                   </label>
                 </td>
-                <td className="w-14">
-                  {a.photo ? (
-                    <img src={a.photo} alt="" className="w-9 h-9 rounded-lg object-cover border border-border" />
-                  ) : (
-                    <div className="w-9 h-9 rounded-lg bg-surface-dark flex items-center justify-center text-lg">{emojiFor(a.category)}</div>
-                  )}
-                </td>
-                <td>
-                  <span className="font-mono text-brand-500 font-semibold">{a.code}</span>
-                </td>
-                <td className="max-w-[200px]">
-                  <span className="font-semibold block truncate" style={{ color: "var(--text-default)" }}>{a.name}</span>
-                  <span className="text-xs text-gray-500 block truncate">{a.brand} {a.model}</span>
-                </td>
-                <td className="hidden md:table-cell">{labelFor(a.category)}</td>
-                <td><span className={STATUS_BADGE[a.status] ?? "badge-available"}>{t(`status.${a.status}`)}</span></td>
-                <td className="hidden lg:table-cell max-w-[120px] truncate">{a.assignedTo || "-"}</td>
-                <td className="hidden sm:table-cell font-mono">{t("common.baht")}{formatMoney(a.purchasePrice, locale)}</td>
-                <td className={`hidden sm:table-cell font-mono ${a.currentValue < a.purchasePrice * 0.2 ? "text-red-400" : "text-green-400"}`}>
-                  {t("common.baht")}{formatMoney(Math.round(a.currentValue), locale)}
-                </td>
+                {isVisible("photo") && (
+                  <td className="w-14">
+                    {a.photo ? (
+                      <img src={a.photo} alt="" className="w-9 h-9 rounded-lg object-cover border border-border" />
+                    ) : (
+                      <div className="w-9 h-9 rounded-lg bg-surface-dark flex items-center justify-center text-lg">{emojiFor(a.category)}</div>
+                    )}
+                  </td>
+                )}
+                {isVisible("code") && (
+                  <td>
+                    <span className="font-mono text-brand-500 font-semibold">{a.code}</span>
+                  </td>
+                )}
+                {isVisible("name") && (
+                  <td className="max-w-[200px]">
+                    <span className="font-semibold block truncate" style={{ color: "var(--text-default)" }}>{a.name}</span>
+                    <span className="text-xs text-gray-500 block truncate">{a.brand} {a.model}</span>
+                  </td>
+                )}
+                {isVisible("type") && <td>{labelFor(a.category)}</td>}
+                {isVisible("status") && (
+                  <td><span className={STATUS_BADGE[a.status] ?? "badge-available"}>{t(`status.${a.status}`)}</span></td>
+                )}
+                {isVisible("user") && <td className="max-w-[120px] truncate">{a.assignedTo || "-"}</td>}
+                {isVisible("purchasePrice") && (
+                  <td className="font-mono">{t("common.baht")}{formatMoney(a.purchasePrice, locale)}</td>
+                )}
+                {isVisible("currentValue") && (
+                  <td className={`font-mono ${a.currentValue < a.purchasePrice * 0.2 ? "text-red-400" : "text-green-400"}`}>
+                    {t("common.baht")}{formatMoney(Math.round(a.currentValue), locale)}
+                  </td>
+                )}
               </tr>
             ))}
             {assets.length === 0 && <tr><td colSpan={9} className="py-12 text-center text-gray-500">{t("assets.notFound")}</td></tr>}

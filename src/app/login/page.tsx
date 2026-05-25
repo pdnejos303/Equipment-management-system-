@@ -72,7 +72,7 @@ function BrandMark({ size = "md" }: { size?: "sm" | "md" }) {
           className={`${dims.title} font-bold tracking-tight`}
           style={{ color: "var(--text-default)" }}
         >
-          EquipTrack
+          Asset Management
         </span>
         <span
           className="text-[10px] font-medium uppercase tracking-[0.18em] mt-1.5"
@@ -565,7 +565,7 @@ function FeaturePanel() {
                 "linear-gradient(120deg, rgb(var(--brand-light-rgb)) 0%, rgb(var(--brand-rgb)) 50%, rgb(var(--brand-dark-rgb)) 100%)",
             }}
           >
-            EquipTrack
+            Asset Management
           </span>
         </h2>
         <p
@@ -760,7 +760,7 @@ export default function LoginPage() {
               aria-hidden="true"
             />
             <span style={{ color: "var(--text-subtle)" }}>
-              Secured by NextAuth · EquipTrack v2.0
+              Secured by NextAuth · Asset Management v2.0
             </span>
           </div>
         </div>

@@ -329,7 +329,11 @@ export function AIChatWidget() {
                       {msg.content}
                     </ReactMarkdown>
                   ) : (
-                    <span className="inline-block w-1.5 h-3 bg-brand-500 animate-pulse rounded-sm" />
+                    <span className="typing-dots" aria-label={locale === "th" ? "กำลังคิด" : locale === "ja" ? "考え中" : "Thinking"}>
+                      <span />
+                      <span />
+                      <span />
+                    </span>
                   )
                 ) : (
                   msg.content
