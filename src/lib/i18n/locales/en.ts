@@ -583,7 +583,7 @@ const en = {
     processing: "Processing...",
   },
   migrate: {
-    pageTitle: "Import / Backup Data",
+    pageTitle: "Backup / Restore Data",
     tabImport: "Import from Legacy System",
     tabBackup: "Backup / Restore",
     title: "Import from Legacy System",
@@ -623,7 +623,7 @@ const en = {
     importMore: "Import More",
     viewAssets: "View Assets",
     requiredMissing: "Required fields not mapped",
-    nav: "Import / Backup",
+    nav: "Backup / Restore",
   },
   migrateCS: {
     nav: "C# Legacy",

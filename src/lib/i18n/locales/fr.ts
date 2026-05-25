@@ -583,7 +583,7 @@ const fr = {
     processing: "Traitement...",
   },
   migrate: {
-    pageTitle: "Importer / Sauvegarder",
+    pageTitle: "Sauvegarde / Restauration des données",
     tabImport: "Importer depuis l'ancien système",
     tabBackup: "Sauvegarde / Restauration",
     title: "Importer depuis l'ancien système",
@@ -623,7 +623,7 @@ const fr = {
     importMore: "Importer plus",
     viewAssets: "Voir les équipements",
     requiredMissing: "Champs requis non mappés",
-    nav: "Import / Sauvegarde",
+    nav: "Sauvegarde / Restauration",
   },
   migrateCS: {
     nav: "Ancien C#",

@@ -583,7 +583,7 @@ const ja = {
     processing: "処理中...",
   },
   migrate: {
-    pageTitle: "インポート / バックアップ",
+    pageTitle: "バックアップ / 復元",
     tabImport: "レガシーシステムからインポート",
     tabBackup: "バックアップ / 復元",
     title: "レガシーシステムからインポート",
@@ -623,7 +623,7 @@ const ja = {
     importMore: "追加インポート",
     viewAssets: "機器台帳を見る",
     requiredMissing: "必須フィールドが未マッピング",
-    nav: "インポート / バックアップ",
+    nav: "バックアップ / 復元",
   },
   migrateCS: {
     nav: "C#レガシー",

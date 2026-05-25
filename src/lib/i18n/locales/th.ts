@@ -583,7 +583,7 @@ const th = {
     processing: "กำลังดำเนินการ...",
   },
   migrate: {
-    pageTitle: "นำเข้า / สำรองข้อมูล",
+    pageTitle: "สำรอง / กู้คืนข้อมูล",
     tabImport: "นำเข้าจากระบบเก่า",
     tabBackup: "สำรอง / กู้คืน",
     title: "นำเข้าข้อมูลจากระบบเก่า",
@@ -623,7 +623,7 @@ const th = {
     importMore: "Import เพิ่ม",
     viewAssets: "ดูทะเบียนอุปกรณ์",
     requiredMissing: "ฟิลด์ที่จำเป็นยังไม่ได้จับคู่",
-    nav: "นำเข้า / สำรองข้อมูล",
+    nav: "สำรอง / กู้คืน",
   },
   migrateCS: {
     nav: "ระบบเก่า C#",

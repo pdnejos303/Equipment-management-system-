@@ -583,7 +583,7 @@ const zh = {
     processing: "处理中...",
   },
   migrate: {
-    pageTitle: "导入 / 备份数据",
+    pageTitle: "备份 / 恢复数据",
     tabImport: "从旧系统导入",
     tabBackup: "备份 / 恢复",
     title: "从旧系统导入",
@@ -623,7 +623,7 @@ const zh = {
     importMore: "继续导入",
     viewAssets: "查看设备",
     requiredMissing: "未映射必填字段",
-    nav: "导入 / 备份",
+    nav: "备份 / 恢复",
   },
   migrateCS: {
     nav: "C# 旧系统",
