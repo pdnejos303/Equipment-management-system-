@@ -146,6 +146,8 @@ export function UsersClient({ users: initialUsers, currentUserId }: { users: Use
     const confirmed = await showConfirm({
       title: t("users.deleteTitle"),
       text: t("users.deleteMsg", user.name || user.email),
+      confirmText: t("common.delete"),
+      cancelText: t("confirm.cancel"),
       danger: true,
     });
     if (!confirmed) return;

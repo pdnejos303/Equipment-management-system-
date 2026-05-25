@@ -10,6 +10,7 @@
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
     "mock": "tsx prisma/seed-bulk.ts",
+    "mock:jp": "tsx prisma/MockJP.ts",
     "reset": "tsx prisma/reset.ts",
     "reset2": "tsx prisma/reset2.ts",
     "data": "tsx prisma/import-csv.ts",

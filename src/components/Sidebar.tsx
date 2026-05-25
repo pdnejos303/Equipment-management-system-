@@ -158,9 +158,23 @@ export function Sidebar({ alertCount = 0, mobileOpen, onCloseMobile }: SidebarPr
       >
         {/* Bottom accent line */}
         <div className="absolute bottom-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-[rgb(var(--brand-rgb)/0.12)] to-transparent" />
-        <div className="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center text-black font-extrabold text-sm flex-shrink-0" style={{ boxShadow: "0 0 12px rgb(var(--brand-rgb) / 0.2)" }} aria-hidden="true">
-          A
-        </div>
+        {showLabel ? (
+          <div className="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center text-black font-extrabold text-sm flex-shrink-0" style={{ boxShadow: "0 0 12px rgb(var(--brand-rgb) / 0.2)" }} aria-hidden="true">
+            A
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => toggleCollapsed(false)}
+            aria-label="Expand sidebar"
+            title="Expand sidebar"
+            className="group relative w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center text-black font-extrabold text-sm flex-shrink-0 hover:brightness-110 active:scale-95 transition-all duration-150"
+            style={{ boxShadow: "0 0 12px rgb(var(--brand-rgb) / 0.2)" }}
+          >
+            <span className="transition-opacity duration-150 group-hover:opacity-0">A</span>
+            <ChevronRight size={16} strokeWidth={2.5} className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-150" />
+          </button>
+        )}
         {showLabel && (
           <span className="font-bold text-[15px] whitespace-nowrap flex-1 tracking-tight">
             Asset Management
@@ -236,17 +250,6 @@ export function Sidebar({ alertCount = 0, mobileOpen, onCloseMobile }: SidebarPr
         )}
       >
         {navContent}
-        {/* Expand handle when collapsed */}
-        {collapsed && (
-          <button
-            onClick={() => toggleCollapsed(false)}
-            aria-label="Expand sidebar"
-            className="absolute top-4 -right-4 w-8 h-8 rounded-r-lg bg-surface border border-l-0 border-border flex items-center justify-center hover:text-white hover:bg-brand-500/10 hover:border-brand-500/40 transition-all duration-150 shadow-md group"
-            style={{ color: "var(--text-muted)" }}
-          >
-            <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform duration-150" />
-          </button>
-        )}
       </nav>
     </>
   );

@@ -57,8 +57,8 @@ export function showWarning(title: string, text?: string) {
 export async function showConfirm({
   title,
   text,
-  confirmText = "ยืนยัน",
-  cancelText = "ยกเลิก",
+  confirmText = "Confirm",
+  cancelText = "Cancel",
   danger = false,
 }: {
   title: string;

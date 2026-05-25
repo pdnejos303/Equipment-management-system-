@@ -63,6 +63,8 @@ export function BackupClient() {
     const confirmed = await showConfirm({
       title: t("backup.confirmTitle"),
       text: restoreMode === "replace" ? t("backup.confirmReplace") : t("backup.confirmSkip"),
+      confirmText: t("confirm.ok"),
+      cancelText: t("confirm.cancel"),
       danger: restoreMode === "replace",
     });
     if (!confirmed) return;
