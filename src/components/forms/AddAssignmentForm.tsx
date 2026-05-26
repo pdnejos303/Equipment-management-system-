@@ -5,6 +5,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { FormFooter } from "@/components/ui/FormFooter";
 import { SearchablePicker, type PickerItem } from "@/components/ui/SearchablePicker";
+import { BorrowerSelect, type BorrowerValue } from "@/components/forms/BorrowerSelect";
 import { useI18n } from "@/lib/i18n";
 import { useFormSubmit } from "@/lib/useFormSubmit";
 import { useCategories } from "@/lib/useCategories";
@@ -29,8 +30,8 @@ export function AddAssignmentForm({ open, onClose, assets, preselectedAssetId }:
   const { labelFor } = useCategories();
   const [form, setForm] = useState({
     assetId: preselectedAssetId || "",
+    userId: undefined as string | undefined,
     personName: "",
-    department: "",
     dateOut: new Date().toISOString().slice(0, 10),
     notes: "",
   });
@@ -60,6 +61,8 @@ export function AddAssignmentForm({ open, onClose, assets, preselectedAssetId }:
   );
 
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const setBorrower = (b: BorrowerValue) =>
+    setForm((f) => ({ ...f, userId: b.userId, personName: b.personName }));
 
   const { submit, loading } = useFormSubmit({
     url: "/api/assignments",
@@ -70,6 +73,7 @@ export function AddAssignmentForm({ open, onClose, assets, preselectedAssetId }:
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.assetId) return;
+    if (!form.userId && !form.personName.trim()) return;
     submit(form);
   };
 
@@ -96,16 +100,10 @@ export function AddAssignmentForm({ open, onClose, assets, preselectedAssetId }:
             />
           </div>
         )}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-xs text-gray-500 font-semibold mb-1">{t("forms.personName")} *</label>
-            <input value={form.personName} onChange={(e) => set("personName", e.target.value)} required maxLength={100} className="input" />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-500 font-semibold mb-1">{t("forms.department")}</label>
-            <input value={form.department} onChange={(e) => set("department", e.target.value)} className="input" />
-          </div>
-        </div>
+        <BorrowerSelect
+          value={{ userId: form.userId, personName: form.personName }}
+          onChange={setBorrower}
+        />
         <div>
           <label className="block text-xs text-gray-500 font-semibold mb-1">{t("forms.dateOut")} *</label>
           <input type="date" value={form.dateOut} onChange={(e) => set("dateOut", e.target.value)} required className="input" />
@@ -120,7 +118,11 @@ export function AddAssignmentForm({ open, onClose, assets, preselectedAssetId }:
           submitLabel={t("forms.assign")}
           submittingLabel={t("forms.saving")}
           submitting={loading}
-          disabled={available.length === 0 || !form.assetId}
+          disabled={
+            available.length === 0 ||
+            !form.assetId ||
+            (!form.userId && !form.personName.trim())
+          }
         />
       </form>
     </Modal>

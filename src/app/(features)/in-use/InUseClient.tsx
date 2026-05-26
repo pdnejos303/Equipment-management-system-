@@ -255,7 +255,7 @@ export function InUseClient({ items }: { items: InUseItem[] }) {
                 <div
                   key={item.key}
                   className="flex items-center gap-3 p-3 rounded-lg border border-border/50 hover:border-border hover:bg-surface-hover transition-all duration-150 cursor-pointer group"
-                  onClick={() => router.push(`/assets/${item.assetId}`)}
+                  onClick={() => router.push(`/assets/${item.assetId}?from=${encodeURIComponent("/in-use")}`)}
                   onMouseEnter={() => router.prefetch(`/assets/${item.assetId}`)}
                 >
                   <span className="font-mono text-brand-500 text-sm shrink-0 w-[72px] truncate">
@@ -266,7 +266,7 @@ export function InUseClient({ items }: { items: InUseItem[] }) {
                     <DurationChip days={daysSince(item.since)} t={t} />
                     <SourceBadge source={item.source} t={t} />
                     <Link
-                      href={`/assets/${item.assetId}`}
+                      href={`/assets/${item.assetId}?from=${encodeURIComponent("/in-use")}`}
                       onClick={(e) => e.stopPropagation()}
                       className="btn-icon opacity-0 group-hover:opacity-100 transition-opacity"
                       title={t("inUsePage.viewAsset")}
@@ -387,7 +387,7 @@ function AssetTableView({
                 <tr
                   key={item.key}
                   className="cursor-pointer"
-                  onClick={() => router.push(`/assets/${item.assetId}`)}
+                  onClick={() => router.push(`/assets/${item.assetId}?from=${encodeURIComponent("/in-use")}`)}
                   onMouseEnter={() => router.prefetch(`/assets/${item.assetId}`)}
                 >
                   <td>
@@ -409,7 +409,7 @@ function AssetTableView({
                   </td>
                   <td onClick={(e) => e.stopPropagation()}>
                     <Link
-                      href={`/assets/${item.assetId}`}
+                      href={`/assets/${item.assetId}?from=${encodeURIComponent("/in-use")}`}
                       className="btn-icon"
                       title={t("inUsePage.viewAsset")}
                     >

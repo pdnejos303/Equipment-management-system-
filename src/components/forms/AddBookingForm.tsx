@@ -5,6 +5,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { FormFooter } from "@/components/ui/FormFooter";
 import { SearchablePicker, type PickerItem } from "@/components/ui/SearchablePicker";
+import { BorrowerSelect, type BorrowerValue } from "@/components/forms/BorrowerSelect";
 import { useI18n } from "@/lib/i18n";
 import { useFormSubmit } from "@/lib/useFormSubmit";
 import { useCategories } from "@/lib/useCategories";
@@ -22,6 +23,7 @@ export function AddBookingForm({ open, onClose, assets, preselectedAssetId }: Pr
   const { labelFor } = useCategories();
   const [form, setForm] = useState({
     assetId: preselectedAssetId || "",
+    userId: undefined as string | undefined,
     personName: "",
     dateStart: "",
     dateEnd: "",
@@ -53,6 +55,8 @@ export function AddBookingForm({ open, onClose, assets, preselectedAssetId }: Pr
   );
 
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const setBorrower = (b: BorrowerValue) =>
+    setForm((f) => ({ ...f, userId: b.userId, personName: b.personName }));
 
   const { submit, loading } = useFormSubmit({
     url: "/api/bookings",
@@ -63,6 +67,7 @@ export function AddBookingForm({ open, onClose, assets, preselectedAssetId }: Pr
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.assetId) return;
+    if (!form.userId && !form.personName.trim()) return;
     if (form.dateStart && form.dateEnd && form.dateEnd < form.dateStart) {
       showError(t("forms.error"), t("forms.dateEndBeforeStart"));
       return;
@@ -90,10 +95,11 @@ export function AddBookingForm({ open, onClose, assets, preselectedAssetId }: Pr
             />
           </div>
         )}
-        <div>
-          <label className="block text-xs text-gray-500 font-semibold mb-1">{t("forms.bookerName")} *</label>
-          <input value={form.personName} onChange={(e) => set("personName", e.target.value)} required maxLength={100} className="input" />
-        </div>
+        <BorrowerSelect
+          value={{ userId: form.userId, personName: form.personName }}
+          onChange={setBorrower}
+          externalLabel={t("forms.bookerName")}
+        />
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs text-gray-500 font-semibold mb-1">{t("forms.dateStart")} *</label>
@@ -118,7 +124,10 @@ export function AddBookingForm({ open, onClose, assets, preselectedAssetId }: Pr
           submitLabel={t("forms.bookBtn")}
           submittingLabel={t("forms.booking")}
           submitting={loading}
-          disabled={!form.assetId}
+          disabled={
+            !form.assetId ||
+            (!form.userId && !form.personName.trim())
+          }
         />
       </form>
     </Modal>

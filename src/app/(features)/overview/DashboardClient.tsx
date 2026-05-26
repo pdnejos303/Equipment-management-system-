@@ -447,11 +447,13 @@ export function DashboardClient({ data }: { data?: ServerData }) {
       {/* Category Sunburst + Recent Maintenance */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Category Sunburst */}
-        <div className="card">
+        <div className="card flex flex-col">
           <h3 className="text-[11px] font-semibold uppercase tracking-widest mb-2">
             {t("dashboard.byCategory")}
           </h3>
-          <CategoryBarList />
+          <div className="flex-1 min-h-0">
+            <CategoryBarList />
+          </div>
         </div>
 
         {/* Recent Maintenance */}

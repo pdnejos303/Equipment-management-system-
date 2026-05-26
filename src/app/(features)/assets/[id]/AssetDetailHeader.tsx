@@ -21,20 +21,44 @@ interface Props {
   currentAssignment: { id: string; personName: string } | null;
 }
 
+// Map a source pathname to a nav label key. Only internal app routes.
+const NAV_LABEL_KEYS: Record<string, string> = {
+  "/assets": "nav.assets",
+  "/bookings": "nav.bookings",
+  "/assignments": "nav.assignments",
+  "/in-use": "nav.inUse",
+  "/maintenance": "nav.maintenance",
+  "/alerts": "nav.alerts",
+  "/calendar": "nav.calendar",
+  "/scan": "nav.scan",
+  "/overview": "nav.overview",
+  "/reports": "nav.reports",
+};
+
+// Only allow internal paths to prevent open-redirect via `from` param.
+function safeFrom(from: string | null): string | null {
+  if (!from) return null;
+  if (!from.startsWith("/") || from.startsWith("//")) return null;
+  return from;
+}
+
 export function AssetDetailHeader({
   assetId, assetName, assetCode, brand, model, serialNumber,
   status, category, statusBg, statusColor, assignedTo, currentAssignment,
 }: Props) {
   const { t } = useI18n();
   const search = useSearchParams();
-  const from = search.get("from");
-  const backHref = from ? `/assets?${from}` : "/assets";
+  const from = safeFrom(search.get("from"));
+  const backHref = from ?? "/assets";
+  const fromPath = from ? from.split("?")[0] : "/assets";
+  const labelKey = NAV_LABEL_KEYS[fromPath];
+  const backLabel = labelKey ? t(labelKey) : t("assets.back");
 
   return (
     <>
       <PageHeader
         backHref={backHref}
-        backLabel={t("assets.back")}
+        backLabel={backLabel}
         title={
           <div className="flex flex-wrap items-center gap-3">
             <span className="font-mono text-brand-500 text-sm font-bold">{assetCode}</span>

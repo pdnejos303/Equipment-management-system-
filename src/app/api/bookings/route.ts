@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
       where,
       include: {
         asset: { select: { id: true, code: true, name: true, category: true } },
-        user: { select: { name: true, email: true } },
+        user: { select: { id: true, name: true, email: true, image: true } },
       },
       orderBy: { dateStart: "desc" },
     });
@@ -31,15 +31,22 @@ export async function GET(req: NextRequest) {
   }
 }
 
-const schema = z.object({
-  assetId: z.string().min(1),
-  userId: z.string().optional(),
-  personName: z.string().min(1),
-  dateStart: z.string().transform((s) => new Date(s)),
-  dateEnd: z.string().transform((s) => new Date(s)),
-  purpose: z.string().optional(),
-  conditionBefore: z.string().optional(),
-});
+// Booker must be identified either by `userId` (real user in the system)
+// or by `personName` (free-text fallback for external people / guests).
+const schema = z
+  .object({
+    assetId: z.string().min(1),
+    userId: z.string().optional(),
+    personName: z.string().optional(),
+    dateStart: z.string().transform((s) => new Date(s)),
+    dateEnd: z.string().transform((s) => new Date(s)),
+    purpose: z.string().optional(),
+    conditionBefore: z.string().optional(),
+  })
+  .refine((d) => !!d.userId || (d.personName && d.personName.trim().length > 0), {
+    message: "Either userId or personName is required",
+    path: ["userId"],
+  });
 
 export async function POST(req: NextRequest) {
   try {
@@ -49,6 +56,25 @@ export async function POST(req: NextRequest) {
     }
 
     const data = schema.parse(await req.json());
+
+    let resolvedName = data.personName?.trim() || "";
+    let resolvedUserId: string | undefined = undefined;
+
+    if (data.userId) {
+      const user = await prisma.user.findUnique({
+        where: { id: data.userId },
+        select: { id: true, name: true, email: true },
+      });
+      if (!user) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+      resolvedUserId = user.id;
+      resolvedName = user.name?.trim() || user.email;
+    }
+
+    if (!resolvedName) {
+      return NextResponse.json({ error: "Person name is required" }, { status: 400 });
+    }
 
     // Check for overlapping bookings
     const overlap = await prisma.booking.findFirst({
@@ -67,7 +93,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const booking = await prisma.booking.create({ data });
+    const booking = await prisma.booking.create({
+      data: {
+        assetId: data.assetId,
+        userId: resolvedUserId,
+        personName: resolvedName,
+        dateStart: data.dateStart,
+        dateEnd: data.dateEnd,
+        purpose: data.purpose,
+        conditionBefore: data.conditionBefore,
+      },
+    });
     return NextResponse.json(booking, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError)

@@ -17,6 +17,9 @@ import {
   Send,
   Search,
   X,
+  ShieldX,
+  Wrench,
+  Hourglass,
 } from "lucide-react";
 import { swal } from "@/lib/swal";
 
@@ -40,19 +43,14 @@ const SeverityIcon: Record<string, typeof AlertCircle> = {
   warning: AlertTriangle,
   info: Info,
 };
-const cardBorderTop: Record<string, string> = {
-  danger: "border-t-red-500",
-  warning: "border-t-amber-500",
-  info: "border-t-blue-500",
-};
-const cardIconBg: Record<string, string> = {
-  danger: "bg-red-500/10",
-  warning: "bg-amber-500/10",
-  info: "bg-blue-500/10",
-};
+type TypeTab = "all" | Alert["type"];
 
-type SeverityTab = "danger" | "warning" | "info" | "all";
-type TypeFilter = "all" | Alert["type"];
+const TYPE_META: Record<Alert["type"], { labelKey: string; color: string; rgb: string; Icon: typeof AlertCircle }> = {
+  warranty:    { labelKey: "alertPage.typeWarranty",   color: "#ef4444", rgb: "239 68 68",  Icon: ShieldX },
+  end_of_life: { labelKey: "alertPage.typeEndOfLife",  color: "#d97706", rgb: "245 158 11", Icon: Hourglass },
+  maintenance: { labelKey: "alertPage.typeMaintenance",color: "#2563eb", rgb: "59 130 246", Icon: Wrench },
+};
+const TYPE_ORDER: Alert["type"][] = ["warranty", "end_of_life", "maintenance"];
 
 type AssetGroup = {
   assetCode: string;
@@ -110,20 +108,16 @@ export function AlertsClient({ alerts }: { alerts: Alert[] }) {
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   };
 
-  const dangerCount = alerts.filter((a) => a.severity === "danger").length;
-  const warningCount = alerts.filter((a) => a.severity === "warning").length;
-  const infoCount = alerts.filter((a) => a.severity === "info").length;
-
-  const [tab, setTab] = useState<SeverityTab>(dangerCount > 0 ? "danger" : "all");
-  const [query, setQuery] = useState("");
-  const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
-
-  const severityKey: Record<string, string> = {
-    danger: "alertPage.urgent",
-    warning: "alertPage.warning",
-    info: "alertPage.info",
+  const typeCounts: Record<Alert["type"], number> = {
+    warranty:    alerts.filter((a) => a.type === "warranty").length,
+    end_of_life: alerts.filter((a) => a.type === "end_of_life").length,
+    maintenance: alerts.filter((a) => a.type === "maintenance").length,
   };
+  const firstNonEmpty = TYPE_ORDER.find((tp) => typeCounts[tp] > 0);
+
+  const [tab, setTab] = useState<TypeTab>(firstNonEmpty ?? "all");
+  const [query, setQuery] = useState("");
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   async function handleSendTestEmail() {
     setSending(true);
@@ -147,12 +141,11 @@ export function AlertsClient({ alerts }: { alerts: Alert[] }) {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return alerts.filter((a) => {
-      if (tab !== "all" && a.severity !== tab) return false;
-      if (typeFilter !== "all" && a.type !== typeFilter) return false;
+      if (tab !== "all" && a.type !== tab) return false;
       if (q && !(`${a.assetCode} ${a.assetName}`.toLowerCase().includes(q))) return false;
       return true;
     });
-  }, [alerts, tab, typeFilter, query]);
+  }, [alerts, tab, query]);
 
   const groups = useMemo(() => groupByAsset(filtered), [filtered]);
   const { items: pagedGroups, total: groupsTotal } = usePagination(groups, 10);
@@ -168,31 +161,21 @@ export function AlertsClient({ alerts }: { alerts: Alert[] }) {
 
   const clearFilters = () => {
     setQuery("");
-    setTypeFilter("all");
     setTab("all");
     resetPage();
   };
 
-  const filtersActive = query !== "" || typeFilter !== "all" || tab !== "all";
+  const filtersActive = query !== "" || tab !== "all";
 
-  const statCards = [
-    { key: "danger", count: dangerCount, labelKey: "alertPage.urgent" },
-    { key: "warning", count: warningCount, labelKey: "alertPage.warning" },
-    { key: "info", count: infoCount, labelKey: "alertPage.info" },
-  ];
-
-  const tabs: { key: SeverityTab; labelKey: string; count: number }[] = [
-    { key: "danger", labelKey: "alertPage.urgent", count: dangerCount },
-    { key: "warning", labelKey: "alertPage.warning", count: warningCount },
-    { key: "info", labelKey: "alertPage.info", count: infoCount },
-    { key: "all", labelKey: "alertPage.tabAll", count: alerts.length },
-  ];
-
-  const typeOptions: { value: TypeFilter; labelKey: string }[] = [
-    { value: "all", labelKey: "alertPage.filterAllTypes" },
-    { value: "warranty", labelKey: "alertPage.typeWarranty" },
-    { value: "maintenance", labelKey: "alertPage.typeMaintenance" },
-    { value: "end_of_life", labelKey: "alertPage.typeEndOfLife" },
+  const tabs: { key: TypeTab; labelKey: string; count: number; color?: string; rgb?: string }[] = [
+    ...TYPE_ORDER.map((tp) => ({
+      key: tp,
+      labelKey: TYPE_META[tp].labelKey,
+      count: typeCounts[tp],
+      color: TYPE_META[tp].color,
+      rgb: TYPE_META[tp].rgb,
+    })),
+    { key: "all" as const, labelKey: "alertPage.tabAll", count: alerts.length, color: "rgb(var(--brand-rgb))", rgb: "var(--brand-rgb)" },
   ];
 
   return (
@@ -210,18 +193,28 @@ export function AlertsClient({ alerts }: { alerts: Alert[] }) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 animate-stagger">
-        {statCards.map(({ key, count, labelKey }) => {
-          const Icon = SeverityIcon[key];
+        {TYPE_ORDER.map((tp) => {
+          const meta = TYPE_META[tp];
+          const Icon = meta.Icon;
+          const count = typeCounts[tp];
           return (
-            <div key={key} className={`card stat-card border-t-2 ${cardBorderTop[key]} pt-4`}>
+            <button
+              key={tp}
+              onClick={() => { setTab(tp); resetPage(); }}
+              className="card stat-card border-t-2 pt-4 text-left transition-all hover:brightness-110"
+              style={{ borderTopColor: meta.color }}
+            >
               <div className="flex items-start justify-between mb-3">
-                <p className="text-xs text-gray-500 uppercase">{t(labelKey)}</p>
-                <div className={`w-8 h-8 rounded-lg ${cardIconBg[key]} flex items-center justify-center flex-shrink-0`}>
-                  <Icon size={16} className={textColor[key]} />
+                <p className="text-xs uppercase" style={{ color: "var(--text-muted)" }}>{t(meta.labelKey)}</p>
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ background: `rgb(${meta.rgb} / 0.10)` }}
+                >
+                  <Icon size={16} style={{ color: meta.color }} />
                 </div>
               </div>
-              <p className={`text-3xl font-bold ${textColor[key]}`}>{count}</p>
-            </div>
+              <p className="text-3xl font-bold" style={{ color: meta.color }}>{count}</p>
+            </button>
           );
         })}
       </div>
@@ -242,21 +235,8 @@ export function AlertsClient({ alerts }: { alerts: Alert[] }) {
               className="inline-flex items-center gap-1 overflow-x-auto scrollbar-none p-1 rounded-xl border border-border/60 self-start"
               style={{ background: "var(--surface-hover)" }}
             >
-              {tabs.map(({ key, labelKey, count }) => {
+              {tabs.map(({ key, labelKey, count, color, rgb }) => {
                 const isActive = tab === key;
-                const severityRgb: Record<string, string> = {
-                  danger:  "239 68 68",
-                  warning: "245 158 11",
-                  info:    "59 130 246",
-                  all:     "var(--brand-rgb)",
-                };
-                const severityText: Record<string, string> = {
-                  danger:  "#ef4444",
-                  warning: "#d97706",
-                  info:    "#2563eb",
-                  all:     "rgb(var(--brand-rgb))",
-                };
-                const rgb = severityRgb[key];
                 return (
                   <button
                     key={key}
@@ -264,7 +244,7 @@ export function AlertsClient({ alerts }: { alerts: Alert[] }) {
                     className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap min-h-[32px]"
                     style={
                       isActive
-                        ? { background: `rgb(${rgb} / 0.15)`, color: severityText[key] }
+                        ? { background: `rgb(${rgb} / 0.15)`, color }
                         : { color: "var(--text-muted)" }
                     }
                     onMouseEnter={(e) => {
@@ -296,38 +276,25 @@ export function AlertsClient({ alerts }: { alerts: Alert[] }) {
               })}
             </div>
 
-            {/* Search + Type filter */}
-            <div className="flex flex-col sm:flex-row gap-2">
-              <div className="relative flex-1">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(e) => { setQuery(e.target.value); resetPage(); }}
-                  placeholder={t("alertPage.searchPlaceholder")}
-                  className="input w-full pl-9 pr-9"
-                />
-                {query && (
-                  <button
-                    onClick={() => { setQuery(""); resetPage(); }}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
-                    aria-label="clear"
-                  >
-                    <X size={14} />
-                  </button>
-                )}
-              </div>
-              <select
-                value={typeFilter}
-                onChange={(e) => { setTypeFilter(e.target.value as TypeFilter); resetPage(); }}
-                className="input sm:w-52"
-              >
-                {typeOptions.map(({ value, labelKey }) => (
-                  <option key={value} value={value}>
-                    {t(labelKey)}
-                  </option>
-                ))}
-              </select>
+            {/* Search */}
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => { setQuery(e.target.value); resetPage(); }}
+                placeholder={t("alertPage.searchPlaceholder")}
+                className="input w-full pl-9 pr-9"
+              />
+              {query && (
+                <button
+                  onClick={() => { setQuery(""); resetPage(); }}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                  aria-label="clear"
+                >
+                  <X size={14} />
+                </button>
+              )}
             </div>
           </div>
 
@@ -344,7 +311,7 @@ export function AlertsClient({ alerts }: { alerts: Alert[] }) {
           {filtered.length === 0 ? (
             <div className="card text-center py-12 animate-fade-in">
               <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                {query || typeFilter !== "all" ? t("alertPage.noMatch") : t("alertPage.noneInTab")}
+                {query ? t("alertPage.noMatch") : t("alertPage.noneInTab")}
               </p>
               {filtersActive && (
                 <button
@@ -373,7 +340,7 @@ export function AlertsClient({ alerts }: { alerts: Alert[] }) {
                     <div
                       className="flex items-start gap-0 cursor-pointer hover:brightness-110 transition-all"
                       onClick={() =>
-                        isMulti ? toggleExpanded(g.assetCode) : router.push(`/assets/${g.assetCode}`)
+                        isMulti ? toggleExpanded(g.assetCode) : router.push(`/assets/${g.assetCode}?from=${encodeURIComponent("/alerts")}`)
                       }
                       onMouseEnter={() => { if (!isMulti) router.prefetch(`/assets/${g.assetCode}`); }}
                     >
@@ -426,7 +393,7 @@ export function AlertsClient({ alerts }: { alerts: Alert[] }) {
                         {isMulti && !isOpen && (
                           <p className="text-sm text-gray-500">
                             {g.alerts
-                              .map((a) => t(severityKey[a.severity]))
+                              .map((a) => t(TYPE_META[a.type].labelKey))
                               .filter((v, i, arr) => arr.indexOf(v) === i)
                               .join(" · ")}
                           </p>
@@ -443,16 +410,17 @@ export function AlertsClient({ alerts }: { alerts: Alert[] }) {
                             <div
                               key={i}
                               className="flex items-start gap-3 px-4 py-3 border-b border-white/5 last:border-b-0 hover:bg-white/5 cursor-pointer transition-colors"
-                              onClick={() => router.push(`/assets/${a.assetCode}`)}
+                              onClick={() => router.push(`/assets/${a.assetCode}?from=${encodeURIComponent("/alerts")}`)}
                               onMouseEnter={() => router.prefetch(`/assets/${a.assetCode}`)}
                             >
                               <SubIcon size={14} className={`${textColor[a.severity]} mt-0.5 flex-shrink-0`} />
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-0.5">
                                   <span
-                                    className={`text-[10px] font-bold uppercase tracking-wide ${textColor[a.severity]}`}
+                                    className="text-[10px] font-bold uppercase tracking-wide"
+                                    style={{ color: TYPE_META[a.type].color }}
                                   >
-                                    {t(severityKey[a.severity])}
+                                    {t(TYPE_META[a.type].labelKey)}
                                   </span>
                                   <span className="text-[10px] text-gray-600">·</span>
                                   <span className="text-[11px] text-gray-500 whitespace-nowrap">

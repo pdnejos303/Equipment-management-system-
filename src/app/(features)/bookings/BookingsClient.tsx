@@ -189,7 +189,7 @@ export function BookingsClient({ data }: { data: BookingsData }) {
                   <tr
                     key={b.id}
                     className="cursor-pointer"
-                    onClick={() => router.push(`/assets/${b.asset.id}`)}
+                    onClick={() => router.push(`/assets/${b.asset.id}?from=${encodeURIComponent("/bookings")}`)}
                     onMouseEnter={() => router.prefetch(`/assets/${b.asset.id}`)}
                   >
                     <td className="max-w-[200px]">

@@ -360,7 +360,7 @@ function EventModal({ event, locale, onClose, onGoToDate }: { event: CalendarEve
           </button>
           <div className="w-px bg-border" />
           <Link
-            href={`/assets/${event.assetId}`}
+            href={`/assets/${event.assetId}?from=${encodeURIComponent("/calendar")}`}
             className="flex-1 flex items-center justify-center gap-2 text-sm text-brand-500 hover:text-brand-400 font-medium transition py-1.5 rounded-lg hover:bg-surface-hover"
           >
             {t("calendarPage.detail")}

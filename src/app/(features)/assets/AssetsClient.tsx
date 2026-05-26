@@ -63,7 +63,8 @@ export function AssetsClient({ data }: { data: AssetsData }) {
 
   const buildDetailHref = useCallback((id: string) => {
     const qs = urlSearchParams.toString();
-    return qs ? `/assets/${id}?from=${encodeURIComponent(qs)}` : `/assets/${id}`;
+    const fromPath = qs ? `/assets?${qs}` : "/assets";
+    return `/assets/${id}?from=${encodeURIComponent(fromPath)}`;
   }, [urlSearchParams]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showBatchPrint, setShowBatchPrint] = useState(false);

@@ -104,7 +104,7 @@ export function AssignmentsClient({ data }: { data: AssignmentsData }) {
               </thead>
               <tbody>
                 {pagedActive.map((a) => (
-                  <tr key={a.id} className="cursor-pointer" onClick={() => router.push(`/assets/${a.asset.id}`)} onMouseEnter={() => router.prefetch(`/assets/${a.asset.id}`)}>
+                  <tr key={a.id} className="cursor-pointer" onClick={() => router.push(`/assets/${a.asset.id}?from=${encodeURIComponent("/assignments")}`)} onMouseEnter={() => router.prefetch(`/assets/${a.asset.id}`)}>
                     <td><span className="font-mono text-brand-500">{a.asset.code}</span></td>
                     <td style={{ color: "var(--text-default)" }}>{a.asset.name}</td>
                     <td className="font-semibold">{a.personName}</td>
@@ -157,7 +157,7 @@ export function AssignmentsClient({ data }: { data: AssignmentsData }) {
                 </thead>
                 <tbody>
                   {pagedReturned.map((a) => (
-                    <tr key={a.id} className="cursor-pointer" onClick={() => router.push(`/assets/${a.asset.id}`)} onMouseEnter={() => router.prefetch(`/assets/${a.asset.id}`)}>
+                    <tr key={a.id} className="cursor-pointer" onClick={() => router.push(`/assets/${a.asset.id}?from=${encodeURIComponent("/assignments")}`)} onMouseEnter={() => router.prefetch(`/assets/${a.asset.id}`)}>
                       <td className="font-mono text-brand-500">{a.asset.code}</td>
                       <td>{a.asset.name}</td>
                       <td>{a.personName}</td>

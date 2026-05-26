@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
       where,
       include: {
         asset: { select: { id: true, code: true, name: true } },
-        user: { select: { name: true, email: true } },
+        user: { select: { id: true, name: true, email: true, image: true } },
       },
       orderBy: { dateOut: "desc" },
     });
@@ -27,14 +27,21 @@ export async function GET(req: NextRequest) {
 }
 
 // POST /api/assignments
-const schema = z.object({
-  assetId: z.string().min(1),
-  userId: z.string().optional(),
-  personName: z.string().min(1),
-  department: z.string().optional(),
-  dateOut: z.string().transform((s) => new Date(s)),
-  notes: z.string().optional(),
-});
+// Borrower must be identified either by `userId` (real user in the system)
+// or by `personName` (free-text fallback for external people / guests).
+const schema = z
+  .object({
+    assetId: z.string().min(1),
+    userId: z.string().optional(),
+    personName: z.string().optional(),
+    department: z.string().optional(),
+    dateOut: z.string().transform((s) => new Date(s)),
+    notes: z.string().optional(),
+  })
+  .refine((d) => !!d.userId || (d.personName && d.personName.trim().length > 0), {
+    message: "Either userId or personName is required",
+    path: ["userId"],
+  });
 
 export async function POST(req: NextRequest) {
   try {
@@ -45,13 +52,41 @@ export async function POST(req: NextRequest) {
 
     const data = schema.parse(await req.json());
 
+    let resolvedName = data.personName?.trim() || "";
+    let resolvedUserId: string | undefined = undefined;
+
+    if (data.userId) {
+      const user = await prisma.user.findUnique({
+        where: { id: data.userId },
+        select: { id: true, name: true, email: true },
+      });
+      if (!user) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+      resolvedUserId = user.id;
+      resolvedName = user.name?.trim() || user.email;
+    }
+
+    if (!resolvedName) {
+      return NextResponse.json({ error: "Person name is required" }, { status: 400 });
+    }
+
     // Update asset status to ACTIVE
     await prisma.asset.update({
       where: { id: data.assetId },
       data: { status: "ACTIVE" },
     });
 
-    const assignment = await prisma.assignment.create({ data });
+    const assignment = await prisma.assignment.create({
+      data: {
+        assetId: data.assetId,
+        userId: resolvedUserId,
+        personName: resolvedName,
+        department: data.department,
+        dateOut: data.dateOut,
+        notes: data.notes,
+      },
+    });
 
     return NextResponse.json(assignment, { status: 201 });
   } catch (error) {

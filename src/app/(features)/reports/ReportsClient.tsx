@@ -24,7 +24,7 @@ function CollapsibleSection({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className={`border border-border rounded-xl bg-surface transition-all duration-200 ${open ? "p-5" : "px-4 py-3"}`}>
+    <div className={`border border-border rounded-xl bg-surface transition-all duration-200 ${open ? "p-5 flex flex-col" : "px-4 py-3"}`}>
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center gap-2 text-left hover:opacity-80 transition-opacity"
@@ -38,7 +38,7 @@ function CollapsibleSection({
           <span className="animate-fade-in">{summary}</span>
         )}
       </button>
-      {open && <div className="mt-4">{children}</div>}
+      {open && <div className="mt-4 flex-1 min-h-0">{children}</div>}
     </div>
   );
 }
@@ -200,17 +200,10 @@ export function ReportsClient({ data }: { data: ReportsData }) {
         </p>
       )}
 
-      <CollapsibleSection
-        title={t("reportPage.kpiSummary")}
-        defaultOpen={false}
-        summary={
-          <div className="flex items-center gap-3 text-xs whitespace-nowrap overflow-hidden">
-            <span className="text-brand-500 font-mono font-bold">{totalAssets}</span>
-            <span className="text-gray-600">·</span>
-            <span className="font-mono text-green-400 font-bold">{t("common.baht")}{formatMoney(totalOriginal, locale)}</span>
-          </div>
-        }
-      >
+      <section className="mb-6">
+        <h2 className="text-sm font-semibold mb-3" style={{ color: "var(--text-default)" }}>
+          {t("reportPage.kpiSummary")}
+        </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 animate-stagger">
           {statCards.map((card) => {
             const Icon = card.icon;
@@ -227,9 +220,7 @@ export function ReportsClient({ data }: { data: ReportsData }) {
             );
           })}
         </div>
-      </CollapsibleSection>
-
-      <div className="h-6" />
+      </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-stagger">
         {/* Category Sunburst */}

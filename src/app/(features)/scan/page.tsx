@@ -253,7 +253,7 @@ export default function ScanPage() {
               </button>
               {state === "found" && assetInfo && (
                 <button
-                  onClick={() => router.push(`/assets/${assetInfo.id}`)}
+                  onClick={() => router.push(`/assets/${assetInfo.id}?from=${encodeURIComponent("/scan")}`)}
                   className="btn-primary flex-1 flex items-center justify-center gap-2"
                 >
                   <ExternalLink size={14} />

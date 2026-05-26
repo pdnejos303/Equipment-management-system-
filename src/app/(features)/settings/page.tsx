@@ -207,7 +207,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Language + Theme — compact dropdowns */}
-        <div className="card p-5 animate-fade-in space-y-4" style={{ animationDelay: "0.05s" }}>
+        <div className="card p-5 animate-fade-in space-y-4 relative z-20" style={{ animationDelay: "0.05s" }}>
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Globe size={14} className="text-brand-500" />
@@ -226,7 +226,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Asset Columns */}
-        <div className="card p-6 space-y-4 animate-fade-in" style={{ animationDelay: "0.1s" }}>
+        <div className="card p-6 space-y-4 animate-fade-in relative z-10" style={{ animationDelay: "0.1s" }}>
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-2">
               <Columns3 size={15} className="text-brand-500" />
