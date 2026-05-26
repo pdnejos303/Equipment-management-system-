@@ -194,10 +194,10 @@ export function AIChatWidget() {
 
   const suggestions = useMemo(() =>
     locale === "th"
-      ? ["อุปกรณ์ไหนต้องซ่อมเร็วๆนี้?", "สรุปค่าซ่อมทั้งหมด", "อุปกรณ์ไหนควรเปลี่ยนใหม่?"]
+      ? ["สรุปภาพรวมอุปกรณ์ทั้งหมด", "อุปกรณ์ที่กำลังซ่อมอยู่ตอนนี้", "อุปกรณ์ไหนต้องซ่อมเร็วๆนี้?", "อุปกรณ์แต่ละประเภทมีกี่ชิ้น?"]
       : locale === "ja"
-        ? ["修理が必要な機器は?", "修理費の合計は?", "交換すべき機器は?"]
-        : ["Which equipment needs repair soon?", "Total repair costs summary", "Which equipment should be replaced?"],
+        ? ["機器の全体概要を見せて", "現在修理中の機器", "修理が必要な機器は?", "カテゴリ別の機器数は?"]
+        : ["Show me the overall equipment summary", "Equipment currently under maintenance", "Which equipment needs repair soon?", "How many items per category?"],
   [locale]);
 
   return (
