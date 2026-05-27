@@ -10,6 +10,7 @@ import {
   Package, Bell, CalendarClock, BarChart3, Calendar,
   ChevronLeft, ChevronRight, LayoutDashboard, X,
   DatabaseBackup, UserCog, ScanLine, UserCheck,
+  ClipboardList, Wrench, FileCode2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
@@ -19,8 +20,10 @@ const MAIN_NAV = [
   { key: "assets", tKey: "nav.assets", href: "/assets", icon: Package },
   { key: "scan", tKey: "nav.scan", href: "/scan", icon: ScanLine },
   { key: "in-use", tKey: "nav.inUse", href: "/in-use", icon: UserCheck },
+  { key: "assignments", tKey: "nav.assignments", href: "/assignments", icon: ClipboardList },
   { key: "alerts", tKey: "nav.alerts", href: "/alerts", icon: Bell, hasBadge: true },
   { key: "bookings", tKey: "nav.bookings", href: "/bookings", icon: CalendarClock },
+  { key: "maintenance", tKey: "nav.maintenance", href: "/maintenance", icon: Wrench },
   { key: "calendar", tKey: "nav.calendar", href: "/calendar", icon: Calendar },
   { key: "reports", tKey: "nav.reports", href: "/reports", icon: BarChart3 },
 ] as const;
@@ -28,6 +31,7 @@ const MAIN_NAV = [
 const ADMIN_NAV = [
   { key: "users", tKey: "users.nav", href: "/users", icon: UserCog },
   { key: "migrate", tKey: "migrate.nav", href: "/migrate", icon: DatabaseBackup },
+  // { key: "migrate-csharp", tKey: "migrateCS.nav", href: "/migrate-csharp", icon: FileCode2 },
 ] as const;
 
 type NavItem = {
@@ -70,7 +74,7 @@ export function Sidebar({ alertCount = 0, mobileOpen, onCloseMobile }: SidebarPr
       ...MAIN_NAV.map((n) => n.href),
       "/users",
       "/migrate",
-      "/in-use",
+      "/migrate-csharp",
     ];
     allRoutes.forEach((href) => router.prefetch(href));
   }, [router]);
