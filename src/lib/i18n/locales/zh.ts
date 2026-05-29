@@ -346,6 +346,10 @@ const zh = {
     times: "次",
     upcomingTitle: "即将进行的维护",
     noHistory: "无维护历史",
+    deleteTitle: "删除维护记录",
+    deleteMsg: '确定要永久删除记录“{0}”吗？此操作无法撤销。',
+    deleted: "维护记录已删除",
+    deleteFailed: "删除失败",
   },
   alertPage: {
     title: "提醒",

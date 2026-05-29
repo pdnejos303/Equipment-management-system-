@@ -346,6 +346,10 @@ const en = {
     times: "times",
     upcomingTitle: "Upcoming Maintenance",
     noHistory: "No maintenance history",
+    deleteTitle: "Delete Maintenance Record",
+    deleteMsg: 'Permanently delete the record "{0}"? This cannot be undone.',
+    deleted: "Maintenance record deleted",
+    deleteFailed: "Delete failed",
   },
   alertPage: {
     title: "Alerts",

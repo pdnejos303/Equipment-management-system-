@@ -2,7 +2,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n";
+import { useRole } from "@/lib/useRole";
+import { showSuccess, showError, showConfirm } from "@/lib/swal";
 import { formatMoney, formatDate, cn } from "@/lib/utils";
 import { MaintenanceActions } from "@/components/PageActions";
 import { AIPredictMaintenance } from "@/components/AIPredictMaintenance";
@@ -10,7 +13,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Pagination } from "@/components/Pagination";
 import { usePagination } from "@/lib/usePagination";
 import Link from "next/link";
-import { Calendar, ChevronDown, ChevronRight } from "lucide-react";
+import { Calendar, ChevronDown, ChevronRight, Trash2 } from "lucide-react";
 
 interface Asset {
   id: string;
@@ -52,12 +55,38 @@ interface MaintenanceData {
 
 export function MaintenanceClient({ data }: { data: MaintenanceData }) {
   const { t, locale } = useI18n();
+  const router = useRouter();
+  const { isAdmin } = useRole();
   const { records, assets, upcoming, totalCost, byAsset } = data;
   const byAssetEntries = Object.entries(byAsset);
   const { items: pagedEntries, total: groupsTotal } = usePagination(byAssetEntries, 10);
   // collapsed[code] = true means that asset group is collapsed
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const toggle = (code: string) => setCollapsed(prev => ({ ...prev, [code]: !prev[code] }));
+
+  const handleDelete = async (r: MaintRecord) => {
+    const confirmed = await showConfirm({
+      title: t("maintPage.deleteTitle"),
+      text: t("maintPage.deleteMsg", r.description),
+      confirmText: t("common.delete"),
+      cancelText: t("confirm.cancel"),
+      danger: true,
+    });
+    if (!confirmed) return;
+
+    setDeletingId(r.id);
+    try {
+      const res = await fetch(`/api/maintenance/${r.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed");
+      await showSuccess(t("maintPage.deleted"));
+      router.refresh();
+    } catch {
+      showError(t("maintPage.deleteFailed"));
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <div className="page-enter">
@@ -142,6 +171,17 @@ export function MaintenanceClient({ data }: { data: MaintenanceData }) {
                         >
                           <Calendar size={13} />
                         </Link>
+                        {isAdmin && (
+                          <button
+                            type="button"
+                            title={t("common.delete")}
+                            onClick={(e) => { e.stopPropagation(); handleDelete(r); }}
+                            disabled={deletingId === r.id}
+                            className="btn-icon text-red-400 hover:text-red-300 disabled:opacity-50"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        )}
                       </div>
                     </div>
                   );

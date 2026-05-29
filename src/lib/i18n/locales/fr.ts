@@ -346,6 +346,10 @@ const fr = {
     times: "fois",
     upcomingTitle: "Maintenance à venir",
     noHistory: "Aucun historique de maintenance",
+    deleteTitle: "Supprimer l'enregistrement de maintenance",
+    deleteMsg: 'Supprimer définitivement l\'enregistrement « {0} » ? Cette action est irréversible.',
+    deleted: "Enregistrement de maintenance supprimé",
+    deleteFailed: "Échec de la suppression",
   },
   alertPage: {
     title: "Alertes",

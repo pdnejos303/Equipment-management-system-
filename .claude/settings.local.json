@@ -28,7 +28,8 @@
       "PowerShell(Get-NetPrefixPolicy *)",
       "PowerShell(Stop-Process *)",
       "PowerShell(npx tsc --noEmit 2>&1 | Select-Object -First 80)",
-      "PowerShell(npx tsc --noEmit; \"Exit: $LASTEXITCODE\")"
+      "PowerShell(npx tsc --noEmit; \"Exit: $LASTEXITCODE\")",
+      "PowerShell(npx tsc --noEmit -p tsconfig.json 2>&1 | Select-Object -First 50)"
     ]
   }
 }

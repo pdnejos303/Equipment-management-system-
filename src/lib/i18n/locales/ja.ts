@@ -346,6 +346,10 @@ const ja = {
     times: "回",
     upcomingTitle: "予定メンテナンス",
     noHistory: "メンテナンス履歴なし",
+    deleteTitle: "メンテナンス記録を削除",
+    deleteMsg: '記録「{0}」を完全に削除しますか？この操作は取り消せません。',
+    deleted: "メンテナンス記録を削除しました",
+    deleteFailed: "削除に失敗しました",
   },
   alertPage: {
     title: "アラート",
