@@ -1,0 +1,60 @@
+[     994ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:25630
+[    2651ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[    4029ms] [LOG] [Fast Refresh] done in 1378ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[   12874ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[   16821ms] [LOG] [Fast Refresh] done in 3947ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[   17938ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[   19323ms] [LOG] [Fast Refresh] done in 1386ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[   19369ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[   20139ms] [WARNING] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width. @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/recharts@3.8.0_@types+react_7f074a434aeebe8b76aa30aceec83cd1/node_modules/recharts/es6/util/LogUtils.js:18
+[   20141ms] [WARNING] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width. @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/recharts@3.8.0_@types+react_7f074a434aeebe8b76aa30aceec83cd1/node_modules/recharts/es6/util/LogUtils.js:18
+[   20143ms] [WARNING] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width. @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/recharts@3.8.0_@types+react_7f074a434aeebe8b76aa30aceec83cd1/node_modules/recharts/es6/util/LogUtils.js:18
+[   20143ms] [WARNING] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width. @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/recharts@3.8.0_@types+react_7f074a434aeebe8b76aa30aceec83cd1/node_modules/recharts/es6/util/LogUtils.js:18
+[   20146ms] [WARNING] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width. @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/recharts@3.8.0_@types+react_7f074a434aeebe8b76aa30aceec83cd1/node_modules/recharts/es6/util/LogUtils.js:18
+[   20147ms] [WARNING] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width. @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/recharts@3.8.0_@types+react_7f074a434aeebe8b76aa30aceec83cd1/node_modules/recharts/es6/util/LogUtils.js:18
+[   20148ms] [WARNING] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width. @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/recharts@3.8.0_@types+react_7f074a434aeebe8b76aa30aceec83cd1/node_modules/recharts/es6/util/LogUtils.js:18
+[   20149ms] [WARNING] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width. @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/recharts@3.8.0_@types+react_7f074a434aeebe8b76aa30aceec83cd1/node_modules/recharts/es6/util/LogUtils.js:18
+[   20169ms] [WARNING] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width. @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/recharts@3.8.0_@types+react_7f074a434aeebe8b76aa30aceec83cd1/node_modules/recharts/es6/util/LogUtils.js:18
+[   20170ms] [WARNING] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width. @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/recharts@3.8.0_@types+react_7f074a434aeebe8b76aa30aceec83cd1/node_modules/recharts/es6/util/LogUtils.js:18
+[   20171ms] [WARNING] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width. @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/recharts@3.8.0_@types+react_7f074a434aeebe8b76aa30aceec83cd1/node_modules/recharts/es6/util/LogUtils.js:18
+[   20171ms] [WARNING] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width. @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/recharts@3.8.0_@types+react_7f074a434aeebe8b76aa30aceec83cd1/node_modules/recharts/es6/util/LogUtils.js:18
+[   21869ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[   22033ms] [LOG] [Fast Refresh] done in 165ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[   22304ms] [LOG] [Fast Refresh] done in 435ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[   22350ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196

@@ -18,15 +18,20 @@ import {
   LABEL_TEMPLATES,
   CUSTOM_LAYOUT_ID,
   DEFAULT_CUSTOM_LAYOUT,
+  CUT_LINE_COLOR,
+  CUT_LINE_WIDTH_MM,
   buildCustomLayout,
   getCompatibleTemplates,
   getLabelsPerSheet,
+  getSavedLogo,
+  setSavedLogo,
   mmToPx,
   type A4SheetLayout,
   type CustomLayoutConfig,
   type LabelAsset,
   type LabelTemplateType,
 } from "./label-config";
+import { LabelLogoControl } from "./LabelLogoControl";
 
 interface Props {
   assets: LabelAsset[];
@@ -41,10 +46,17 @@ export function BatchLabelDialog({ assets, open, onClose }: Props) {
   const [template, setTemplate] = useState<LabelTemplateType>("full");
   const [previewPage, setPreviewPage] = useState(0);
   const [startPosition, setStartPosition] = useState(0);
+  const [showCutLines, setShowCutLines] = useState(false);
+  const [logoSrc, setLogoSrc] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => { setMounted(true); setLogoSrc(getSavedLogo()); }, []);
+
+  const handleLogoChange = useCallback((dataUrl: string | null) => {
+    setSavedLogo(dataUrl);
+    setLogoSrc(dataUrl);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -166,6 +178,8 @@ export function BatchLabelDialog({ assets, open, onClose }: Props) {
         .active-print-portal .label-cell {
           position: absolute;
           overflow: hidden;
+          box-sizing: border-box;
+          ${showCutLines ? `border: ${CUT_LINE_WIDTH_MM}mm solid ${CUT_LINE_COLOR};` : ""}
         }
         .active-print-portal .label-template-root > div {
           border: none !important;
@@ -194,7 +208,7 @@ export function BatchLabelDialog({ assets, open, onClose }: Props) {
         }
       });
     });
-  }, []);
+  }, [showCutLines]);
 
   if (!open || !mounted) return null;
 
@@ -367,6 +381,27 @@ export function BatchLabelDialog({ assets, open, onClose }: Props) {
                 <p className="text-xs text-gray-600 mt-1">{t("labels.skipCellsHint")}</p>
               </div>
 
+              {/* Print options: cut lines + logo */}
+              <div>
+                <h3 className="text-sm font-semibold mb-2" style={{ color: "var(--text-muted)" }}>{t("labels.printOptions")}</h3>
+                <label className="flex items-center gap-3 p-3 rounded-lg border border-border bg-surface-dark cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showCutLines}
+                    onChange={(e) => setShowCutLines(e.target.checked)}
+                    className="w-4 h-4 accent-brand-500"
+                  />
+                  <span className="text-sm">
+                    <span className="font-medium" style={{ color: "var(--text-default)" }}>{t("labels.cutLines")}</span>
+                    <span className="block text-xs text-gray-500">{t("labels.cutLinesHint")}</span>
+                  </span>
+                </label>
+
+                <div className="mt-2">
+                  <LabelLogoControl logoSrc={logoSrc} onChange={handleLogoChange} />
+                </div>
+              </div>
+
               {/* Selected assets list */}
               <div>
                 <h3 className="text-sm font-semibold mb-2" style={{ color: "var(--text-muted)" }}>{t("labels.selectedAssets")}</h3>
@@ -421,6 +456,8 @@ export function BatchLabelDialog({ assets, open, onClose }: Props) {
                         width: mmToPx(layout.labelWidthMm) * previewScale,
                         height: mmToPx(layout.labelHeightMm) * previewScale,
                         overflow: "hidden",
+                        boxSizing: "border-box",
+                        border: showCutLines ? `1px solid ${CUT_LINE_COLOR}` : "none",
                       }}
                     >
                       {asset ? (
@@ -430,9 +467,10 @@ export function BatchLabelDialog({ assets, open, onClose }: Props) {
                           widthMm={layout.labelWidthMm}
                           heightMm={layout.labelHeightMm}
                           scale={previewScale}
-                          showBorder
+                          showBorder={!showCutLines}
+                          logoSrc={logoSrc}
                         />
-                      ) : (
+                      ) : !showCutLines ? (
                         <div
                           style={{
                             width: "100%",
@@ -441,7 +479,7 @@ export function BatchLabelDialog({ assets, open, onClose }: Props) {
                             borderRadius: 2,
                           }}
                         />
-                      )}
+                      ) : null}
                     </div>
                   );
                 })}
@@ -514,6 +552,7 @@ export function BatchLabelDialog({ assets, open, onClose }: Props) {
                         heightMm={layout.labelHeightMm}
                         scale={1}
                         showBorder={false}
+                        logoSrc={logoSrc}
                       />
                     )}
                   </div>

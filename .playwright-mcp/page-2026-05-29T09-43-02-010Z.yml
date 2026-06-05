@@ -1,0 +1,433 @@
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
+    - img [ref=e8]
+  - alert [ref=e11]
+  - generic [ref=e12]:
+    - navigation "Main navigation" [ref=e13]:
+      - generic [ref=e14]:
+        - generic [ref=e16]: A
+        - generic [ref=e17]: Asset Management
+        - button "Collapse sidebar" [ref=e18] [cursor=pointer]:
+          - img [ref=e19]
+      - generic [ref=e21]:
+        - paragraph [ref=e22]: Main
+        - generic [ref=e23]:
+          - link "Overview" [ref=e24] [cursor=pointer]:
+            - /url: /overview
+            - img [ref=e25]
+            - generic [ref=e30]: Overview
+          - link "Assets" [ref=e31] [cursor=pointer]:
+            - /url: /assets
+            - img [ref=e33]
+            - generic [ref=e37]: Assets
+          - link "Scan QR" [ref=e38] [cursor=pointer]:
+            - /url: /scan
+            - img [ref=e39]
+            - generic [ref=e44]: Scan QR
+          - link "In Use" [ref=e45] [cursor=pointer]:
+            - /url: /in-use
+            - img [ref=e46]
+            - generic [ref=e50]: In Use
+          - link "Assignments" [ref=e51] [cursor=pointer]:
+            - /url: /assignments
+            - img [ref=e52]
+            - generic [ref=e55]: Assignments
+          - link "Alerts 99+ unread alerts" [ref=e56] [cursor=pointer]:
+            - /url: /alerts
+            - img [ref=e57]
+            - generic [ref=e60]: Alerts
+            - status "99+ unread alerts" [ref=e61]: 99+
+          - link "Bookings" [ref=e62] [cursor=pointer]:
+            - /url: /bookings
+            - img [ref=e63]
+            - generic [ref=e67]: Bookings
+          - link "Maintenance" [ref=e68] [cursor=pointer]:
+            - /url: /maintenance
+            - img [ref=e69]
+            - generic [ref=e71]: Maintenance
+          - link "Calendar" [ref=e72] [cursor=pointer]:
+            - /url: /calendar
+            - img [ref=e73]
+            - generic [ref=e75]: Calendar
+          - link "Reports" [ref=e76] [cursor=pointer]:
+            - /url: /reports
+            - img [ref=e77]
+            - generic [ref=e79]: Reports
+        - paragraph [ref=e81]: Admin
+        - generic [ref=e82]:
+          - link "User Management" [ref=e83] [cursor=pointer]:
+            - /url: /users
+            - img [ref=e84]
+            - generic [ref=e96]: User Management
+          - link "Backup / Restore" [ref=e97] [cursor=pointer]:
+            - /url: /migrate
+            - img [ref=e98]
+            - generic [ref=e104]: Backup / Restore
+    - generic [ref=e105]:
+      - banner [ref=e106]:
+        - heading "Assets" [level=1] [ref=e107]
+        - generic [ref=e108]:
+          - button "🇺🇸 English" [ref=e110] [cursor=pointer]:
+            - generic [ref=e111]: 🇺🇸
+            - generic [ref=e112]: English
+            - img [ref=e113]
+          - button "Latte" [ref=e117] [cursor=pointer]:
+            - generic [ref=e119]: Latte
+            - img [ref=e120]
+          - link "Settings" [ref=e122] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=e123]
+          - link "A Admin ADMIN" [ref=e126] [cursor=pointer]:
+            - /url: /profile
+            - generic [ref=e128]: A
+            - generic [ref=e129]:
+              - paragraph [ref=e130]: Admin
+              - paragraph [ref=e131]: ADMIN
+      - main [ref=e132]:
+        - generic [ref=e133]:
+          - generic [ref=e135]:
+            - heading "Asset Registry" [level=1] [ref=e137]
+            - generic [ref=e138]:
+              - generic [ref=e139]:
+                - button "CSV" [ref=e140] [cursor=pointer]:
+                  - img [ref=e141]
+                  - generic [ref=e143]: CSV
+                - button "PDF" [ref=e144] [cursor=pointer]:
+                  - img [ref=e145]
+                  - generic [ref=e148]: PDF
+              - button "+ Add Asset" [ref=e149] [cursor=pointer]:
+                - img [ref=e150]
+                - text: + Add Asset
+          - generic [ref=e151]:
+            - generic [ref=e152]:
+              - paragraph [ref=e153]: Total
+              - paragraph [ref=e154]: "404"
+            - generic [ref=e155]:
+              - paragraph [ref=e156]: Active
+              - paragraph [ref=e157]: "236"
+            - generic [ref=e158]:
+              - paragraph [ref=e159]: Available
+              - paragraph [ref=e160]: "75"
+            - generic [ref=e161]:
+              - paragraph [ref=e162]: Total Purchase Value
+              - paragraph [ref=e163]: ฿30,949,458
+          - generic [ref=e166]:
+            - img [ref=e167]
+            - textbox "AI search e.g. \"laptops with warranty expiring soon\"" [ref=e169]
+            - button [disabled] [ref=e170]:
+              - img [ref=e171]
+          - generic [ref=e174]:
+            - textbox "Search..." [ref=e175]
+            - generic [ref=e176]:
+              - combobox [ref=e177] [cursor=pointer]:
+                - option "All Status" [selected]
+                - option "Active"
+                - option "Available"
+                - option "Maintenance"
+                - option "Retired"
+              - button "All Categories" [ref=e179] [cursor=pointer]:
+                - generic [ref=e180]: All Categories
+                - img
+              - button "Manage Categories" [ref=e181] [cursor=pointer]:
+                - img [ref=e182]
+                - generic [ref=e185]: Manage Categories
+            - button "Search" [ref=e186] [cursor=pointer]
+            - generic [ref=e187]:
+              - button "Switch to table view" [pressed] [ref=e188] [cursor=pointer]:
+                - img [ref=e189]
+                - generic [ref=e191]: Table
+              - button "Switch to card view" [ref=e192] [cursor=pointer]:
+                - img [ref=e193]
+                - generic [ref=e198]: Cards
+          - table [ref=e200]:
+            - rowgroup [ref=e201]:
+              - row "Code Name Type Status User Purchase Price" [ref=e202]:
+                - columnheader [ref=e203]:
+                  - checkbox [ref=e205] [cursor=pointer]
+                - columnheader [ref=e206]
+                - columnheader "Code" [ref=e207]
+                - columnheader "Name" [ref=e208]
+                - columnheader "Type" [ref=e209]
+                - columnheader "Status" [ref=e210]
+                - columnheader "User" [ref=e211]
+                - columnheader "Purchase Price" [ref=e212]
+            - rowgroup [ref=e213]:
+              - row "CAB-00001-001 Chest of drawers - 395*595*645 Itoki FURNITURE Retired - ฿873" [ref=e214] [cursor=pointer]:
+                - cell [ref=e215]:
+                  - checkbox [ref=e217]
+                - cell [ref=e218]
+                - cell "CAB-00001-001" [ref=e219]
+                - cell "Chest of drawers - 395*595*645 Itoki" [ref=e220]:
+                  - generic [ref=e221]: Chest of drawers - 395*595*645
+                  - generic [ref=e222]: Itoki
+                - cell "FURNITURE" [ref=e223]
+                - cell "Retired" [ref=e224]:
+                  - generic [ref=e225]: Retired
+                - cell "-" [ref=e226]
+                - cell "฿873" [ref=e227]
+              - row "CAB-00001-002 Chest of Drawers - 400*600*650 Kokuyo FURNITURE Active กมลา เพชรแก้ว ฿873" [ref=e228] [cursor=pointer]:
+                - cell [ref=e229]:
+                  - checkbox [ref=e231]
+                - cell [ref=e232]
+                - cell "CAB-00001-002" [ref=e233]
+                - cell "Chest of Drawers - 400*600*650 Kokuyo" [ref=e234]:
+                  - generic [ref=e235]: Chest of Drawers - 400*600*650
+                  - generic [ref=e236]: Kokuyo
+                - cell "FURNITURE" [ref=e237]
+                - cell "Active" [ref=e238]:
+                  - generic [ref=e239]: Active
+                - cell "กมลา เพชรแก้ว" [ref=e240]
+                - cell "฿873" [ref=e241]
+              - row "CAB-00001-003 Black Chair Chair 420*420*760 FURNITURE Active ลัดดา ดีมาก ฿680" [ref=e242] [cursor=pointer]:
+                - cell [ref=e243]:
+                  - checkbox [ref=e245]
+                - cell [ref=e246]
+                - cell "CAB-00001-003" [ref=e247]
+                - cell "Black Chair Chair 420*420*760" [ref=e248]:
+                  - generic [ref=e249]: Black Chair
+                  - generic [ref=e250]: Chair 420*420*760
+                - cell "FURNITURE" [ref=e251]
+                - cell "Active" [ref=e252]:
+                  - generic [ref=e253]: Active
+                - cell "ลัดดา ดีมาก" [ref=e254]
+                - cell "฿680" [ref=e255]
+              - row "CAB-00001-004 Black Chair Chair 420*420*760 FURNITURE Active - ฿680" [ref=e256] [cursor=pointer]:
+                - cell [ref=e257]:
+                  - checkbox [ref=e259]
+                - cell [ref=e260]
+                - cell "CAB-00001-004" [ref=e261]
+                - cell "Black Chair Chair 420*420*760" [ref=e262]:
+                  - generic [ref=e263]: Black Chair
+                  - generic [ref=e264]: Chair 420*420*760
+                - cell "FURNITURE" [ref=e265]
+                - cell "Active" [ref=e266]:
+                  - generic [ref=e267]: Active
+                - cell "-" [ref=e268]
+                - cell "฿680" [ref=e269]
+              - row "CAB-00001-005 Black Chair Chair 420*420*760 FURNITURE Active ทวีศักดิ์ ทองดี ฿680" [ref=e270] [cursor=pointer]:
+                - cell [ref=e271]:
+                  - checkbox [ref=e273]
+                - cell [ref=e274]
+                - cell "CAB-00001-005" [ref=e275]
+                - cell "Black Chair Chair 420*420*760" [ref=e276]:
+                  - generic [ref=e277]: Black Chair
+                  - generic [ref=e278]: Chair 420*420*760
+                - cell "FURNITURE" [ref=e279]
+                - cell "Active" [ref=e280]:
+                  - generic [ref=e281]: Active
+                - cell "ทวีศักดิ์ ทองดี" [ref=e282]
+                - cell "฿680" [ref=e283]
+              - row "CAB-00001-006 Black Chair Chair 420*420*760 FURNITURE Active - ฿680" [ref=e284] [cursor=pointer]:
+                - cell [ref=e285]:
+                  - checkbox [ref=e287]
+                - cell [ref=e288]
+                - cell "CAB-00001-006" [ref=e289]
+                - cell "Black Chair Chair 420*420*760" [ref=e290]:
+                  - generic [ref=e291]: Black Chair
+                  - generic [ref=e292]: Chair 420*420*760
+                - cell "FURNITURE" [ref=e293]
+                - cell "Active" [ref=e294]:
+                  - generic [ref=e295]: Active
+                - cell "-" [ref=e296]
+                - cell "฿680" [ref=e297]
+              - row "CAB-00001-007 Black Chair Chair 420*420*760 FURNITURE Active - ฿680" [ref=e298] [cursor=pointer]:
+                - cell [ref=e299]:
+                  - checkbox [ref=e301]
+                - cell [ref=e302]
+                - cell "CAB-00001-007" [ref=e303]
+                - cell "Black Chair Chair 420*420*760" [ref=e304]:
+                  - generic [ref=e305]: Black Chair
+                  - generic [ref=e306]: Chair 420*420*760
+                - cell "FURNITURE" [ref=e307]
+                - cell "Active" [ref=e308]:
+                  - generic [ref=e309]: Active
+                - cell "-" [ref=e310]
+                - cell "฿680" [ref=e311]
+              - row "CAB-00001-008 Black Chair Chair 420*420*760 FURNITURE Active พิทยา รักชาติ ฿680" [ref=e312] [cursor=pointer]:
+                - cell [ref=e313]:
+                  - checkbox [ref=e315]
+                - cell [ref=e316]
+                - cell "CAB-00001-008" [ref=e317]
+                - cell "Black Chair Chair 420*420*760" [ref=e318]:
+                  - generic [ref=e319]: Black Chair
+                  - generic [ref=e320]: Chair 420*420*760
+                - cell "FURNITURE" [ref=e321]
+                - cell "Active" [ref=e322]:
+                  - generic [ref=e323]: Active
+                - cell "พิทยา รักชาติ" [ref=e324]
+                - cell "฿680" [ref=e325]
+              - row "CAB-00001-009 Black Chair Chair 420*420*760 FURNITURE Active - ฿680" [ref=e326] [cursor=pointer]:
+                - cell [ref=e327]:
+                  - checkbox [ref=e329]
+                - cell [ref=e330]
+                - cell "CAB-00001-009" [ref=e331]
+                - cell "Black Chair Chair 420*420*760" [ref=e332]:
+                  - generic [ref=e333]: Black Chair
+                  - generic [ref=e334]: Chair 420*420*760
+                - cell "FURNITURE" [ref=e335]
+                - cell "Active" [ref=e336]:
+                  - generic [ref=e337]: Active
+                - cell "-" [ref=e338]
+                - cell "฿680" [ref=e339]
+              - row "CAB-00001-010 Black Chair Chair 420*420*760 FURNITURE Active - ฿680" [ref=e340] [cursor=pointer]:
+                - cell [ref=e341]:
+                  - checkbox [ref=e343]
+                - cell [ref=e344]
+                - cell "CAB-00001-010" [ref=e345]
+                - cell "Black Chair Chair 420*420*760" [ref=e346]:
+                  - generic [ref=e347]: Black Chair
+                  - generic [ref=e348]: Chair 420*420*760
+                - cell "FURNITURE" [ref=e349]
+                - cell "Active" [ref=e350]:
+                  - generic [ref=e351]: Active
+                - cell "-" [ref=e352]
+                - cell "฿680" [ref=e353]
+              - row "CAB-00001-011 Black Chair Chair 420*420*760 FURNITURE Active - ฿680" [ref=e354] [cursor=pointer]:
+                - cell [ref=e355]:
+                  - checkbox [ref=e357]
+                - cell [ref=e358]
+                - cell "CAB-00001-011" [ref=e359]
+                - cell "Black Chair Chair 420*420*760" [ref=e360]:
+                  - generic [ref=e361]: Black Chair
+                  - generic [ref=e362]: Chair 420*420*760
+                - cell "FURNITURE" [ref=e363]
+                - cell "Active" [ref=e364]:
+                  - generic [ref=e365]: Active
+                - cell "-" [ref=e366]
+                - cell "฿680" [ref=e367]
+              - row "CAB-00001-012 Black Chair Chair 420*420*760 FURNITURE Active - ฿680" [ref=e368] [cursor=pointer]:
+                - cell [ref=e369]:
+                  - checkbox [ref=e371]
+                - cell [ref=e372]
+                - cell "CAB-00001-012" [ref=e373]
+                - cell "Black Chair Chair 420*420*760" [ref=e374]:
+                  - generic [ref=e375]: Black Chair
+                  - generic [ref=e376]: Chair 420*420*760
+                - cell "FURNITURE" [ref=e377]
+                - cell "Active" [ref=e378]:
+                  - generic [ref=e379]: Active
+                - cell "-" [ref=e380]
+                - cell "฿680" [ref=e381]
+              - row "COM-00001-001 Computer Dell 390 I3 Dell LAPTOP Active - ฿4,500" [ref=e382] [cursor=pointer]:
+                - cell [ref=e383]:
+                  - checkbox [ref=e385]
+                - cell [ref=e386]
+                - cell "COM-00001-001" [ref=e387]
+                - cell "Computer Dell 390 I3 Dell" [ref=e388]:
+                  - generic [ref=e389]: Computer Dell 390 I3
+                  - generic [ref=e390]: Dell
+                - cell "LAPTOP" [ref=e391]
+                - cell "Active" [ref=e392]:
+                  - generic [ref=e393]: Active
+                - cell "-" [ref=e394]
+                - cell "฿4,500" [ref=e395]
+              - row "COM-00001-0013 Laptop 3 HP Notebook 15s-EQ2226AU Silver LAPTOP Active - ฿15,878" [ref=e396] [cursor=pointer]:
+                - cell [ref=e397]:
+                  - checkbox [ref=e399]
+                - cell [ref=e400]
+                - cell "COM-00001-0013" [ref=e401]
+                - cell "Laptop 3 HP Notebook 15s-EQ2226AU Silver" [ref=e402]:
+                  - generic [ref=e403]: Laptop 3
+                  - generic [ref=e404]: HP Notebook 15s-EQ2226AU Silver
+                - cell "LAPTOP" [ref=e405]
+                - cell "Active" [ref=e406]:
+                  - generic [ref=e407]: Active
+                - cell "-" [ref=e408]
+                - cell "฿15,878" [ref=e409]
+              - row "COM-00001-006 Computer Dell 390 I3 Ram 8 GB Dell LAPTOP Active อภิชาต สมบูรณ์ ฿5,000" [ref=e410] [cursor=pointer]:
+                - cell [ref=e411]:
+                  - checkbox [ref=e413]
+                - cell [ref=e414]
+                - cell "COM-00001-006" [ref=e415]
+                - cell "Computer Dell 390 I3 Ram 8 GB Dell" [ref=e416]:
+                  - generic [ref=e417]: Computer Dell 390 I3 Ram 8 GB
+                  - generic [ref=e418]: Dell
+                - cell "LAPTOP" [ref=e419]
+                - cell "Active" [ref=e420]:
+                  - generic [ref=e421]: Active
+                - cell "อภิชาต สมบูรณ์" [ref=e422]
+                - cell "฿5,000" [ref=e423]
+              - row "COM-00001-007 Memory ddr3 4gb MEMORY Active - ฿6,000" [ref=e424] [cursor=pointer]:
+                - cell [ref=e425]:
+                  - checkbox [ref=e427]
+                - cell [ref=e428]
+                - cell "COM-00001-007" [ref=e429]
+                - cell "Memory ddr3 4gb" [ref=e430]:
+                  - generic [ref=e431]: Memory ddr3 4gb
+                - cell "MEMORY" [ref=e432]
+                - cell "Active" [ref=e433]:
+                  - generic [ref=e434]: Active
+                - cell "-" [ref=e435]
+                - cell "฿6,000" [ref=e436]
+              - row "COM-00001-008 Monitor 17 inch HP MONITOR Active วิชัย บุญธรรม ฿1,000" [ref=e437] [cursor=pointer]:
+                - cell [ref=e438]:
+                  - checkbox [ref=e440]
+                - cell [ref=e441]
+                - cell "COM-00001-008" [ref=e442]
+                - cell "Monitor 17 inch HP" [ref=e443]:
+                  - generic [ref=e444]: Monitor 17 inch
+                  - generic [ref=e445]: HP
+                - cell "MONITOR" [ref=e446]
+                - cell "Active" [ref=e447]:
+                  - generic [ref=e448]: Active
+                - cell "วิชัย บุญธรรม" [ref=e449]
+                - cell "฿1,000" [ref=e450]
+              - row "COM-00001-009 Monitor 17 inch Acer MONITOR Active วัชรพล ศรีทอง ฿1,000" [ref=e451] [cursor=pointer]:
+                - cell [ref=e452]:
+                  - checkbox [ref=e454]
+                - cell [ref=e455]
+                - cell "COM-00001-009" [ref=e456]
+                - cell "Monitor 17 inch Acer" [ref=e457]:
+                  - generic [ref=e458]: Monitor 17 inch
+                  - generic [ref=e459]: Acer
+                - cell "MONITOR" [ref=e460]
+                - cell "Active" [ref=e461]:
+                  - generic [ref=e462]: Active
+                - cell "วัชรพล ศรีทอง" [ref=e463]
+                - cell "฿1,000" [ref=e464]
+              - row "COM-00001-010 Monitor 20 inch LG MONITOR Active - ฿1,800" [ref=e465] [cursor=pointer]:
+                - cell [ref=e466]:
+                  - checkbox [ref=e468]
+                - cell [ref=e469]
+                - cell "COM-00001-010" [ref=e470]
+                - cell "Monitor 20 inch LG" [ref=e471]:
+                  - generic [ref=e472]: Monitor 20 inch
+                  - generic [ref=e473]: LG
+                - cell "MONITOR" [ref=e474]
+                - cell "Active" [ref=e475]:
+                  - generic [ref=e476]: Active
+                - cell "-" [ref=e477]
+                - cell "฿1,800" [ref=e478]
+              - row "COM-00001-011 Laptop 1 Notebook Acer Aspire A315-57G-50TZ LAPTOP Active ภัทรา ใจดี ฿17,663" [ref=e479] [cursor=pointer]:
+                - cell [ref=e480]:
+                  - checkbox [ref=e482]
+                - cell [ref=e483]
+                - cell "COM-00001-011" [ref=e484]
+                - cell "Laptop 1 Notebook Acer Aspire A315-57G-50TZ" [ref=e485]:
+                  - generic [ref=e486]: Laptop 1
+                  - generic [ref=e487]: Notebook Acer Aspire A315-57G-50TZ
+                - cell "LAPTOP" [ref=e488]
+                - cell "Active" [ref=e489]:
+                  - generic [ref=e490]: Active
+                - cell "ภัทรา ใจดี" [ref=e491]
+                - cell "฿17,663" [ref=e492]
+          - generic [ref=e493]:
+            - paragraph [ref=e494]: Showing 1-20 of 404 items
+            - generic [ref=e495]:
+              - button "First page" [disabled] [ref=e496]:
+                - img [ref=e497]
+              - button [disabled] [ref=e500]:
+                - img [ref=e501]
+              - button "1" [ref=e503] [cursor=pointer]
+              - button "2" [ref=e504] [cursor=pointer]
+              - button "3" [ref=e505] [cursor=pointer]
+              - generic [ref=e506]: …
+              - button "21" [ref=e507] [cursor=pointer]
+              - button [ref=e508] [cursor=pointer]:
+                - img [ref=e509]
+              - button "Last page" [ref=e511] [cursor=pointer]:
+                - img [ref=e512]
+  - button [ref=e515] [cursor=pointer]:
+    - generic [ref=e516]:
+      - img [ref=e517]
+      - img [ref=e519]

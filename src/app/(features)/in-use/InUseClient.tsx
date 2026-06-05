@@ -13,7 +13,6 @@ import {
   Building2,
   Clock,
   ArrowLeft,
-  ChevronRight,
 } from "lucide-react";
 import { useI18n, type Locale } from "@/lib/i18n";
 import { formatDate } from "@/lib/utils";
@@ -120,7 +119,7 @@ export function InUseClient({ items }: { items: InUseItem[] }) {
     });
   }, [filtered]);
 
-  const { items: pagedGroups, total: groupsTotal } = usePagination(personGroups, 12);
+  const { items: pagedGroups, total: groupsTotal } = usePagination(personGroups, 36);
 
   const selectedGroup = useMemo<PersonGroup | undefined>(
     () => (selectedPerson ? personGroups.find((g) => g.personName === selectedPerson) : undefined),
@@ -281,62 +280,52 @@ export function InUseClient({ items }: { items: InUseItem[] }) {
         </div>
       )}
 
-      {/* === BY PERSON: list view (paginated) === */}
+      {/* === BY PERSON: mini-tile grid (paginated) === */}
       {view === "person" && !selectedGroup && filtered.length > 0 && (
         <div className="animate-fade-in-up">
-          <div className="space-y-2 animate-stagger">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 animate-stagger">
             {pagedGroups.map((group, gi) => {
               const longestColor =
                 group.longestDays > 30
-                  ? "text-red-400"
+                  ? "bg-red-400"
                   : group.longestDays > 7
-                  ? "text-amber-400"
-                  : "text-gray-400";
+                  ? "bg-amber-400"
+                  : "bg-gray-600";
+              const longestLabel = t("inUsePage.longestHeld", group.longestDays);
+              const tooltip = group.department
+                ? `${group.personName} · ${group.department} · ${longestLabel}`
+                : `${group.personName} · ${longestLabel}`;
               return (
                 <button
                   key={group.personName}
                   type="button"
                   onClick={() => setSelectedPerson(group.personName)}
-                  className="w-full text-left card hover:border-brand-500/30 hover:bg-surface-hover transition-all duration-150 group animate-fade-in-up flex items-center gap-3"
-                  style={{ animationDelay: `${gi * 30}ms` }}
+                  title={tooltip}
+                  className="relative aspect-square flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl bg-surface border border-border hover:border-brand-500/40 hover:bg-surface-hover transition-all duration-150 group animate-fade-in-up text-center"
+                  style={{ animationDelay: `${gi * 20}ms` }}
                 >
-                  <div className="w-10 h-10 rounded-full bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-500 font-bold text-sm flex-shrink-0">
+                  <span
+                    className={cn(
+                      "absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full",
+                      longestColor
+                    )}
+                    aria-hidden
+                  />
+                  <div className="w-10 h-10 rounded-full bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-500 font-bold text-base">
                     {group.personName.charAt(0).toUpperCase()}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold truncate">{group.personName}</p>
-                    {group.department ? (
-                      <p className="text-xs text-gray-500 flex items-center gap-1 truncate">
-                        <Building2 size={10} />
-                        {group.department}
-                      </p>
-                    ) : (
-                      <p className="text-xs text-gray-600">{t("inUsePage.noDept")}</p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <div className="text-right">
-                      <p className="text-sm font-semibold tabular-nums">
-                        {group.items.length}
-                        <span className="text-xs text-gray-500 font-normal ml-1">
-                          {t("inUsePage.items")}
-                        </span>
-                      </p>
-                      <p className={cn("text-[11px] tabular-nums flex items-center gap-1 justify-end", longestColor)}>
-                        <Clock size={10} />
-                        {t("inUsePage.longestHeld", group.longestDays)}
-                      </p>
-                    </div>
-                    <ChevronRight
-                      size={16}
-                      className="text-gray-600 group-hover:text-brand-500 group-hover:translate-x-0.5 transition-all"
-                    />
-                  </div>
+                  <p className="w-full text-xs font-semibold leading-tight line-clamp-2 px-0.5">
+                    {group.personName}
+                  </p>
+                  <p className="text-[11px] tabular-nums text-gray-400">
+                    <span className="font-semibold text-brand-500">{group.items.length}</span>{" "}
+                    {t("inUsePage.items")}
+                  </p>
                 </button>
               );
             })}
           </div>
-          <Pagination total={groupsTotal} pageSize={12} />
+          <Pagination total={groupsTotal} pageSize={36} />
         </div>
       )}
 

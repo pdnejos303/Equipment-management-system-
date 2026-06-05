@@ -1,9 +1,9 @@
 // Path: src/app/(features)/assets/AssetsClient.tsx
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
-import { formatMoney } from "@/lib/utils";
+import { cn, formatMoney } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ExportButtons } from "@/components/ExportButtons";
 import { Pagination } from "@/components/Pagination";
@@ -21,7 +21,20 @@ import { useRole } from "@/lib/useRole";
 import { useCategories } from "@/lib/useCategories";
 import { useAssetColumns } from "@/lib/useAssetColumns";
 import { showConfirm, showSuccess, showError } from "@/lib/swal";
-import { Plus, Settings2, Pencil, Trash2, Printer, ImagePlus } from "lucide-react";
+import {
+  Plus,
+  Settings2,
+  Pencil,
+  Trash2,
+  Printer,
+  ImagePlus,
+  LayoutGrid,
+  Rows3,
+  User as UserIcon,
+} from "lucide-react";
+
+const VIEW_STORAGE_KEY = "assets-view-mode";
+type ViewMode = "table" | "card";
 
 const STATUS_BADGE: Record<string, string> = {
   ACTIVE: "badge-active",
@@ -74,6 +87,21 @@ export function AssetsClient({ data }: { data: AssetsData }) {
   const [showAddAsset, setShowAddAsset] = useState(false);
   const [showManageCategories, setShowManageCategories] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState(searchParams.category || "");
+  const [viewMode, setViewMode] = useState<ViewMode>("table");
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem(VIEW_STORAGE_KEY);
+    if (saved === "card" || saved === "table") setViewMode(saved);
+  }, []);
+
+  const changeView = useCallback((next: ViewMode) => {
+    setViewMode(next);
+    try {
+      window.localStorage.setItem(VIEW_STORAGE_KEY, next);
+    } catch {
+      // localStorage might be unavailable (private mode); ignore
+    }
+  }, []);
 
   const statuses = ["ACTIVE", "AVAILABLE", "MAINTENANCE", "RETIRED"];
 
@@ -220,6 +248,40 @@ export function AssetsClient({ data }: { data: AssetsData }) {
           )}
         </div>
         <button type="submit" className="btn-ghost text-sm min-h-[40px]">{t("assets.searchBtn")}</button>
+        <div className="flex rounded-lg border border-border overflow-hidden shrink-0 ml-auto sm:ml-0">
+          <button
+            type="button"
+            onClick={() => changeView("table")}
+            aria-label={t("assets.viewAriaTable")}
+            aria-pressed={viewMode === "table"}
+            title={t("assets.viewTable")}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors min-h-[40px]",
+              viewMode === "table"
+                ? "bg-brand-500/10 text-brand-500"
+                : "text-gray-400 hover:text-gray-200 hover:bg-surface-hover"
+            )}
+          >
+            <Rows3 size={14} />
+            <span className="hidden sm:inline">{t("assets.viewTable")}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => changeView("card")}
+            aria-label={t("assets.viewAriaCard")}
+            aria-pressed={viewMode === "card"}
+            title={t("assets.viewCard")}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors border-l border-border min-h-[40px]",
+              viewMode === "card"
+                ? "bg-brand-500/10 text-brand-500"
+                : "text-gray-400 hover:text-gray-200 hover:bg-surface-hover"
+            )}
+          >
+            <LayoutGrid size={14} />
+            <span className="hidden sm:inline">{t("assets.viewCard")}</span>
+          </button>
+        </div>
       </form>
 
       {/* Batch action bar */}
@@ -273,6 +335,90 @@ export function AssetsClient({ data }: { data: AssetsData }) {
         </div>
       )}
 
+      {viewMode === "card" ? (
+        assets.length === 0 ? (
+          <div className="py-16 text-center text-gray-500">{t("assets.notFound")}</div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 animate-stagger">
+            {pagedAssets.map((a, idx) => {
+              const isSelected = selected.has(a.id);
+              return (
+                <div
+                  key={a.id}
+                  onClick={() => router.push(buildDetailHref(a.id))}
+                  onMouseEnter={() => router.prefetch(`/assets/${a.id}`)}
+                  className={cn(
+                    "group relative card !p-0 overflow-hidden cursor-pointer transition-all duration-200 hover:border-brand-500/40 hover:-translate-y-0.5 animate-fade-in-up flex flex-col",
+                    isSelected && "border-brand-500/60 ring-1 ring-brand-500/30"
+                  )}
+                  style={{ animationDelay: `${idx * 25}ms` }}
+                >
+                  <label
+                    onClick={(e) => e.stopPropagation()}
+                    className={cn(
+                      "absolute top-2 left-2 z-10 flex items-center justify-center w-7 h-7 rounded-md bg-black/60 backdrop-blur-sm border border-white/10 cursor-pointer transition-opacity",
+                      isSelected
+                        ? "opacity-100"
+                        : "opacity-0 group-hover:opacity-100 focus-within:opacity-100"
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleOne(a.id)}
+                      className="w-4 h-4 rounded border-gray-600 bg-surface-dark text-brand-500 focus:ring-brand-500 focus:ring-offset-0 cursor-pointer"
+                    />
+                  </label>
+
+                  <div className="relative w-full aspect-[16/10] bg-surface-dark overflow-hidden border-b border-border">
+                    {a.photo ? (
+                      <img
+                        src={a.photo}
+                        alt={a.name}
+                        loading="lazy"
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-gray-600">
+                        <span className="text-4xl">{emojiFor(a.category)}</span>
+                        <span className="text-[10px] uppercase tracking-wider">{t("assets.noPhoto")}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-1 flex flex-col gap-1.5 p-3">
+                    <div className="flex items-start justify-between gap-2 min-w-0">
+                      <span className="font-mono text-brand-500 font-semibold text-sm truncate">{a.code}</span>
+                      <span className={cn("shrink-0 text-[10px] !px-1.5 !py-0.5", STATUS_BADGE[a.status] ?? "badge-available")}>
+                        {t(`status.${a.status}`)}
+                      </span>
+                    </div>
+                    <p
+                      className="font-semibold text-sm leading-snug line-clamp-2"
+                      style={{ color: "var(--text-default)" }}
+                      title={a.name}
+                    >
+                      {a.name}
+                    </p>
+                    {(a.brand || a.model) && (
+                      <p className="text-xs text-gray-500 truncate">{[a.brand, a.model].filter(Boolean).join(" ")}</p>
+                    )}
+                    <div className="mt-auto pt-2 flex items-center justify-between gap-2 text-xs">
+                      <span className="flex items-center gap-1 text-gray-400 min-w-0">
+                        <UserIcon size={11} className="shrink-0" />
+                        <span className="truncate">{a.assignedTo || "-"}</span>
+                      </span>
+                      <span className="font-mono text-green-400 shrink-0">
+                        {t("common.baht")}{formatMoney(a.purchasePrice, locale)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )
+      ) : (
       <div className="table-container">
         <table className="table table-row-hover animate-table-rows">
           <thead>
@@ -349,6 +495,7 @@ export function AssetsClient({ data }: { data: AssetsData }) {
           </tbody>
         </table>
       </div>
+      )}
 
       <Pagination total={assetsTotal} pageSize={20} />
 

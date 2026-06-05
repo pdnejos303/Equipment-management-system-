@@ -106,6 +106,36 @@ export function mmToPx(mm: number): number {
   return Math.round(mm * 3.7795275591);
 }
 
+// ── Cut lines (crop guides for DIY cutting) ──────────────────
+// Thin grid border drawn around every cell so sheets can be cut evenly.
+export const CUT_LINE_COLOR = "#999999";
+export const CUT_LINE_WIDTH_MM = 0.2;
+
+// ── Brand logo (optional, persisted in localStorage) ─────────
+// Stored as a base64 data URL so it survives reloads with no backend.
+export const LABEL_LOGO_KEY = "equiptrack.labelLogo";
+
+/** Read the saved label logo (base64 data URL) from localStorage. */
+export function getSavedLogo(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage.getItem(LABEL_LOGO_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/** Save (or clear, when passed null) the label logo in localStorage. */
+export function setSavedLogo(dataUrl: string | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (dataUrl) window.localStorage.setItem(LABEL_LOGO_KEY, dataUrl);
+    else window.localStorage.removeItem(LABEL_LOGO_KEY);
+  } catch {
+    /* ignore quota / privacy-mode errors */
+  }
+}
+
 /** Get compatible templates for a given label size */
 export function getCompatibleTemplates(widthMm: number, heightMm: number): LabelTemplateOption[] {
   return LABEL_TEMPLATES.filter(

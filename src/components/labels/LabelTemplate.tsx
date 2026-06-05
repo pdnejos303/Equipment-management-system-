@@ -21,6 +21,8 @@ interface Props {
   /** scale factor for preview (1 = actual size) */
   scale?: number;
   showBorder?: boolean;
+  /** optional brand logo (base64 data URL) shown small in the bottom-left corner */
+  logoSrc?: string | null;
 }
 
 export function LabelTemplate({
@@ -30,6 +32,7 @@ export function LabelTemplate({
   heightMm,
   scale = 1,
   showBorder = true,
+  logoSrc,
 }: Props) {
   const wPx = mmToPx(widthMm);
   const hPx = mmToPx(heightMm);
@@ -37,6 +40,10 @@ export function LabelTemplate({
   // Calculate dynamic sizes based on label dimensions
   const isSmall = widthMm <= 50 || heightMm <= 30;
   const isTiny = widthMm <= 40 || heightMm <= 25;
+
+  // Logo sizing: small mark capped at ~5mm or ~16% of label height.
+  const logoMaxPx = Math.min(mmToPx(5), mmToPx(heightMm * 0.16));
+  const showLogo = !!logoSrc && logoMaxPx >= mmToPx(2.5);
 
   const qrSize = isTiny
     ? Math.min(mmToPx(heightMm * 0.65), mmToPx(15))
@@ -102,6 +109,26 @@ export function LabelTemplate({
             widthMm={widthMm}
             heightMm={heightMm}
             isTiny={isTiny}
+          />
+        )}
+
+        {showLogo && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={logoSrc!}
+            alt=""
+            style={{
+              position: "absolute",
+              left: padding,
+              bottom: padding,
+              maxHeight: logoMaxPx,
+              maxWidth: logoMaxPx * 3,
+              objectFit: "contain",
+              background: "#ffffff",
+              padding: 0.5,
+              borderRadius: 1,
+              pointerEvents: "none",
+            }}
           />
         )}
       </div>

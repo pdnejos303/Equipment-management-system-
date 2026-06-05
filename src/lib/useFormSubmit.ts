@@ -12,7 +12,23 @@ interface Options {
   successTitle: string;
   onSuccess?: (data: any) => void;
   transform?: (body: any) => any;
+  /** Maps a field key (Zod path) to its human-readable label, e.g. { purchasePrice: "ราคา" }. */
+  fieldLabels?: Record<string, string>;
 }
+
+// A single validation problem returned by the API. Zod issues carry `code` plus
+// code-specific fields (received/type/minimum); the server may also send custom codes.
+interface FieldIssue {
+  path?: (string | number)[];
+  message?: string;
+  code?: string;
+  received?: string;
+  expected?: string;
+  type?: string;
+}
+
+const escapeHtml = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 export function useFormSubmit<T extends Record<string, any>>({
   url,
@@ -20,10 +36,34 @@ export function useFormSubmit<T extends Record<string, any>>({
   successTitle,
   onSuccess,
   transform,
+  fieldLabels,
 }: Options) {
   const router = useRouter();
   const { t } = useI18n();
   const [loading, setLoading] = useState(false);
+
+  // Turn a single field issue into a clear, localized reason.
+  const reasonFor = (d: FieldIssue): string => {
+    switch (d.code) {
+      case "invalid_type":
+        // received "undefined"/"null" = field missing; "nan" = empty/non-numeric number field
+        if (d.received === "undefined" || d.received === "null") return t("forms.vRequired");
+        if (d.received === "nan" || d.expected === "number") return t("forms.vNumber");
+        return t("forms.vRequired");
+      case "too_small":
+        // string min(1) means the field was left blank; number means it must be > 0
+        return d.type === "number" ? t("forms.vPositive") : t("forms.vRequired");
+      case "invalid_string":
+      case "invalid_enum_value":
+        return t("forms.vInvalid");
+      case "duplicate":
+        return t("forms.vDuplicate");
+      case "unknownCategory":
+        return t("forms.vUnknownCategory");
+      default:
+        return d.message || t("forms.vInvalid");
+    }
+  };
 
   const submit = async (form: T): Promise<boolean> => {
     setLoading(true);
@@ -36,14 +76,17 @@ export function useFormSubmit<T extends Record<string, any>>({
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        const msg = data.error ?? t("forms.error");
-        const details: { path: string[]; message: string }[] = data.details ?? [];
-        let html = `<p style="color:#9ca3af;font-size:14px;margin:0">${msg}</p>`;
+        const details: FieldIssue[] = data.details ?? [];
+        // When we have field-level issues, lead with a clear instruction and list
+        // each offending field by its label and the reason it failed.
+        const intro = details.length > 0 ? t("forms.invalidIntro") : (data.error ?? t("forms.error"));
+        let html = `<p style="color:#9ca3af;font-size:14px;margin:0">${escapeHtml(intro)}</p>`;
         if (details.length > 0) {
           html += `<ul style="text-align:left;margin:10px 0 0;padding:0;list-style:none">`;
           for (const d of details) {
-            const field = d.path.join(".") || "?";
-            html += `<li style="color:#f87171;font-size:12px;padding:3px 0">• <b>${field}</b>: ${d.message}</li>`;
+            const key = String(d.path?.[0] ?? "");
+            const label = fieldLabels?.[key] || key || "?";
+            html += `<li style="color:#f87171;font-size:13px;padding:3px 0">• <b>${escapeHtml(label)}</b>: ${escapeHtml(reasonFor(d))}</li>`;
           }
           html += `</ul>`;
         }

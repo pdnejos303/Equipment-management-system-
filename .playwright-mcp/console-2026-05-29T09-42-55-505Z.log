@@ -1,0 +1,26 @@
+[    1492ms] [WARNING] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width. @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/recharts@3.8.0_@types+react_7f074a434aeebe8b76aa30aceec83cd1/node_modules/recharts/es6/util/LogUtils.js:18
+[    1492ms] [WARNING] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width. @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/recharts@3.8.0_@types+react_7f074a434aeebe8b76aa30aceec83cd1/node_modules/recharts/es6/util/LogUtils.js:18
+[    1502ms] [LOG] [Fast Refresh] done in 2215ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[    1810ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[    3768ms] [LOG] [Fast Refresh] done in 1959ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[    5757ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:25630
+[    6538ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[    8308ms] [LOG] [Fast Refresh] done in 1770ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[   28714ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[   29758ms] [LOG] [Fast Refresh] done in 1044ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[   30131ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[   31096ms] [LOG] [Fast Refresh] done in 965ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[   31542ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[   32280ms] [LOG] [Fast Refresh] done in 739ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[   32961ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[   33869ms] [LOG] [Fast Refresh] done in 909ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[   34028ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[   34906ms] [LOG] [Fast Refresh] done in 878ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[   42759ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[   43242ms] [LOG] [Fast Refresh] done in 483ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13

@@ -97,22 +97,29 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = createAssetSchema.parse(body);
 
-    // Validate category exists
+    // Validate category exists — report as a field-level issue so the UI can
+    // point at the "category" field with a localized reason.
     const categoryExists = await prisma.category.findUnique({ where: { key: data.category } });
     if (!categoryExists) {
       return NextResponse.json(
-        { error: `Unknown category: ${data.category}` },
+        {
+          error: `Unknown category: ${data.category}`,
+          details: [{ path: ["category"], code: "unknownCategory", message: `Unknown category: ${data.category}` }],
+        },
         { status: 400 }
       );
     }
 
-    // Check duplicate code
+    // Check duplicate code — report against the "code" field.
     const existing = await prisma.asset.findUnique({
       where: { code: data.code },
     });
     if (existing) {
       return NextResponse.json(
-        { error: `Code ${data.code} already exists` },
+        {
+          error: `Code ${data.code} already exists`,
+          details: [{ path: ["code"], code: "duplicate", message: `Code ${data.code} already exists` }],
+        },
         { status: 409 }
       );
     }

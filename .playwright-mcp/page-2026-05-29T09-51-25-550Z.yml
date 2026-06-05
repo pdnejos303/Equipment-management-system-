@@ -1,0 +1,226 @@
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
+    - img [ref=e8]
+  - alert [ref=e11]
+  - generic [ref=e12]:
+    - navigation "Main navigation" [ref=e13]:
+      - generic [ref=e14]:
+        - generic [ref=e16]: A
+        - generic [ref=e17]: Asset Management
+        - button "Collapse sidebar" [ref=e18] [cursor=pointer]:
+          - img [ref=e19]
+      - generic [ref=e21]:
+        - paragraph [ref=e22]: Main
+        - generic [ref=e23]:
+          - link "Overview" [ref=e24] [cursor=pointer]:
+            - /url: /overview
+            - img [ref=e25]
+            - generic [ref=e30]: Overview
+          - link "Assets" [ref=e31] [cursor=pointer]:
+            - /url: /assets
+            - img [ref=e32]
+            - generic [ref=e36]: Assets
+          - link "Scan QR" [ref=e37] [cursor=pointer]:
+            - /url: /scan
+            - img [ref=e38]
+            - generic [ref=e43]: Scan QR
+          - link "In Use" [ref=e44] [cursor=pointer]:
+            - /url: /in-use
+            - img [ref=e46]
+            - generic [ref=e50]: In Use
+          - link "Assignments" [ref=e51] [cursor=pointer]:
+            - /url: /assignments
+            - img [ref=e52]
+            - generic [ref=e55]: Assignments
+          - link "Alerts 99+ unread alerts" [ref=e56] [cursor=pointer]:
+            - /url: /alerts
+            - img [ref=e57]
+            - generic [ref=e60]: Alerts
+            - status "99+ unread alerts" [ref=e61]: 99+
+          - link "Bookings" [ref=e62] [cursor=pointer]:
+            - /url: /bookings
+            - img [ref=e63]
+            - generic [ref=e67]: Bookings
+          - link "Maintenance" [ref=e68] [cursor=pointer]:
+            - /url: /maintenance
+            - img [ref=e69]
+            - generic [ref=e71]: Maintenance
+          - link "Calendar" [ref=e72] [cursor=pointer]:
+            - /url: /calendar
+            - img [ref=e73]
+            - generic [ref=e75]: Calendar
+          - link "Reports" [ref=e76] [cursor=pointer]:
+            - /url: /reports
+            - img [ref=e77]
+            - generic [ref=e79]: Reports
+        - paragraph [ref=e81]: Admin
+        - generic [ref=e82]:
+          - link "User Management" [ref=e83] [cursor=pointer]:
+            - /url: /users
+            - img [ref=e84]
+            - generic [ref=e96]: User Management
+          - link "Backup / Restore" [ref=e97] [cursor=pointer]:
+            - /url: /migrate
+            - img [ref=e98]
+            - generic [ref=e104]: Backup / Restore
+    - generic [ref=e105]:
+      - banner [ref=e106]:
+        - heading "Asset Management" [level=1] [ref=e107]
+        - generic [ref=e108]:
+          - button "🇺🇸 English" [ref=e110] [cursor=pointer]:
+            - generic [ref=e111]: 🇺🇸
+            - generic [ref=e112]: English
+            - img [ref=e113]
+          - button "Latte" [ref=e117] [cursor=pointer]:
+            - generic [ref=e119]: Latte
+            - img [ref=e120]
+          - link "Settings" [ref=e122] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=e123]
+          - link "A Admin ADMIN" [ref=e126] [cursor=pointer]:
+            - /url: /profile
+            - generic [ref=e128]: A
+            - generic [ref=e129]:
+              - paragraph [ref=e130]: Admin
+              - paragraph [ref=e131]: ADMIN
+      - main [ref=e132]:
+        - generic [ref=e133]:
+          - generic [ref=e136]:
+            - heading "Who's Using What" [level=1] [ref=e137]
+            - generic [ref=e138]: All equipment currently in use
+          - generic [ref=e139]:
+            - generic [ref=e140]:
+              - paragraph [ref=e141]: people
+              - paragraph [ref=e142]: "81"
+            - generic [ref=e143]:
+              - paragraph [ref=e144]: items
+              - paragraph [ref=e145]: "197"
+          - generic [ref=e362]:
+            - button "Back to people" [ref=e363] [cursor=pointer]:
+              - img [ref=e364]
+              - text: Back to people
+            - generic [ref=e366]:
+              - generic [ref=e367]:
+                - generic [ref=e368]:
+                  - generic [ref=e369]: ส
+                  - generic [ref=e370]:
+                    - paragraph [ref=e371]: สมหญิง รักชาติ
+                    - paragraph [ref=e372]:
+                      - img [ref=e373]
+                      - text: แผนก IT
+                - generic [ref=e377]: 10 items
+              - generic [ref=e378]:
+                - generic [ref=e379] [cursor=pointer]:
+                  - generic [ref=e380]: FUR-00001-011
+                  - generic [ref=e381]: Reclining Chair
+                  - generic [ref=e382]:
+                    - generic [ref=e383]:
+                      - img [ref=e384]
+                      - text: 247 days
+                    - generic [ref=e387]: Assigned
+                    - link "View Asset" [ref=e388]:
+                      - /url: /assets/cmpcciel4000vegzbu9iqb9x7?from=%2Fin-use
+                      - img [ref=e389]
+                - generic [ref=e393] [cursor=pointer]:
+                  - generic [ref=e394]: EQ-BULK-00143
+                  - generic [ref=e395]: "Ford Ranger #143"
+                  - generic [ref=e396]:
+                    - generic [ref=e397]:
+                      - img [ref=e398]
+                      - text: 284 days
+                    - generic [ref=e401]: Assigned
+                    - link "View Asset" [ref=e402]:
+                      - /url: /assets/cmpduzav6004t10g1whsq38vb?from=%2Fin-use
+                      - img [ref=e403]
+                - generic [ref=e407] [cursor=pointer]:
+                  - generic [ref=e408]: EQ-BULK-00037
+                  - generic [ref=e409]: "ASUS ProArt 32\" #037"
+                  - generic [ref=e410]:
+                    - generic [ref=e411]:
+                      - img [ref=e412]
+                      - text: 303 days
+                    - generic [ref=e415]: Assigned
+                    - link "View Asset" [ref=e416]:
+                      - /url: /assets/cmpduzauo001v10g17auos2zz?from=%2Fin-use
+                      - img [ref=e417]
+                - generic [ref=e421] [cursor=pointer]:
+                  - generic [ref=e422]: EQ-BULK-00067
+                  - generic [ref=e423]: "LG 4K IPS #067"
+                  - generic [ref=e424]:
+                    - generic [ref=e425]:
+                      - img [ref=e426]
+                      - text: 353 days
+                    - generic [ref=e429]: Assigned
+                    - link "View Asset" [ref=e430]:
+                      - /url: /assets/cmpduzauy002p10g1l1al9wv1?from=%2Fin-use
+                      - img [ref=e431]
+                - generic [ref=e435] [cursor=pointer]:
+                  - generic [ref=e436]: COM-00001-012
+                  - generic [ref=e437]: Laptop 2
+                  - generic [ref=e438]:
+                    - generic [ref=e439]:
+                      - img [ref=e440]
+                      - text: 403 days
+                    - generic [ref=e443]: Assigned
+                    - link "View Asset" [ref=e444]:
+                      - /url: /assets/cmpccieu2003oegzb0wy6fips?from=%2Fin-use
+                      - img [ref=e445]
+                - generic [ref=e449] [cursor=pointer]:
+                  - generic [ref=e450]: EQ-BULK-00012
+                  - generic [ref=e451]: "ASUS ProArt 32\" #012"
+                  - generic [ref=e452]:
+                    - generic [ref=e453]:
+                      - img [ref=e454]
+                      - text: 439 days
+                    - generic [ref=e457]: Assigned
+                    - link "View Asset" [ref=e458]:
+                      - /url: /assets/cmpduzauo001610g1dfgwdlh0?from=%2Fin-use
+                      - img [ref=e459]
+                - generic [ref=e463] [cursor=pointer]:
+                  - generic [ref=e464]: FUR-00001-085
+                  - generic [ref=e465]: Yellow Chair
+                  - generic [ref=e466]:
+                    - generic [ref=e467]:
+                      - img [ref=e468]
+                      - text: 593 days
+                    - generic [ref=e471]: Assigned
+                    - link "View Asset" [ref=e472]:
+                      - /url: /assets/cmpcciek0000jegzbtwp6r4p5?from=%2Fin-use
+                      - img [ref=e473]
+                - generic [ref=e477] [cursor=pointer]:
+                  - generic [ref=e478]: FUR-00001-084
+                  - generic [ref=e479]: Yellow Chair
+                  - generic [ref=e480]:
+                    - generic [ref=e481]:
+                      - img [ref=e482]
+                      - text: 0 days
+                    - generic [ref=e485]: Booked
+                    - link "View Asset" [ref=e486]:
+                      - /url: /assets/cmpcciejx000iegzb34fdnn59?from=%2Fin-use
+                      - img [ref=e487]
+                - generic [ref=e491] [cursor=pointer]:
+                  - generic [ref=e492]: MOB-00001-001
+                  - generic [ref=e493]: Mobile Phone
+                  - generic [ref=e494]:
+                    - generic [ref=e495]:
+                      - img [ref=e496]
+                      - text: 165 days
+                    - generic [ref=e499]: Booked
+                    - link "View Asset" [ref=e500]:
+                      - /url: /assets/cmpccieqh002legzbpoumoub5?from=%2Fin-use
+                      - img [ref=e501]
+                - generic [ref=e505] [cursor=pointer]:
+                  - generic [ref=e506]: LEGACY-TES-232-1
+                  - generic [ref=e507]: External Ultra Slim DVD W
+                  - generic [ref=e508]:
+                    - generic [ref=e509]:
+                      - img [ref=e510]
+                      - text: 361 days
+                    - generic [ref=e513]: Booked
+                    - link "View Asset" [ref=e514]:
+                      - /url: /assets/cmpccif0d005kegzb78jm2gc5?from=%2Fin-use
+                      - img [ref=e515]
+  - button [ref=e356] [cursor=pointer]:
+    - generic [ref=e357]:
+      - img [ref=e358]
+      - img [ref=e360]

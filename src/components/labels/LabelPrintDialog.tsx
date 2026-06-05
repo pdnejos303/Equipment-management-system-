@@ -9,13 +9,16 @@
 
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
 import { LabelTemplate } from "./LabelTemplate";
+import { LabelLogoControl } from "./LabelLogoControl";
 import {
   LABEL_SIZES,
   LABEL_TEMPLATES,
   getCompatibleTemplates,
+  getSavedLogo,
+  setSavedLogo,
   mmToPx,
   type LabelAsset,
   type LabelSize,
@@ -36,7 +39,15 @@ export function LabelPrintDialog({ asset, open, onClose }: Props) {
   const [customWidth, setCustomWidth] = useState(80);
   const [customHeight, setCustomHeight] = useState(50);
   const [useCustom, setUseCustom] = useState(false);
+  const [logoSrc, setLogoSrc] = useState<string | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { setLogoSrc(getSavedLogo()); }, []);
+
+  const handleLogoChange = useCallback((dataUrl: string | null) => {
+    setSavedLogo(dataUrl);
+    setLogoSrc(dataUrl);
+  }, []);
 
   const activeWidth = useCustom ? customWidth : selectedSize.widthMm;
   const activeHeight = useCustom ? customHeight : selectedSize.heightMm;
@@ -271,6 +282,12 @@ export function LabelPrintDialog({ asset, open, onClose }: Props) {
                 </div>
               </div>
 
+              {/* Logo */}
+              <div>
+                <h3 className="text-sm font-semibold mb-2" style={{ color: "var(--text-muted)" }}>{t("labels.logo")}</h3>
+                <LabelLogoControl logoSrc={logoSrc} onChange={handleLogoChange} />
+              </div>
+
               {/* Info */}
               <div className="bg-surface-dark rounded-lg p-3 border border-border">
                 <p className="text-xs text-gray-500 leading-relaxed">
@@ -291,6 +308,7 @@ export function LabelPrintDialog({ asset, open, onClose }: Props) {
                     heightMm={activeHeight}
                     scale={previewScale}
                     showBorder
+                    logoSrc={logoSrc}
                   />
                 </div>
               </div>
@@ -308,6 +326,7 @@ export function LabelPrintDialog({ asset, open, onClose }: Props) {
                     heightMm={activeHeight}
                     scale={1}
                     showBorder={false}
+                    logoSrc={logoSrc}
                   />
                 </div>
               </div>

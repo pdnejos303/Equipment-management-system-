@@ -70,6 +70,20 @@ export function AddAssetForm({ open, onClose }: Props) {
   const { submit, loading } = useFormSubmit({
     url: "/api/assets",
     successTitle: t("newAsset.title"),
+    fieldLabels: {
+      code: t("newAsset.code"),
+      name: t("newAsset.name"),
+      brand: t("newAsset.brand"),
+      model: t("newAsset.model"),
+      serialNumber: t("newAsset.serialNumber"),
+      category: t("newAsset.category"),
+      purchaseDate: t("newAsset.purchaseDate"),
+      purchasePrice: t("newAsset.price"),
+      expectedLife: t("newAsset.lifespan"),
+      warrantyEnd: t("newAsset.warrantyEnd"),
+      location: t("newAsset.location"),
+      notes: t("newAsset.notes"),
+    },
     transform: (f) => ({
       ...f,
       purchasePrice: parseFloat(f.purchasePrice),

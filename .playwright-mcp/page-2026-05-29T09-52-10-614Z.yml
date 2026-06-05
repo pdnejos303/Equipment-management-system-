@@ -1,0 +1,86 @@
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
+    - img [ref=e8]
+  - alert [ref=e11]
+  - generic [ref=e12]:
+    - navigation "Main navigation" [ref=e13]:
+      - generic [ref=e14]:
+        - generic [ref=e16]: A
+        - generic [ref=e17]: Asset Management
+        - button "Close menu" [ref=e18] [cursor=pointer]:
+          - img [ref=e19]
+      - generic [ref=e22]:
+        - paragraph [ref=e23]: Main
+        - generic [ref=e24]:
+          - link "Overview" [ref=e25] [cursor=pointer]:
+            - /url: /overview
+            - img [ref=e26]
+            - generic [ref=e31]: Overview
+          - link "Assets" [ref=e32] [cursor=pointer]:
+            - /url: /assets
+            - img [ref=e34]
+            - generic [ref=e38]: Assets
+          - link "Scan QR" [ref=e39] [cursor=pointer]:
+            - /url: /scan
+            - img [ref=e40]
+            - generic [ref=e45]: Scan QR
+          - link "In Use" [ref=e46] [cursor=pointer]:
+            - /url: /in-use
+            - img [ref=e47]
+            - generic [ref=e51]: In Use
+          - link "Assignments" [ref=e52] [cursor=pointer]:
+            - /url: /assignments
+            - img [ref=e53]
+            - generic [ref=e56]: Assignments
+          - link "Alerts 99+ unread alerts" [ref=e57] [cursor=pointer]:
+            - /url: /alerts
+            - img [ref=e58]
+            - generic [ref=e61]: Alerts
+            - status "99+ unread alerts" [ref=e62]: 99+
+          - link "Bookings" [ref=e63] [cursor=pointer]:
+            - /url: /bookings
+            - img [ref=e64]
+            - generic [ref=e68]: Bookings
+          - link "Maintenance" [ref=e69] [cursor=pointer]:
+            - /url: /maintenance
+            - img [ref=e70]
+            - generic [ref=e72]: Maintenance
+          - link "Calendar" [ref=e73] [cursor=pointer]:
+            - /url: /calendar
+            - img [ref=e74]
+            - generic [ref=e76]: Calendar
+          - link "Reports" [ref=e77] [cursor=pointer]:
+            - /url: /reports
+            - img [ref=e78]
+            - generic [ref=e80]: Reports
+        - paragraph [ref=e82]: Admin
+        - generic [ref=e83]:
+          - link "User Management" [ref=e84] [cursor=pointer]:
+            - /url: /users
+            - img [ref=e85]
+            - generic [ref=e97]: User Management
+          - link "Backup / Restore" [ref=e98] [cursor=pointer]:
+            - /url: /migrate
+            - img [ref=e99]
+            - generic [ref=e105]: Backup / Restore
+    - generic [ref=e106]:
+      - banner [ref=e107]:
+        - button "Open menu" [ref=e108] [cursor=pointer]:
+          - img [ref=e109]
+        - heading "Assets" [level=1] [ref=e110]
+        - generic [ref=e111]:
+          - button "🇺🇸 English" [ref=e113] [cursor=pointer]:
+            - generic [ref=e114]: 🇺🇸
+            - generic [ref=e115]: English
+            - img [ref=e116]
+          - link "Settings" [ref=e118] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=e119]
+          - link "A" [ref=e122] [cursor=pointer]:
+            - /url: /profile
+            - generic [ref=e124]: A
+      - main [ref=e125]
+  - button [ref=e222] [cursor=pointer]:
+    - generic [ref=e223]:
+      - img [ref=e224]
+      - img [ref=e226]

@@ -44,8 +44,13 @@ const updateSchema = z.object({
   purchaseDate: z.string().transform((s) => new Date(s)).optional(),
   purchasePrice: z.number().positive().optional(),
   expectedLife: z.number().int().positive().optional(),
-  warrantyEnd: z.string().optional().transform((s) => s ? new Date(s) : undefined),
-  nextMaintenance: z.string().optional().transform((s) => s ? new Date(s) : undefined),
+  // null/"" = ผู้ใช้ล้างค่า → เซ็ตเป็น null (ลบประกัน/วันบำรุงรักษา); undefined = ไม่ได้ส่งมา → ไม่แตะต้อง
+  warrantyEnd: z.union([z.string(), z.null()]).optional().transform((s) =>
+    s === undefined ? undefined : s ? new Date(s) : null
+  ),
+  nextMaintenance: z.union([z.string(), z.null()]).optional().transform((s) =>
+    s === undefined ? undefined : s ? new Date(s) : null
+  ),
   location: z.string().optional(),
   notes: z.string().optional(),
 });

@@ -1,0 +1,81 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - generic [ref=e6]:
+      - img [ref=e8]
+      - generic [ref=e18]:
+        - generic [ref=e19]: Asset Management
+        - generic [ref=e20]: Asset Platform
+    - generic [ref=e21]:
+      - generic [ref=e24]: Equipment Platform
+      - heading "ยินดีต้อนรับ Asset Management" [level=2] [ref=e25]:
+        - text: ยินดีต้อนรับ
+        - generic [ref=e26]: Asset Management
+      - paragraph [ref=e27]: จัดการอุปกรณ์อย่างมีประสิทธิภาพ
+      - list [ref=e28]:
+        - listitem [ref=e29]:
+          - img [ref=e31]
+          - generic [ref=e33]: ติดตามสถานะอุปกรณ์แบบเรียลไทม์
+        - listitem [ref=e34]:
+          - img [ref=e36]
+          - generic [ref=e39]: ระบบแจ้งเตือนประกันและบำรุงรักษา
+        - listitem [ref=e40]:
+          - img [ref=e42]
+          - generic [ref=e48]: รองรับ QR Code และ Barcode
+    - generic [ref=e49]:
+      - generic [ref=e50]:
+        - generic [ref=e51]:
+          - generic [ref=e52]: 99.9%
+          - generic [ref=e53]: Uptime
+        - generic [ref=e54]:
+          - generic [ref=e55]: 256-bit
+          - generic [ref=e56]: Encryption
+        - generic [ref=e57]:
+          - generic [ref=e58]: 24/7
+          - generic [ref=e59]: Monitoring
+      - generic [ref=e60]:
+        - generic [ref=e65]: All systems operational
+        - generic [ref=e66]: v2.0 · Internal
+  - generic [ref=e68]:
+    - generic [ref=e69]:
+      - generic [ref=e71]:
+        - generic [ref=e72]:
+          - heading "Sign in to your account" [level=3] [ref=e73]
+          - paragraph [ref=e74]: Use Google or email · ใช้ Google หรืออีเมล
+        - button "🇹🇭 ไทย" [ref=e76] [cursor=pointer]:
+          - generic [ref=e77]: 🇹🇭
+          - generic [ref=e78]: ไทย
+          - img [ref=e79]
+      - generic [ref=e81]:
+        - tablist "Authentication mode" [ref=e82]:
+          - tab "เข้าสู่ระบบ" [selected] [ref=e84] [cursor=pointer]
+          - tab "สมัครสมาชิก" [ref=e85] [cursor=pointer]
+        - button "เข้าสู่ระบบด้วย Google" [ref=e86] [cursor=pointer]:
+          - img [ref=e87]
+          - text: เข้าสู่ระบบด้วย Google
+        - generic [ref=e94]: หรือ
+        - tabpanel "เข้าสู่ระบบ" [ref=e96]:
+          - generic [ref=e97]:
+            - generic [ref=e98]:
+              - generic [ref=e99]: อีเมล
+              - generic [ref=e100]:
+                - img
+                - textbox "อีเมล" [ref=e101]:
+                  - /placeholder: admin@company.com
+            - generic [ref=e102]:
+              - generic [ref=e103]: รหัสผ่าน
+              - generic [ref=e104]:
+                - img
+                - textbox "รหัสผ่าน" [ref=e105]:
+                  - /placeholder: ••••••••
+                - button "Show password" [ref=e106] [cursor=pointer]:
+                  - img [ref=e107]
+          - button "เข้าสู่ระบบ" [ref=e110] [cursor=pointer]:
+            - text: เข้าสู่ระบบ
+            - img [ref=e111]
+          - generic [ref=e115]: "Demo: admin@company.com / admin123"
+          - paragraph [ref=e116]:
+            - text: ยังไม่มีบัญชี?
+            - button "สมัครเลย" [ref=e117] [cursor=pointer]
+    - generic [ref=e118]:
+      - img [ref=e119]
+      - generic [ref=e122]: Secured by NextAuth · Asset Management v2.0
