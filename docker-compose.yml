@@ -1,16 +1,17 @@
 services:
+  # ── Next.js App ────────────────────────────────────────────────────────────
   app:
     build:
       context: .
       dockerfile: Dockerfile
       args:
-        # ค่านี้เป็นแค่ fallback ฝั่ง server — QR ฝั่ง browser ใช้ window.location.origin อัตโนมัติ
         NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-}
         NEXT_PUBLIC_COMPANY_NAME: ${NEXT_PUBLIC_COMPANY_NAME:-Asset Management}
     container_name: equiptrack
     restart: unless-stopped
-    ports:
-      - "3003:3000"
+    # ไม่ expose port ตรงสู่ภายนอกแล้ว — traffic ผ่าน Nginx เท่านั้น
+    expose:
+      - "3000"
 
     environment:
       # ── Database (SQLite — เก็บไฟล์บน volume /app/data) ──
@@ -40,11 +41,49 @@ services:
       NEXT_PUBLIC_COMPANY_NAME: ${NEXT_PUBLIC_COMPANY_NAME:-Asset Management}
 
     volumes:
-      # SQLite DB เก็บไว้นอก container เพื่อไม่ให้หายเวลา rebuild
       - equiptrack-data:/app/data
-      # รูปอุปกรณ์ — แยก volume เพื่อ snapshot/backup ได้อิสระ
       - equiptrack-uploads:/app/uploads
+
+    networks:
+      - internal
+
+  # ── Nginx (Reverse Proxy + SSL Termination) ────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: equiptrack-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"    # HTTP → redirect ไป HTTPS
+      - "443:443"  # HTTPS
+    volumes:
+      # config files
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/proxy_params.conf:/etc/nginx/proxy_params.conf:ro
+      # SSL certificates จาก Certbot
+      - certbot-certs:/etc/letsencrypt:ro
+      # Certbot challenge path
+      - certbot-www:/var/www/certbot:ro
+    depends_on:
+      - app
+    networks:
+      - internal
+
+  # ── Certbot (Let's Encrypt auto-renew) ────────────────────────────────────
+  certbot:
+    image: certbot/certbot
+    container_name: equiptrack-certbot
+    volumes:
+      - certbot-certs:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
+    # renew certificate อัตโนมัติทุก 12 ชั่วโมง
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
 volumes:
   equiptrack-data:
   equiptrack-uploads:
+  certbot-certs:   # เก็บ SSL certificate
+  certbot-www:     # เก็บ ACME challenge files
+
+networks:
+  internal:
+    driver: bridge

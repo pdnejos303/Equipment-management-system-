@@ -1,0 +1,70 @@
+[    2708ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:25630
+[  153398ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[  154441ms] [LOG] [Fast Refresh] done in 1044ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[  167098ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[  167747ms] [LOG] [Fast Refresh] done in 649ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[  188925ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[  189470ms] [ERROR] ./src/app/(features)/overview/DashboardClient.tsx
+Error:   × Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+     ╭─[D:\111Work\1111New Project\Equipment management system for small business\equip-track\src\app\(features)\overview\DashboardClient.tsx:293:1]
+ 290 │             </div>
+ 291 │           </div>
+ 292 │         ))}
+ 293 │       </div> */}
+     ·                ▲
+ 294 │ 
+ 295 │       {/* Utilization Gauge + Status Pie + Maintenance Type Pie */}
+ 296 │       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+     ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/app/(features)/overview/DashboardClient.tsx
+./src/app/(features)/overview/page.tsx @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js:56
+[  189513ms] [LOG] {file: Object} @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/next-devtools/index.js:1630
+[  191311ms] [LOG] [Fast Refresh] done in 2386ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[  196816ms] [LOG] [Fast Refresh] done in 7891ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[  197644ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[  201662ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[  201738ms] [LOG] [Fast Refresh] done in 76ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[  202708ms] [LOG] [Fast Refresh] done in 1047ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[  204453ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/login?_rsc=ryjdm:0
+[  206901ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:25630
+[  213402ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[  214603ms] [LOG] [Fast Refresh] done in 1202ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[  243381ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[  245111ms] [LOG] [Fast Refresh] done in 1730ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[  253979ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[  254526ms] [LOG] [Fast Refresh] done in 546ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[  258377ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[  260535ms] [LOG] [Fast Refresh] done in 2158ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[  428287ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[  428965ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[  429022ms] [LOG] [Fast Refresh] done in 57ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[  430720ms] [LOG] [Fast Refresh] done in 1755ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[  433513ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[  434068ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[  434144ms] [LOG] [Fast Refresh] done in 76ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[  435162ms] [LOG] [Fast Refresh] done in 1094ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[  828420ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[  829325ms] [LOG] [Fast Refresh] done in 905ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[  832996ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[  833831ms] [LOG] [Fast Refresh] done in 835ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[  851352ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[  853226ms] [LOG] [Fast Refresh] done in 1874ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[  856678ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[  857174ms] [LOG] [Fast Refresh] done in 495ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[  868671ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[  869679ms] [LOG] [Fast Refresh] done in 1008ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[  875601ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[  876748ms] [LOG] [Fast Refresh] done in 1148ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[  899584ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[  900937ms] [LOG] [Fast Refresh] done in 1354ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[  907925ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[  909361ms] [LOG] [Fast Refresh] done in 1435ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[ 2361687ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[ 2364186ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:196
+[ 2364230ms] [LOG] [Fast Refresh] done in 44ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13
+[ 2365604ms] [LOG] [Fast Refresh] done in 1418ms @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.14_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/dev/report-hmr-latency.js:13

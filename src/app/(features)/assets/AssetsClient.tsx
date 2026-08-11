@@ -185,8 +185,10 @@ export function AssetsClient({ data }: { data: AssetsData }) {
         title={t("assets.title")}
         actions={
           <>
+          {/* Export Buttons */}
             <ExportButtons />
             {canCreate && (
+              // Add New Asset Button
               <button
                 onClick={() => setShowAddAsset(true)}
                 className="btn-primary text-sm flex items-center gap-1.5"
@@ -198,7 +200,7 @@ export function AssetsClient({ data }: { data: AssetsData }) {
           </>
         }
       />
-
+      {/* top 4 card */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6 animate-stagger">
         {[
           { label: t("assets.all"), value: assets.length, color: "text-brand-500" },
@@ -219,12 +221,15 @@ export function AssetsClient({ data }: { data: AssetsData }) {
       </div>
 
       <form className="flex flex-col sm:flex-row flex-wrap gap-3 mb-4">
+        {/* Search */}
         <input name="search" placeholder={t("assets.search")} defaultValue={searchParams.search} className="input sm:max-w-xs" />
         <div className="flex gap-3 flex-1 sm:flex-none">
+          {/* status */}
           <select name="status" defaultValue={searchParams.status || ""} className="select flex-1 sm:w-auto sm:flex-none">
             <option value="">{t("assets.allStatus")}</option>
             {statuses.map((s) => <option key={s} value={s}>{t(`status.${s}`)}</option>)}
           </select>
+          {/* Category */}
           <SearchableSelect
             name="category"
             value={categoryFilter}
@@ -234,6 +239,7 @@ export function AssetsClient({ data }: { data: AssetsData }) {
             ariaLabel={t("assets.allCategory")}
             className="flex-1 sm:w-56 sm:flex-none"
           />
+          {/* Manage Categories */}
           {canCreate && (
             <button
               type="button"
