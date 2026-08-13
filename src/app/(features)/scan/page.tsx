@@ -3,7 +3,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { ScanLine, Camera, CameraOff, Search, ExternalLink, RotateCcw } from "lucide-react";
+import { ScanLine, Camera, CameraOff, Search, ExternalLink, RotateCcw, QrCode, Keyboard, Zap } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -18,7 +18,6 @@ export default function ScanPage() {
   const [state, setState] = useState<ScanState>("idle");
   const [scannedCode, setScannedCode] = useState("");
   const [assetInfo, setAssetInfo] = useState<{ id: string; name: string; code: string; status: string } | null>(null);
-  const [manualCode, setManualCode] = useState("");
 
   const stopScanner = useCallback(async () => {
     const scanner = scannerRef.current;
@@ -135,35 +134,39 @@ export default function ScanPage() {
     setState("idle");
   }, [stopScanner]);
 
-  const handleManualSearch = () => {
-    if (!manualCode.trim()) return;
-    setScannedCode(manualCode.trim());
-    lookupAsset(manualCode.trim());
-  };
-
   const showReader = state === "scanning" || state === "starting";
 
   return (
-    <div className="max-w-md mx-auto">
-      <div className="mb-5">
-        <h1 className="text-xl font-bold">{t("scanner.title")}</h1>
-        <p className="text-sm text-gray-500 mt-1">{t("scanner.subtitle")}</p>
+    <div className="max-w-xl mx-auto py-4 md:py-8 animate-in fade-in slide-in-bottom-4 duration-500">
+      
+      {/* Header */}
+      <div className="text-center mb-6">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-brand-50 mb-3 border border-brand-100">
+          <QrCode size={32} className="text-brand-600" />
+        </div>
+        <h1 className="text-2xl font-bold text-[var(--text-default)]">{t("scanner.title")}</h1>
+        <p className="text-[var(--text-subtle)] mt-1 max-w-sm mx-auto">{t("scanner.subtitle")}</p>
       </div>
 
-      {/* Scanner viewport */}
-      <div className="card overflow-hidden">
-        <div className="relative bg-black rounded-lg overflow-hidden aspect-square max-h-[320px]">
+      {/* Main Scanner Container */}
+      <div className="bg-[var(--surface)] p-3 shadow-md border border-[var(--border)] max-w-[400px] mx-auto">
+        <div className="relative bg-black overflow-hidden aspect-square w-full ring-1 ring-white/10">
+          
+          {/* Cool Tech Grid Background */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
+
           {/* Reader element is always mounted but hidden when idle, so Html5Qrcode can attach */}
-          <div id="qr-reader" className={cn("w-full h-full", !showReader && "hidden")} />
+          <div id="qr-reader" className={cn("w-full h-full relative z-10", !showReader && "hidden")} />
 
           {/* Idle overlay — ask user to tap to start */}
           {state === "idle" && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center p-6 animate-in fade-in">
-                <div className="w-14 h-14 rounded-2xl bg-brand-500/15 flex items-center justify-center mx-auto mb-3">
-                  <Camera size={24} className="text-brand-500" />
+            <div className="absolute inset-0 flex items-center justify-center z-20">
+              <div className="text-center p-6 bg-black/40 backdrop-blur-sm rounded-none border border-white/5">
+                <div className="w-12 h-12 flex items-center justify-center mx-auto mb-3 text-brand-500 relative">
+                  <div className="absolute inset-0 animate-ping opacity-20 border border-brand-500"></div>
+                  <Camera size={28} />
                 </div>
-                <p className="text-xs text-gray-500">{t("scanner.tapToStart")}</p>
+                <p className="text-xs text-brand-400 font-bold uppercase tracking-widest">{t("scanner.tapToStart")}</p>
               </div>
             </div>
           )}
@@ -177,13 +180,22 @@ export default function ScanPage() {
 
           {/* Scanning overlay */}
           {state === "scanning" && (
-            <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-              <div className="relative w-[200px] h-[200px]">
-                <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-brand-500 rounded-tl-lg" />
-                <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-brand-500 rounded-tr-lg" />
-                <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-brand-500 rounded-bl-lg" />
-                <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-brand-500 rounded-br-lg" />
-                <div className="absolute left-2 right-2 h-0.5 bg-brand-500/80 animate-scan-line" />
+            <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-20">
+              <div className="relative w-[240px] h-[240px]">
+                {/* Tech Corners */}
+                <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-brand-400" />
+                <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-brand-400" />
+                <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-brand-400" />
+                <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-brand-400" />
+                
+                {/* Crosshair Center */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4">
+                  <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white/20" />
+                  <div className="absolute left-1/2 top-0 w-[1px] h-full bg-white/20" />
+                </div>
+
+                {/* Laser Line */}
+                <div className="absolute left-0 right-0 h-[2px] bg-brand-500 shadow-[0_0_12px_2px_rgba(var(--brand-500),0.8)] animate-scan-line" />
               </div>
             </div>
           )}
@@ -192,44 +204,44 @@ export default function ScanPage() {
           {(state === "found" || state === "not-found" || state === "error") && (
             <div className="absolute inset-0 flex items-center justify-center bg-surface-dark/95">
               {state === "found" && assetInfo && (
-                <div className="text-center p-6 animate-in fade-in">
-                  <div className="w-14 h-14 rounded-2xl bg-green-500/15 flex items-center justify-center mx-auto mb-3">
+                <div className="text-center p-6">
+                  <div className="w-12 h-12 bg-green-500/10 flex items-center justify-center mx-auto mb-3 border border-green-500/20">
                     <ScanLine size={24} className="text-green-400" />
                   </div>
-                  <p className="text-sm font-semibold text-green-400 mb-1">{t("scanner.found")}</p>
+                  <p className="text-sm font-bold text-green-400 mb-1">{t("scanner.found")}</p>
                   <p className="text-lg font-bold mb-1" style={{ color: "var(--text-default)" }}>{assetInfo.name}</p>
-                  <p className="text-xs text-gray-500 font-mono">{assetInfo.code}</p>
+                  <p className="text-xs text-gray-400 font-mono">{assetInfo.code}</p>
                 </div>
               )}
 
               {state === "not-found" && (
-                <div className="text-center p-6 animate-in fade-in">
-                  <div className="w-14 h-14 rounded-2xl bg-red-500/15 flex items-center justify-center mx-auto mb-3">
+                <div className="text-center p-6">
+                  <div className="w-12 h-12 bg-red-500/10 flex items-center justify-center mx-auto mb-3 border border-red-500/20">
                     <Search size={24} className="text-red-400" />
                   </div>
-                  <p className="text-sm font-semibold text-red-400 mb-1">{t("scanner.notFound")}</p>
-                  <p className="text-xs text-gray-500">{scannedCode}</p>
+                  <p className="text-sm font-bold text-red-400 mb-1">{t("scanner.notFound")}</p>
+                  <p className="text-xs text-gray-400">{scannedCode}</p>
                 </div>
               )}
 
               {state === "error" && (
                 <div className="text-center p-6 animate-in fade-in">
-                  <div className="w-14 h-14 rounded-2xl bg-yellow-500/15 flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 bg-yellow-500/10 flex items-center justify-center mx-auto mb-3 border border-yellow-500/20">
                     <CameraOff size={24} className="text-yellow-400" />
                   </div>
-                  <p className="text-sm font-semibold text-yellow-400 mb-1">{t("scanner.cameraError")}</p>
-                  <p className="text-xs text-gray-500">{t("scanner.permissionMsg")}</p>
+                  <p className="text-sm font-bold text-yellow-400 mb-1">{t("scanner.cameraError")}</p>
+                  <p className="text-xs text-gray-400">{t("scanner.permissionMsg")}</p>
                 </div>
               )}
             </div>
           )}
         </div>
-
+        
         {/* Action buttons */}
-        <div className="flex gap-2 mt-4 px-1">
+        <div className="flex gap-2 mt-4 px-1 pb-1">
           {state === "idle" && (
-            <button onClick={startScanner} className="btn-primary flex-1 flex items-center justify-center gap-2">
-              <Camera size={14} />
+            <button onClick={startScanner} className="flex-1 py-3 bg-brand-500 hover:bg-brand-600 text-white font-bold transition-colors flex items-center justify-center gap-2">
+              <Camera size={18} />
               {t("scanner.startScan")}
             </button>
           )}
@@ -238,47 +250,30 @@ export default function ScanPage() {
             <button
               onClick={handleStopClick}
               disabled={state === "starting"}
-              className="btn-ghost flex-1 flex items-center justify-center gap-2 disabled:opacity-50"
+              className="flex-1 py-3 bg-[var(--surface-hover)] text-red-500 hover:bg-red-50 hover:text-red-600 font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-2 border border-[var(--border)]"
             >
-              <CameraOff size={14} />
+              <CameraOff size={18} />
               {t("scanner.stopScan")}
             </button>
           )}
 
           {(state === "found" || state === "not-found" || state === "error") && (
             <>
-              <button onClick={resetScan} className="btn-ghost flex-1 flex items-center justify-center gap-2">
-                <RotateCcw size={14} />
+              <button onClick={resetScan} className="flex-1 py-3 bg-[var(--surface-hover)] text-[var(--text-default)] hover:bg-gray-100 font-bold transition-colors flex items-center justify-center gap-2 border border-[var(--border)]">
+                <RotateCcw size={16} />
                 {t("scanner.scanAgain")}
               </button>
               {state === "found" && assetInfo && (
                 <button
                   onClick={() => router.push(`/assets/${assetInfo.id}?from=${encodeURIComponent("/scan")}`)}
-                  className="btn-primary flex-1 flex items-center justify-center gap-2"
+                  className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold transition-colors flex items-center justify-center gap-2"
                 >
-                  <ExternalLink size={14} />
+                  <ExternalLink size={16} />
                   {t("scanner.openAsset")}
                 </button>
               )}
             </>
           )}
-        </div>
-      </div>
-
-      {/* Manual code input */}
-      <div className="card mt-4">
-        <p className="text-xs text-gray-500 font-semibold mb-2">{t("scanner.orEnterCode")}</p>
-        <div className="flex gap-2">
-          <input
-            value={manualCode}
-            onChange={(e) => setManualCode(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleManualSearch()}
-            placeholder={t("scanner.searchPlaceholder")}
-            className="input flex-1"
-          />
-          <button onClick={handleManualSearch} disabled={!manualCode.trim()} className="btn-primary px-4">
-            <Search size={16} />
-          </button>
         </div>
       </div>
     </div>

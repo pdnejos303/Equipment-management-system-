@@ -10,10 +10,9 @@ WORKDIR /app
 ENV PUPPETEER_SKIP_DOWNLOAD=true
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
-COPY package.json package-lock.json* ./
+COPY package.json pnpm-lock.yaml* ./
 COPY prisma ./prisma
-RUN npm install
-
+RUN npm install -g pnpm && pnpm install --frozen-lockfile
 # ===== Stage 2: Builder =====
 FROM node:20-alpine AS builder
 RUN apk add --no-cache libc6-compat openssl

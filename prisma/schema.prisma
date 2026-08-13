@@ -28,6 +28,7 @@ model User {
   sessions    Session[]
   assignments Assignment[]
   bookings    Booking[]
+  testDeviceLogs TestDeviceLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -102,6 +103,8 @@ model Asset {
   nextMaintenance DateTime?
   location       String?  // สถานที่เก็บ
   notes          String?
+  testDeviceNote String?
+  isTestDevice   Boolean  @default(false)
 
   // Photos — เก็บ URL จาก Storage
   photos         AssetPhoto[]
@@ -110,6 +113,7 @@ model Asset {
   assignments    Assignment[]
   maintenanceRecords MaintenanceRecord[]
   bookings       Booking[]
+  testDeviceLogs TestDeviceLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -199,4 +203,20 @@ model Booking {
 
   @@index([assetId])
   @@index([dateStart, dateEnd])
+}
+
+// ── Test Device Log ──────────────────────────────────────────
+
+model TestDeviceLog {
+  id         String   @id @default(cuid())
+  assetId    String
+  userId     String
+  borrowedAt DateTime @default(now())
+  returnedAt DateTime?
+
+  asset      Asset    @relation(fields: [assetId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@index([assetId])
+  @@index([userId])
 }

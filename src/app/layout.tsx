@@ -51,7 +51,7 @@ export default function RootLayout({
         {/* Anti-flash: apply saved theme + mode before first paint */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('equip-theme')||'latte';var d=document.documentElement;d.setAttribute('data-theme',t);var l=['snow','latte','sakura','arctic'];var m=l.indexOf(t)>=0?'light':'dark';d.setAttribute('data-mode',m);d.style.colorScheme=m}catch(e){}})()`,
+            __html: `(function(){try{var t=localStorage.getItem('equip-theme-v2')||'snow';var d=document.documentElement;d.setAttribute('data-theme',t);var l=['snow','latte','sakura','arctic'];var m=l.indexOf(t)>=0?'light':'dark';d.setAttribute('data-mode',m);d.style.colorScheme=m;var s=localStorage.getItem('equip-shape-v2')||'square';d.setAttribute('data-shape',s)}catch(e){}})()`,
           }}
         />
       </head>
@@ -69,3 +69,4 @@ export default function RootLayout({
     </html>
   );
 }
+

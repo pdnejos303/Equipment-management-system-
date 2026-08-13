@@ -228,13 +228,13 @@ export function AIChatWidget() {
       {open && (
         <div
           ref={panelRef}
-          className="fixed z-50 bg-[var(--surface)] border border-[var(--border)] flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 bottom-16 right-3 left-3 h-[65vh] max-h-[520px] rounded-2xl sm:bottom-24 sm:right-6 sm:left-auto sm:w-[380px] sm:h-[520px] sm:max-h-[calc(100vh-120px)] sm:rounded-2xl"
+          className="fixed z-50 bg-[var(--surface)] border border-[var(--border)] flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 bottom-16 right-3 left-3 h-[65vh] max-h-[520px] rounded-[16px] sm:bottom-24 sm:right-6 sm:left-auto sm:w-[380px] sm:h-[520px] sm:max-h-[calc(100vh-120px)] sm:rounded-[16px]"
           style={{ boxShadow: "0 24px 48px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.03) inset" }}
         >
           {/* Header */}
           <div className="border-b border-[var(--border)] px-4 py-3 flex items-center gap-3 relative">
             <div className="absolute bottom-0 left-4 right-4 h-px" style={{ background: "linear-gradient(90deg, transparent, rgb(var(--brand-rgb) / 0.1), transparent)" }} />
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgb(var(--brand-rgb) / 0.1)", border: "1px solid rgb(var(--brand-rgb) / 0.15)" }}>
+            <div className="w-9 h-9 rounded-[12px] flex items-center justify-center" style={{ background: "rgb(var(--brand-rgb) / 0.1)", border: "1px solid rgb(var(--brand-rgb) / 0.15)" }}>
               <Sparkles size={16} className="text-brand-500" />
             </div>
             <div className="flex-1 min-w-0">
@@ -248,7 +248,7 @@ export function AIChatWidget() {
                 onClick={clearChat}
                 disabled={loading}
                 title={locale === "th" ? "ล้างประวัติ" : locale === "ja" ? "履歴をクリア" : "Clear history"}
-                className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors disabled:opacity-30"
+                className="w-8 h-8 rounded-[8px] flex items-center justify-center transition-colors disabled:opacity-30"
                 style={{ color: "var(--text-subtle)" }}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--text-default)"; (e.currentTarget as HTMLElement).style.background = "var(--surface-hover)"; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--text-subtle)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
@@ -262,7 +262,7 @@ export function AIChatWidget() {
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.length === 0 && (
               <div className="text-center py-6">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: "rgb(var(--brand-rgb) / 0.08)", border: "1px solid rgb(var(--brand-rgb) / 0.1)" }}>
+                <div className="w-12 h-12 rounded-[16px] flex items-center justify-center mx-auto mb-3" style={{ background: "rgb(var(--brand-rgb) / 0.08)", border: "1px solid rgb(var(--brand-rgb) / 0.1)" }}>
                   <Sparkles size={20} className="text-brand-500" />
                 </div>
                 <p className="text-sm mb-4" style={{ color: "var(--text-muted)" }}>
@@ -273,7 +273,7 @@ export function AIChatWidget() {
                     <button
                       key={i}
                       onClick={() => sendMessage(s)}
-                      className="block w-full text-left text-xs border rounded-lg px-3 py-2.5 transition-all duration-200"
+                      className="block w-full text-left text-xs border rounded-[8px] px-3 py-2.5 transition-all duration-200"
                       style={{
                         background: "var(--surface-hover)",
                         borderColor: "var(--border)",
@@ -299,10 +299,10 @@ export function AIChatWidget() {
               <div
                 key={i}
                 className={cn(
-                  "max-w-[85%] text-sm rounded-2xl px-3.5 py-2.5",
+                  "max-w-[85%] text-sm rounded-[16px] px-3.5 py-2.5",
                   msg.role === "user"
-                    ? "ml-auto bg-brand-500 text-black rounded-br-md whitespace-pre-wrap"
-                    : "rounded-bl-md border ai-markdown"
+                    ? "ml-auto bg-brand-500 text-black rounded-br-[6px] whitespace-pre-wrap"
+                    : "rounded-bl-[6px] border ai-markdown"
                 )}
                 style={msg.role === "assistant" ? {
                   background: "var(--surface-hover)",
@@ -351,7 +351,7 @@ export function AIChatWidget() {
 
           {/* Input */}
           <div className="border-t border-[var(--border)] p-3">
-            <div className="flex items-center gap-2 rounded-xl px-3 py-2 border border-[var(--border)] transition-all duration-200 focus-within:border-brand-500/40" style={{ background: "var(--surface-hover)" }}>
+            <div className="flex items-center gap-2 rounded-[12px] px-3 py-2 border border-[var(--border)] transition-all duration-200 focus-within:border-brand-500/40" style={{ background: "var(--surface-hover)" }}>
               <input
                 ref={inputRef}
                 value={input}
@@ -365,7 +365,7 @@ export function AIChatWidget() {
               <button
                 onClick={send}
                 disabled={!input.trim() || loading}
-                className="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center text-black disabled:opacity-30 hover:bg-brand-400 transition-all duration-200"
+                className="w-8 h-8 rounded-[8px] bg-brand-500 flex items-center justify-center text-black disabled:opacity-30 hover:bg-brand-400 transition-all duration-200"
                 style={{ boxShadow: input.trim() && !loading ? "0 0 8px rgb(var(--brand-rgb) / 0.2)" : "none" }}
               >
                 <Send size={14} />

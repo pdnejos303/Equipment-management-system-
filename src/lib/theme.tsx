@@ -8,6 +8,7 @@ export type Theme =
   | "snow" | "latte" | "sakura" | "arctic";
 
 export type ThemeMode = "dark" | "light";
+export type ShapeMode = "rounded" | "square";
 
 export interface ThemeInfo {
   id: Theme;
@@ -42,40 +43,59 @@ export function getThemeMode(themeId: Theme): ThemeMode {
 interface ThemeContextType {
   theme: Theme;
   mode: ThemeMode;
+  shape: ShapeMode;
   setTheme: (t: Theme) => void;
+  setShape: (s: ShapeMode) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: "latte",
+  theme: "snow",
   mode: "light",
+  shape: "square",
   setTheme: () => {},
+  setShape: () => {},
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("latte");
+  const [theme, setThemeState] = useState<Theme>("snow");
+  const [shape, setShapeState] = useState<ShapeMode>("square");
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("equip-theme") as Theme | null;
-      if (saved && THEMES.some((t) => t.id === saved)) {
-        setThemeState(saved);
-        applyTheme(saved);
+      const savedTheme = localStorage.getItem("equip-theme-v2") as Theme | null;
+      if (savedTheme && THEMES.some((t) => t.id === savedTheme)) {
+        setThemeState(savedTheme);
+        applyTheme(savedTheme);
       } else {
-        applyTheme("latte");
+        applyTheme("snow");
+      }
+
+      const savedShape = localStorage.getItem("equip-shape-v2") as ShapeMode | null;
+      if (savedShape === "square" || savedShape === "rounded") {
+        setShapeState(savedShape);
+        applyShape(savedShape);
+      } else {
+        applyShape("square");
       }
     } catch {}
   }, []);
 
   const setTheme = (t: Theme) => {
     setThemeState(t);
-    try { localStorage.setItem("equip-theme", t); } catch {}
+    try { localStorage.setItem("equip-theme-v2", t); } catch {}
     applyTheme(t);
+  };
+
+  const setShape = (s: ShapeMode) => {
+    setShapeState(s);
+    try { localStorage.setItem("equip-shape-v2", s); } catch {}
+    applyShape(s);
   };
 
   const mode = getThemeMode(theme);
 
   return (
-    <ThemeContext.Provider value={{ theme, mode, setTheme }}>
+    <ThemeContext.Provider value={{ theme, mode, shape, setTheme, setShape }}>
       {children}
     </ThemeContext.Provider>
   );
@@ -90,6 +110,11 @@ function applyTheme(t: Theme) {
   el.style.colorScheme = m;
 }
 
+function applyShape(s: ShapeMode) {
+  document.documentElement.setAttribute("data-shape", s);
+}
+
 export function useTheme() {
   return useContext(ThemeContext);
 }
+

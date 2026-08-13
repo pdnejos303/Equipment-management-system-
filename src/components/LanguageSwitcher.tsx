@@ -6,7 +6,7 @@ import { useI18n, LOCALE_LABELS, LOCALE_FLAGS, type Locale } from "@/lib/i18n";
 import { ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const LOCALES: Locale[] = ["th", "en", "ja", "zh", "fr"];
+const LOCALES: Locale[] = ["th", "en", "ja"];
 
 export function LanguageSwitcher({ collapsed = false }: { collapsed?: boolean }) {
   const { locale, setLocale } = useI18n();

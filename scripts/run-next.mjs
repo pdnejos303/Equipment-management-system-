@@ -47,9 +47,13 @@ const port = await findFreePort();
 console.log(`[run-next] starting "next ${subcommand}" on port ${port}`);
 
 const nextBin = require.resolve("next/dist/bin/next");
+const nextArgs = [nextBin, subcommand];
+if (subcommand === "dev") nextArgs.push("--turbo");
+nextArgs.push("-p", String(port));
+
 const child = spawn(
   process.execPath,
-  [nextBin, subcommand, "-p", String(port)],
+  nextArgs,
   { stdio: "inherit" }
 );
 

@@ -37,6 +37,8 @@
   "exclude": [
     "node_modules",
     "prisma.config.ts",
-    "prisma/**/*.ts"
+    "prisma/**/*.ts",
+    "vitest.config.ts",
+    "vitest.setup.ts"
   ]
 }

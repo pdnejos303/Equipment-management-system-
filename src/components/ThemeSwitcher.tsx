@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { Palette } from "lucide-react";
 
 export function ThemeSwitcher({ collapsed }: { collapsed: boolean }) {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, shape, setShape } = useTheme();
   const { locale } = useI18n();
 
   const allThemes = [...DARK_THEMES, ...LIGHT_THEMES];
@@ -96,6 +96,37 @@ export function ThemeSwitcher({ collapsed }: { collapsed: boolean }) {
             </div>
           </button>
         ))}
+      </div>
+      
+      {/* Shape toggle row */}
+      <div className="pt-3 mt-3 border-t border-[var(--border-subtle)] space-y-2">
+        <p className="text-[10px] font-semibold text-[var(--text-subtle)] uppercase tracking-widest mb-1.5 flex items-center gap-1.5 px-2">
+          {locale === "th" ? "รูปร่าง (Shape)" : locale === "ja" ? "形状 (Shape)" : "Shape"}
+        </p>
+        <div className="flex gap-2 px-1">
+          <button
+            onClick={() => setShape("rounded")}
+            className={cn(
+              "flex-1 py-1.5 text-xs font-medium border transition-colors",
+              shape === "rounded"
+                ? "bg-brand-500/10 border-brand-500 text-brand-700 rounded-lg"
+                : "bg-[var(--surface)] border-[var(--border)] text-[var(--text-muted)] hover:bg-[var(--surface-hover)] rounded-lg"
+            )}
+          >
+            {locale === "th" ? "มน" : "Rounded"}
+          </button>
+          <button
+            onClick={() => setShape("square")}
+            className={cn(
+              "flex-1 py-1.5 text-xs font-medium border transition-colors rounded-none",
+              shape === "square"
+                ? "bg-brand-500/10 border-brand-500 text-brand-700"
+                : "bg-[var(--surface)] border-[var(--border)] text-[var(--text-muted)] hover:bg-[var(--surface-hover)]"
+            )}
+          >
+            {locale === "th" ? "เหลี่ยม" : "Square"}
+          </button>
+        </div>
       </div>
     </div>
   );

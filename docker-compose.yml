@@ -9,9 +9,6 @@ services:
         NEXT_PUBLIC_COMPANY_NAME: ${NEXT_PUBLIC_COMPANY_NAME:-Asset Management}
     container_name: equiptrack
     restart: unless-stopped
-    # ไม่ expose port ตรงสู่ภายนอกแล้ว — traffic ผ่าน Nginx เท่านั้น
-    expose:
-      - "3000"
 
     environment:
       # ── Database (SQLite — เก็บไฟล์บน volume /app/data) ──
@@ -53,8 +50,7 @@ services:
     container_name: equiptrack-nginx
     restart: unless-stopped
     ports:
-      - "80:80"    # HTTP → redirect ไป HTTPS
-      - "443:443"  # HTTPS
+      - "3003:80"    # Proxy to app
     volumes:
       # config files
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro

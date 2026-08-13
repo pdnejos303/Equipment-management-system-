@@ -4,25 +4,19 @@ import { createContext, useContext, useState, useEffect, useCallback } from "rea
 import th from "./locales/th";
 import en from "./locales/en";
 import ja from "./locales/ja";
-import zh from "./locales/zh";
-import fr from "./locales/fr";
 
-export type Locale = "th" | "en" | "ja" | "zh" | "fr";
+export type Locale = "th" | "en" | "ja";
 
 export const LOCALE_LABELS: Record<Locale, string> = {
   th: "ไทย",
   en: "English",
   ja: "日本語",
-  zh: "中文",
-  fr: "Français",
 };
 
 export const LOCALE_FLAGS: Record<Locale, string> = {
   th: "🇹🇭",
   en: "🇺🇸",
   ja: "🇯🇵",
-  zh: "🇨🇳",
-  fr: "🇫🇷",
 };
 
 // Key access helper — supports both nested objects and flat dotted keys.
@@ -44,7 +38,7 @@ function getNestedValue(obj: any, path: string): string {
   return walk(obj, 0) ?? path;
 }
 
-const translations: Record<Locale, Record<string, any>> = { th, en, ja, zh, fr };
+const translations: Record<Locale, Record<string, any>> = { th, en, ja };
 
 // ── Context ──
 
@@ -66,8 +60,6 @@ function detectBrowserLocale(): Locale {
     const code = lang.toLowerCase();
     if (code.startsWith("th")) return "th";
     if (code.startsWith("ja")) return "ja";
-    if (code.startsWith("zh")) return "zh";
-    if (code.startsWith("fr")) return "fr";
     if (code.startsWith("en")) return "en";
   }
   return "th";

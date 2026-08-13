@@ -60,13 +60,14 @@ const config: Config = {
         },
       },
       borderRadius: {
-        sm:    "6px",
-        DEFAULT: "8px",
-        md:    "10px",
-        lg:    "12px",
-        xl:    "16px",
-        "2xl": "20px",
-        "3xl": "24px",
+        sm: "var(--radius-sm)",
+        DEFAULT: "var(--radius-md)",
+        md: "var(--radius-md)",
+        lg: "var(--radius-lg)",
+        xl: "var(--radius-xl)",
+        "2xl": "var(--radius-2xl)",
+        "3xl": "var(--radius-3xl)",
+          full: "var(--radius-full)",
       },
       boxShadow: {
         sm:         "0 1px 2px rgba(0,0,0,0.3)",
@@ -232,3 +233,5 @@ const config: Config = {
   plugins: [],
 };
 export default config;
+
+

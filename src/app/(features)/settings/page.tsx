@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Globe, Palette, CheckCircle2, Moon, Sun, Columns3, RotateCcw, ChevronDown } from "lucide-react";
+import { Globe, Palette, CheckCircle2, Moon, Sun, Columns3, RotateCcw, ChevronDown, Square } from "lucide-react";
 import { useI18n, LOCALE_LABELS, LOCALE_FLAGS, type Locale } from "@/lib/i18n";
 import { useTheme, THEMES, type Theme, type ThemeInfo } from "@/lib/theme";
 import { useAssetColumns, ASSET_COLUMNS } from "@/lib/useAssetColumns";
@@ -12,11 +12,9 @@ const LOCALE_DESCRIPTIONS: Record<Locale, string> = {
   th: "ภาษาไทย",
   en: "English (US)",
   ja: "日本語",
-  zh: "简体中文",
-  fr: "Français",
 };
 
-const LOCALES: Locale[] = ["th", "en", "ja", "zh", "fr"];
+const LOCALES: Locale[] = ["th", "en", "ja"];
 
 function ThemeSwatch({ th_, size = 22 }: { th_: ThemeInfo; size?: number }) {
   return (
@@ -195,7 +193,7 @@ function ThemeDropdown({ value, onChange, locale, t }: {
 
 export default function SettingsPage() {
   const { locale, setLocale, t } = useI18n();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, shape, setShape } = useTheme();
   const { columns, toggle, reset } = useAssetColumns();
 
   return (
@@ -222,6 +220,36 @@ export default function SettingsPage() {
               <h2 className="text-sm font-semibold">{t("settings.theme")}</h2>
             </div>
             <ThemeDropdown value={theme} onChange={setTheme} locale={locale} t={t} />
+          </div>
+          <div className="pt-2 border-t border-[var(--border-subtle)] mt-2">
+            <div className="flex items-center gap-2 mb-2 mt-2">
+              <Square size={14} className="text-brand-500" />
+              <h2 className="text-sm font-semibold">{t("settings.shape") || "รูปร่าง (Shape)"}</h2>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShape("rounded")}
+                className={cn(
+                  "flex-1 py-2 text-sm font-medium border transition-colors",
+                  shape === "rounded"
+                    ? "bg-brand-500/10 border-brand-500 text-brand-700 rounded-lg"
+                    : "bg-[var(--surface)] border-[var(--border)] text-[var(--text-muted)] hover:bg-[var(--surface-hover)] rounded-lg"
+                )}
+              >
+                {locale === "th" ? "มน (Rounded)" : "Rounded"}
+              </button>
+              <button
+                onClick={() => setShape("square")}
+                className={cn(
+                  "flex-1 py-2 text-sm font-medium border transition-colors rounded-none",
+                  shape === "square"
+                    ? "bg-brand-500/10 border-brand-500 text-brand-700"
+                    : "bg-[var(--surface)] border-[var(--border)] text-[var(--text-muted)] hover:bg-[var(--surface-hover)]"
+                )}
+              >
+                {locale === "th" ? "เหลี่ยม (Square)" : "Square"}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -299,3 +327,4 @@ export default function SettingsPage() {
     </div>
   );
 }
+

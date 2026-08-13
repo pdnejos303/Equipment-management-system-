@@ -25,6 +25,7 @@ const PAGE_TITLES: Record<string, { th: string; en: string; ja: string }> = {
   "/migrate":     { th: "นำเข้าข้อมูล", en: "Migrate",     ja: "データ移行" },
   "/profile":     { th: "โปรไฟล์",      en: "Profile",     ja: "プロフィール" },
   "/settings":    { th: "การตั้งค่า",   en: "Settings",    ja: "設定" },
+  "/test-device": { th: "อุปกรณ์ทดสอบ", en: "Test Devices",ja: "テストデバイス" },
 };
 
 interface HeaderProps {

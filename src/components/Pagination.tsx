@@ -16,25 +16,34 @@ interface Props {
   total: number;
   pageSize?: number;
   paramKey?: string;
+  currentPage?: number;
+  onPageChange?: (page: number) => void;
 }
 
-export function Pagination({ total, pageSize = 20, paramKey = "page" }: Props) {
+export function Pagination({ total, pageSize = 20, paramKey = "page", currentPage: controlledPage, onPageChange }: Props) {
   const { t } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const currentPage = Math.min(
-    Math.max(1, Number(searchParams.get(paramKey) || 1)),
-    totalPages
-  );
+  
+  const currentPage = controlledPage !== undefined 
+    ? controlledPage 
+    : Math.min(
+        Math.max(1, Number(searchParams.get(paramKey) || 1)),
+        totalPages
+      );
 
   if (totalPages <= 1) return null;
 
   const goTo = (page: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set(paramKey, String(page));
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    if (onPageChange) {
+      onPageChange(page);
+    } else {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set(paramKey, String(page));
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    }
   };
 
   const start = (currentPage - 1) * pageSize + 1;

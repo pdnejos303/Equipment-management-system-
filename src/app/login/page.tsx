@@ -1,4 +1,3 @@
-// Path: src/app/login/page.tsx
 "use client";
 
 import { signIn } from "next-auth/react";
@@ -13,73 +12,25 @@ import {
   User,
   Eye,
   EyeOff,
-  Monitor,
-  Bell,
-  QrCode,
   ChevronRight,
   Loader2,
   Boxes,
-  ShieldCheck,
 } from "lucide-react";
 
-/* ── Skeleton redirect screen ── */
-function RedirectSkeleton() {
+function BrandMark() {
+  const { t } = useI18n();
   return (
-    <div className="w-full animate-fade-in space-y-6">
-      <div className="text-center space-y-3">
-        <div className="w-12 h-12 rounded-xl bg-brand-500/20 mx-auto animate-pulse" />
-        <div className="h-4 w-32 bg-[var(--surface-hover)] rounded mx-auto animate-pulse" />
+    <div className="flex flex-col items-center gap-3 text-center mb-8">
+      <div className="w-12 h-12 rounded-xl bg-brand-500 text-black flex items-center justify-center shadow-lg">
+        <Boxes size={24} strokeWidth={2.5} />
       </div>
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
-          {[...Array(4)].map((_, i) => (
-            <div
-              key={i}
-              className="h-16 rounded-xl bg-[var(--surface-hover)]/60 border border-[var(--border)] animate-pulse"
-              style={{ animationDelay: `${i * 100}ms` }}
-            />
-          ))}
-        </div>
-        <div className="h-32 rounded-xl bg-[var(--surface-hover)]/40 border border-[var(--border)] animate-pulse" style={{ animationDelay: "400ms" }} />
-      </div>
-    </div>
-  );
-}
-
-/* ── Brand mark (icon + wordmark) ── */
-function BrandMark({ size = "md" }: { size?: "sm" | "md" }) {
-  const dims =
-    size === "sm"
-      ? { box: "w-9 h-9", icon: 18, title: "text-base" }
-      : { box: "w-11 h-11", icon: 22, title: "text-xl" };
-
-  return (
-    <div className="flex items-center gap-2.5">
-      <div
-        className={`${dims.box} rounded-xl flex items-center justify-center relative`}
-        style={{
-          background:
-            "linear-gradient(135deg, rgb(var(--brand-rgb)) 0%, rgb(var(--brand-dark-rgb)) 100%)",
-          boxShadow:
-            "0 0 0 1px rgb(var(--brand-rgb) / 0.4) inset, 0 8px 24px -8px rgb(var(--brand-rgb) / 0.45)",
-        }}
-        aria-hidden="true"
-      >
-        <Boxes size={dims.icon} className="text-black" strokeWidth={2.25} />
-      </div>
-      <div className="flex flex-col leading-none">
-        <span
-          className={`${dims.title} font-bold tracking-tight`}
-          style={{ color: "var(--text-default)" }}
-        >
-          Asset Management
-        </span>
-        <span
-          className="text-[10px] font-medium uppercase tracking-[0.18em] mt-1.5"
-          style={{ color: "var(--text-subtle)" }}
-        >
-          Asset Platform
-        </span>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight text-white drop-shadow-md">
+          {t("app.title")}
+        </h1>
+        <p className="text-sm text-gray-300 mt-1 drop-shadow-sm">
+          {t("landing.heroTag")}
+        </p>
       </div>
     </div>
   );
@@ -93,7 +44,7 @@ function AuthForms() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [redirecting, setRedirecting] = useState(false);
+  
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/overview";
   const router = useRouter();
@@ -112,7 +63,6 @@ function AuthForms() {
       showError(t("login.error"));
       setLoading(false);
     } else if (result?.url) {
-      setRedirecting(true);
       router.push(callbackUrl);
     }
   };
@@ -158,64 +108,34 @@ function AuthForms() {
     setShowPassword(false);
   };
 
-  if (redirecting) return <RedirectSkeleton />;
-
   return (
-    <div className="w-full">
-      {/* Tab Switcher */}
-      <div
-        role="tablist"
-        aria-label="Authentication mode"
-        className="relative flex mb-5 rounded-xl p-1 border border-[var(--border)]"
-        style={{ background: "var(--surface-hover)" }}
-      >
-        <div
-          className="tab-indicator absolute top-1 bottom-1 bg-brand-500 rounded-lg"
-          aria-hidden="true"
-          style={{
-            width: "calc(50% - 4px)",
-            transform: mode === "login" ? "translateX(0)" : "translateX(calc(100% + 4px))",
-            boxShadow: "0 0 12px rgb(var(--brand-rgb) / 0.2)",
-          }}
-        />
+    <div className="w-full min-h-[480px] flex flex-col">
+      {/* Tabs */}
+      <div className="flex p-1 mb-6 bg-[var(--surface-hover)] rounded-lg">
         <button
-          role="tab"
-          id="login-tab"
-          aria-selected={mode === "login"}
-          aria-controls="login-panel"
           onClick={() => switchMode("login")}
-          className={`relative z-10 flex-1 py-2 text-sm font-semibold rounded-lg transition-colors duration-300 ${
-            mode === "login" ? "text-black" : "text-[var(--text-subtle)] hover:text-[var(--text-default)]"
+          className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${
+            mode === "login" ? "bg-[var(--surface)] text-[var(--text-default)] shadow-sm" : "text-[var(--text-muted)] hover:text-[var(--text-default)]"
           }`}
         >
           {t("login.tabLogin")}
         </button>
         <button
-          role="tab"
-          id="register-tab"
-          aria-selected={mode === "register"}
-          aria-controls="register-panel"
           onClick={() => switchMode("register")}
-          className={`relative z-10 flex-1 py-2 text-sm font-semibold rounded-lg transition-colors duration-300 ${
-            mode === "register" ? "text-black" : "text-[var(--text-subtle)] hover:text-[var(--text-default)]"
+          className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${
+            mode === "register" ? "bg-[var(--surface)] text-[var(--text-default)] shadow-sm" : "text-[var(--text-muted)] hover:text-[var(--text-default)]"
           }`}
         >
           {t("login.tabRegister")}
         </button>
       </div>
 
-      {/* Google Sign In */}
+      {/* Google Login */}
       <button
         onClick={() => signIn("google", { callbackUrl })}
-        className="w-full flex items-center justify-center gap-3 font-semibold py-2.5 px-4 rounded-xl active:scale-[0.99] transition-all duration-200 text-sm hover:border-[var(--border-strong)]"
-        style={{
-          background: "var(--surface-hover)",
-          border: "1px solid var(--border)",
-          color: "var(--text-default)",
-          boxShadow: "var(--shadow-sm)",
-        }}
+        className="w-full flex items-center justify-center gap-3 bg-[var(--surface)] border border-[var(--border)] hover:bg-[var(--surface-hover)] text-[var(--text-default)] py-2.5 rounded-lg text-sm font-medium transition-colors mb-6 shadow-sm"
       >
-        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" focusable="false">
+        <svg width="18" height="18" viewBox="0 0 18 18">
           <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" />
           <path fill="#34A853" d="M9.003 18c2.43 0 4.467-.806 5.956-2.18l-2.909-2.26c-.806.54-1.837.86-3.047.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9.003 18z" />
           <path fill="#FBBC05" d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71s.102-1.17.282-1.71V4.958H.957A8.997 8.997 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" />
@@ -224,546 +144,173 @@ function AuthForms() {
         {mode === "login" ? t("login.googleBtn") : t("login.googleRegBtn")}
       </button>
 
-      {/* Divider */}
-      <div className="flex items-center gap-4 my-4">
-        <div
-          className="flex-1 h-px"
-          style={{
-            background: "linear-gradient(90deg, transparent, var(--border), transparent)",
-          }}
-        />
-        <span
-          className="text-[10px] font-semibold uppercase tracking-[0.16em]"
-          style={{ color: "var(--text-subtle)" }}
-        >
-          {t("login.or")}
-        </span>
-        <div
-          className="flex-1 h-px"
-          style={{
-            background: "linear-gradient(90deg, transparent, var(--border), transparent)",
-          }}
-        />
+      <div className="flex items-center gap-3 mb-6">
+        <div className="flex-1 h-px bg-[var(--border)]"></div>
+        <span className="text-[11px] uppercase tracking-widest font-semibold text-[var(--text-subtle)]">{t("login.or")}</span>
+        <div className="flex-1 h-px bg-[var(--border)]"></div>
       </div>
 
-      {/* Login Form */}
-      {mode === "login" && (
-        <form id="login-panel" role="tabpanel" aria-labelledby="login-tab" onSubmit={handleLogin} className="space-y-3 animate-fade-in">
-          <div className="space-y-3">
-            <div>
-              <label htmlFor="login-email" className="block text-xs font-semibold mb-1.5 ml-1" style={{ color: "var(--text-muted)" }}>{t("login.email")}</label>
-              <div className="input-icon-wrapper">
-                <Mail size={16} className="input-icon" aria-hidden="true" />
-                <input
-                  id="login-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@company.com"
-                  required
-                  className="input !py-3 !rounded-xl !pl-10"
-                  autoComplete="email"
-                />
-              </div>
+      {mode === "login" ? (
+        <form onSubmit={handleLogin} className="space-y-4 animate-in fade-in">
+          <div>
+            <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 ml-1">{t("login.email")}</label>
+            <div className="relative">
+              <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@company.com"
+                className="w-full bg-[var(--surface)] border border-[var(--border)] text-[var(--text-default)] rounded-lg pl-10 pr-4 py-2.5 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all"
+              />
             </div>
-            <div>
-              <label htmlFor="login-password" className="block text-xs font-semibold mb-1.5 ml-1" style={{ color: "var(--text-muted)" }}>{t("login.password")}</label>
-              <div className="input-icon-wrapper relative">
-                <Lock size={16} className="input-icon" aria-hidden="true" />
-                <input
-                  id="login-password"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  className="input !py-3 !rounded-xl !pl-10 !pr-10"
-                  autoComplete="current-password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  aria-pressed={showPassword}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-colors duration-150"
-                  style={{ color: "var(--text-subtle)" }}
-                  onMouseEnter={(e) => { (e.target as HTMLElement).style.color = "var(--text-default)"; }}
-                  onMouseLeave={(e) => { (e.target as HTMLElement).style.color = "var(--text-subtle)"; }}
-                >
-                  {showPassword ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
-                </button>
-              </div>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 ml-1">{t("login.password")}</label>
+            <div className="relative">
+              <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full bg-[var(--surface)] border border-[var(--border)] text-[var(--text-default)] rounded-lg pl-10 pr-10 py-2.5 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-default)] transition-colors"
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
             </div>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="btn-primary w-full !py-3 !rounded-xl !text-sm disabled:opacity-50 flex items-center justify-center gap-2 group"
+            className="w-full bg-[var(--text-default)] hover:opacity-90 text-background py-2.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 mt-2"
           >
-            {loading ? (
-              <span className="flex items-center gap-2">
-                <Loader2 size={16} className="animate-spin" />
-                {t("login.submitting")}
-              </span>
-            ) : (
-              <>
-                {t("login.submit")}
-                <ChevronRight
-                  size={16}
-                  className="transition-transform duration-200 group-hover:translate-x-0.5"
-                />
-              </>
-            )}
+            {loading ? <Loader2 size={16} className="animate-spin" /> : t("login.submit")}
           </button>
-
-          {/* Demo credentials hint */}
-          <div
-            className="mt-2 flex items-center gap-2 rounded-lg px-3 py-2 border"
-            style={{
-              borderColor: "var(--border)",
-              background:
-                "linear-gradient(180deg, var(--surface-hover) 0%, transparent 100%)",
-            }}
-          >
-            <span
-              className="inline-block w-1.5 h-1.5 rounded-full bg-brand-500 flex-shrink-0"
-              style={{ boxShadow: "0 0 8px rgb(var(--brand-rgb) / 0.7)" }}
-              aria-hidden="true"
-            />
-            <span
-              className="text-[11px] font-mono tracking-wide"
-              style={{ color: "var(--text-subtle)" }}
-            >
-              {t("login.demo")}
-            </span>
+          
+          <div className="text-center">
+            <span className="text-[11px] text-[var(--text-subtle)] font-mono">{t("login.demo")}</span>
           </div>
-
-          <p className="text-center text-sm mt-3" style={{ color: "var(--text-muted)" }}>
-            {t("login.noAccount")}{" "}
-            <button
-              type="button"
-              onClick={() => switchMode("register")}
-              className="text-brand-500 font-semibold hover:text-brand-400 transition"
-            >
-              {t("login.switchRegister")}
-            </button>
-          </p>
         </form>
-      )}
-
-      {/* Register Form */}
-      {mode === "register" && (
-        <form id="register-panel" role="tabpanel" aria-labelledby="register-tab" onSubmit={handleRegister} className="space-y-3 animate-fade-in">
-          <div className="space-y-3">
-            <div>
-              <label htmlFor="register-name" className="block text-xs font-semibold mb-1.5 ml-1" style={{ color: "var(--text-muted)" }}>{t("login.name")}</label>
-              <div className="input-icon-wrapper">
-                <User size={16} className="input-icon" aria-hidden="true" />
-                <input
-                  id="register-name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="John Doe"
-                  required
-                  className="input !py-3 !rounded-xl !pl-10"
-                  autoComplete="name"
-                />
-              </div>
+      ) : (
+        <form onSubmit={handleRegister} className="space-y-4 animate-in fade-in">
+          <div>
+            <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 ml-1">{t("login.name")}</label>
+            <div className="relative">
+              <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+              <input
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="John Doe"
+                className="w-full bg-[var(--surface)] border border-[var(--border)] text-[var(--text-default)] rounded-lg pl-10 pr-4 py-2.5 text-sm focus:border-brand-500 outline-none transition-all"
+              />
             </div>
-            <div>
-              <label htmlFor="register-email" className="block text-xs font-semibold mb-1.5 ml-1" style={{ color: "var(--text-muted)" }}>{t("login.email")}</label>
-              <div className="input-icon-wrapper">
-                <Mail size={16} className="input-icon" aria-hidden="true" />
-                <input
-                  id="register-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@company.com"
-                  required
-                  className="input !py-3 !rounded-xl !pl-10"
-                  autoComplete="email"
-                />
-              </div>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 ml-1">{t("login.email")}</label>
+            <div className="relative">
+              <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@company.com"
+                className="w-full bg-[var(--surface)] border border-[var(--border)] text-[var(--text-default)] rounded-lg pl-10 pr-4 py-2.5 text-sm focus:border-brand-500 outline-none transition-all"
+              />
             </div>
-            <div>
-              <label htmlFor="register-password" className="block text-xs font-semibold mb-1.5 ml-1" style={{ color: "var(--text-muted)" }}>{t("login.password")}</label>
-              <div className="input-icon-wrapper relative">
-                <Lock size={16} className="input-icon" aria-hidden="true" />
-                <input
-                  id="register-password"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  minLength={6}
-                  className="input !py-3 !rounded-xl !pl-10 !pr-10"
-                  autoComplete="new-password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  aria-pressed={showPassword}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-colors duration-150"
-                  style={{ color: "var(--text-subtle)" }}
-                  onMouseEnter={(e) => { (e.target as HTMLElement).style.color = "var(--text-default)"; }}
-                  onMouseLeave={(e) => { (e.target as HTMLElement).style.color = "var(--text-subtle)"; }}
-                >
-                  {showPassword ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
-                </button>
-              </div>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 ml-1">{t("login.password")}</label>
+            <div className="relative">
+              <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full bg-[var(--surface)] border border-[var(--border)] text-[var(--text-default)] rounded-lg pl-10 pr-10 py-2.5 text-sm focus:border-brand-500 outline-none transition-all"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-default)]"
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
             </div>
-            <div>
-              <label htmlFor="register-confirm-password" className="block text-xs font-semibold mb-1.5 ml-1" style={{ color: "var(--text-muted)" }}>{t("login.confirmPassword")}</label>
-              <div className="input-icon-wrapper">
-                <Lock size={16} className="input-icon" aria-hidden="true" />
-                <input
-                  id="register-confirm-password"
-                  type={showPassword ? "text" : "password"}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  minLength={6}
-                  className="input !py-3 !rounded-xl !pl-10"
-                  autoComplete="new-password"
-                />
-              </div>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 ml-1">{t("login.confirmPassword")}</label>
+            <div className="relative">
+              <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                minLength={6}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full bg-[var(--surface)] border border-[var(--border)] text-[var(--text-default)] rounded-lg pl-10 pr-4 py-2.5 text-sm focus:border-brand-500 outline-none transition-all"
+              />
             </div>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="btn-primary w-full !py-3 !rounded-xl !text-sm disabled:opacity-50 flex items-center justify-center gap-2 group"
+            className="w-full bg-[var(--text-default)] hover:opacity-90 text-background py-2.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 mt-2"
           >
-            {loading ? (
-              <span className="flex items-center gap-2">
-                <Loader2 size={16} className="animate-spin" />
-                {t("login.registering")}
-              </span>
-            ) : (
-              <>
-                {t("login.registerBtn")}
-                <ChevronRight
-                  size={16}
-                  className="transition-transform duration-200 group-hover:translate-x-0.5"
-                />
-              </>
-            )}
+            {loading ? <Loader2 size={16} className="animate-spin" /> : t("login.registerBtn")}
           </button>
-
-          <p className="text-center text-sm mt-3" style={{ color: "var(--text-muted)" }}>
-            {t("login.hasAccount")}{" "}
-            <button
-              type="button"
-              onClick={() => switchMode("login")}
-              className="text-brand-500 font-semibold hover:text-brand-400 transition"
-            >
-              {t("login.switchLogin")}
-            </button>
-          </p>
         </form>
       )}
-    </div>
-  );
-}
-
-function FeaturePanel() {
-  const { t } = useI18n();
-
-  const features = [
-    { icon: Monitor, text: t("login.feature1") },
-    { icon: Bell, text: t("login.feature2") },
-    { icon: QrCode, text: t("login.feature3") },
-  ];
-
-  return (
-    <div className="hidden lg:flex flex-col justify-between p-10 xl:p-14 relative overflow-hidden w-full">
-      {/* Background layers */}
-      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        {/* Grid with radial mask */}
-        <div
-          className="absolute inset-0"
-          style={{
-            opacity: 0.04,
-            backgroundImage: `
-              linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)
-            `,
-            backgroundSize: "56px 56px",
-            maskImage:
-              "radial-gradient(ellipse at 40% 35%, black 0%, transparent 75%)",
-            WebkitMaskImage:
-              "radial-gradient(ellipse at 40% 35%, black 0%, transparent 75%)",
-          }}
-        />
-        {/* Top-right glow */}
-        <div
-          className="absolute"
-          style={{
-            top: "-10%",
-            right: "-20%",
-            width: "70%",
-            height: "70%",
-            background:
-              "radial-gradient(circle at center, rgb(var(--brand-rgb) / 0.10) 0%, transparent 65%)",
-            filter: "blur(60px)",
-          }}
-        />
-        {/* Bottom-left subtle glow */}
-        <div
-          className="absolute"
-          style={{
-            bottom: "-20%",
-            left: "-10%",
-            width: "55%",
-            height: "55%",
-            background:
-              "radial-gradient(circle at center, rgb(var(--brand-rgb) / 0.04) 0%, transparent 70%)",
-            filter: "blur(80px)",
-          }}
-        />
-      </div>
-
-      {/* Top: brand */}
-      <div className="relative z-10">
-        <BrandMark size="md" />
-      </div>
-
-      {/* Middle: hero copy + features */}
-      <div className="relative z-10 max-w-md">
-        {/* Eyebrow */}
-        <div className="flex items-center gap-2 mb-5">
-          <span
-            className="h-px w-8"
-            style={{ background: "rgb(var(--brand-rgb) / 0.6)" }}
-          />
-          <span
-            className="text-[10px] font-semibold uppercase tracking-[0.22em]"
-            style={{ color: "var(--brand)" }}
-          >
-            Equipment Platform
-          </span>
-        </div>
-
-        {/* Welcome */}
-        <h2
-          className="text-[2.25rem] xl:text-[2.75rem] font-bold leading-[1.05] tracking-tight"
-          style={{ color: "var(--text-default)" }}
-        >
-          {t("login.welcome")}
-          <br />
-          <span
-            className="inline-block bg-clip-text text-transparent mt-1"
-            style={{
-              backgroundImage:
-                "linear-gradient(120deg, rgb(var(--brand-light-rgb)) 0%, rgb(var(--brand-rgb)) 50%, rgb(var(--brand-dark-rgb)) 100%)",
-            }}
-          >
-            Asset Management
-          </span>
-        </h2>
-        <p
-          className="mt-4 text-[15px] leading-relaxed max-w-sm"
-          style={{ color: "var(--text-muted)" }}
-        >
-          {t("login.welcomeSub")}
-        </p>
-
-        {/* Feature list */}
-        <ul className="mt-8 space-y-3">
-          {features.map((f, i) => (
-            <li
-              key={i}
-              className="flex items-center gap-3 group"
-              style={{
-                animation: `fade-in 0.5s ease-out ${i * 80 + 100}ms both`,
-              }}
-            >
-              <span
-                className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 border transition-colors duration-200 group-hover:border-[rgb(var(--brand-rgb)/0.35)]"
-                style={{
-                  background: "rgb(var(--brand-rgb) / 0.06)",
-                  borderColor: "rgb(var(--brand-rgb) / 0.15)",
-                }}
-              >
-                <f.icon size={15} className="text-brand-500" strokeWidth={2.25} />
-              </span>
-              <span
-                className="text-sm leading-snug transition-colors duration-200 group-hover:text-[var(--text-default)]"
-                style={{ color: "var(--text-muted)" }}
-              >
-                {f.text}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Bottom: metric strip + live status */}
-      <div className="relative z-10">
-        <div
-          className="grid grid-cols-3 gap-px rounded-xl overflow-hidden border"
-          style={{
-            borderColor: "var(--border)",
-            background: "var(--border)",
-          }}
-        >
-          {[
-            { value: "99.9%", label: "Uptime" },
-            { value: "256-bit", label: "Encryption" },
-            { value: "24/7", label: "Monitoring" },
-          ].map((m, i) => (
-            <div
-              key={i}
-              className="px-4 py-3"
-              style={{ background: "var(--surface)" }}
-            >
-              <div
-                className="text-base font-bold tracking-tight"
-                style={{ color: "var(--text-default)" }}
-              >
-                {m.value}
-              </div>
-              <div
-                className="text-[10px] font-semibold uppercase tracking-[0.12em] mt-0.5"
-                style={{ color: "var(--text-subtle)" }}
-              >
-                {m.label}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-4 flex items-center justify-between text-[11px]">
-          <div className="flex items-center gap-2">
-            <span className="relative flex items-center justify-center">
-              <span
-                className="absolute inline-flex h-2 w-2 rounded-full opacity-60 animate-ping"
-                style={{ background: "#34d399" }}
-              />
-              <span
-                className="relative inline-block w-1.5 h-1.5 rounded-full"
-                style={{ background: "#34d399" }}
-              />
-            </span>
-            <span
-              className="font-medium"
-              style={{ color: "var(--text-muted)" }}
-            >
-              All systems operational
-            </span>
-          </div>
-          <span style={{ color: "var(--text-subtle)" }}>
-            v2.0 · Internal
-          </span>
-        </div>
-      </div>
     </div>
   );
 }
 
 export default function LoginPage() {
+  const { t } = useI18n();
   return (
-    <div className="min-h-screen flex bg-background relative overflow-hidden">
-      {/* Mobile ambient glow */}
-      <div
-        className="absolute inset-0 pointer-events-none lg:hidden"
-        aria-hidden="true"
-      >
-        <div
-          className="absolute"
-          style={{
-            top: "-15%",
-            right: "-25%",
-            width: "70%",
-            height: "60%",
-            background:
-              "radial-gradient(circle at center, rgb(var(--brand-rgb) / 0.08) 0%, transparent 65%)",
-            filter: "blur(60px)",
-          }}
-        />
+    <div className="min-h-screen flex flex-col justify-center items-center p-4 relative overflow-hidden">
+      {/* Background Image */}
+      <div 
+        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transition-transform duration-[20s] ease-out scale-105"
+        style={{ backgroundImage: "url('/loginBG.jpg')" }}
+      />
+      {/* Semi-transparent dark overlay with blur */}
+      <div className="absolute inset-0 z-0 bg-black/50 backdrop-blur-sm" />
+
+      {/* Language Switcher */}
+      <div className="absolute top-4 right-4 z-10 opacity-90 hover:opacity-100 transition-opacity">
+        <LanguageSwitcher />
       </div>
 
-      {/* Left panel — features (desktop only) */}
-      <div className="hidden lg:flex lg:w-[55%] xl:w-[55%] border-r border-[var(--border)]/60 relative">
-        <Suspense fallback={null}>
-          <FeaturePanel />
-        </Suspense>
-      </div>
-
-      {/* Right panel — form */}
-      <div className="flex-1 flex items-center justify-center p-5 sm:p-6 relative">
-        <div className="w-full max-w-[420px] animate-fade-in-up">
-          {/* Mobile logo */}
-          <div className="lg:hidden flex justify-center mb-5">
-            <BrandMark size="sm" />
-          </div>
-
-          {/* Form card */}
-          <div
-            className="card !rounded-2xl p-5 sm:p-7 relative overflow-hidden"
-            style={{ boxShadow: "var(--shadow-lg)" }}
-          >
-            {/* Top accent line */}
-            <div
-              className="absolute top-0 left-6 right-6 h-px"
-              style={{
-                background:
-                  "linear-gradient(90deg, transparent, rgb(var(--brand-rgb) / 0.45), transparent)",
-              }}
-            />
-
-            {/* Header row: title + lang switcher */}
-            <div className="flex items-start justify-between gap-3 mb-5">
-              <div className="min-w-0">
-                <h3
-                  className="text-lg font-semibold tracking-tight"
-                  style={{ color: "var(--text-default)" }}
-                >
-                  Sign in to your account
-                </h3>
-                <p
-                  className="text-xs mt-0.5"
-                  style={{ color: "var(--text-subtle)" }}
-                >
-                  Use Google or email · ใช้ Google หรืออีเมล
-                </p>
-              </div>
-              <LanguageSwitcher />
-            </div>
-
-            <Suspense
-              fallback={
-                <div
-                  className="text-center py-12"
-                  style={{ color: "var(--text-subtle)" }}
-                >
-                  ...
-                </div>
-              }
-            >
-              <AuthForms />
-            </Suspense>
-          </div>
-
-          {/* Footer */}
-          <div className="mt-5 flex items-center justify-center gap-2 text-[11px]">
-            <ShieldCheck
-              size={12}
-              style={{ color: "var(--text-subtle)" }}
-              aria-hidden="true"
-            />
-            <span style={{ color: "var(--text-subtle)" }}>
-              Secured by NextAuth · Asset Management v2.0
-            </span>
-          </div>
+      {/* Main Content */}
+      <div className="w-full max-w-[400px] sm:max-w-[460px] animate-in fade-in slide-in-from-bottom-8 duration-700 z-10 mt-8">
+        <BrandMark />
+        
+        <div className="bg-[var(--surface)] border border-[var(--border)] p-6 sm:p-8 rounded-2xl shadow-2xl relative overflow-hidden">
+          <Suspense fallback={<div className="h-[300px] flex items-center justify-center"><Loader2 className="animate-spin text-brand-500" /></div>}>
+            <AuthForms />
+          </Suspense>
         </div>
+
+        <p className="text-center text-[11px] text-white/60 mt-8 drop-shadow-md">
+          Secured by NextAuth · © {new Date().getFullYear()} {t("app.title")}
+        </p>
       </div>
     </div>
   );
