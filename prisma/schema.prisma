@@ -93,7 +93,7 @@ model Asset {
   name           String
   brand          String?
   model          String?
-  serialNumber   String?  @unique
+  serialNumber   String?
   category       String   // LAPTOP, MONITOR, VEHICLE, etc.
   status         String   @default("AVAILABLE") // ACTIVE, AVAILABLE, MAINTENANCE, RETIRED
   purchaseDate   DateTime
