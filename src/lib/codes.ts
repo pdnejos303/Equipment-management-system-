@@ -49,14 +49,16 @@ export function getAssetURL(assetCode: string): string {
   
   if (typeof window !== "undefined") {
     const origin = window.location.origin;
-    // If user is viewing on localhost, force it to use LAN IP so QR works on mobile
-    if (origin.includes("localhost")) {
-      return `${envUrl || "http://192.168.1.88:3003"}/asset/${assetCode}`;
+    // If envUrl is set, we use it to allow forcing a specific domain for QR codes
+    // (e.g. forcing a local IP address even if viewing on localhost)
+    // If not, we dynamically use the current browser's origin.
+    if (envUrl && envUrl !== "http://localhost:3000" && envUrl !== "http://localhost:3003") {
+        return `${envUrl}/asset/${assetCode}`;
     }
     return `${origin}/asset/${assetCode}`;
   }
   
-  return `${envUrl || "http://192.168.1.88:3003"}/asset/${assetCode}`;
+  return `${envUrl || "http://localhost:3003"}/asset/${assetCode}`;
 }
 
 /**
