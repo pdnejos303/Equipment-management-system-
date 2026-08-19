@@ -210,12 +210,13 @@ model Booking {
 model TestDeviceLog {
   id         String   @id @default(cuid())
   assetId    String
-  userId     String
+  userId     String?
+  guestName  String?
   borrowedAt DateTime @default(now())
   returnedAt DateTime?
 
   asset      Asset    @relation(fields: [assetId], references: [id])
-  user       User     @relation(fields: [userId], references: [id])
+  user       User?    @relation(fields: [userId], references: [id])
 
   @@index([assetId])
   @@index([userId])

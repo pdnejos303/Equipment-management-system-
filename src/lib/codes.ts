@@ -45,12 +45,18 @@ export async function generateQRSVG(text: string): Promise<string> {
  * Server:  fallback ไปที่ env var (สำหรับ SSR/print PDF ในอนาคต)
  */
 export function getAssetURL(assetCode: string): string {
+  const envUrl = process.env.NEXT_PUBLIC_APP_URL;
+  
   if (typeof window !== "undefined") {
-    return `${window.location.origin}/asset/${assetCode}`;
+    const origin = window.location.origin;
+    // If user is viewing on localhost, force it to use LAN IP so QR works on mobile
+    if (origin.includes("localhost")) {
+      return `${envUrl || "http://192.168.1.88:3003"}/asset/${assetCode}`;
+    }
+    return `${origin}/asset/${assetCode}`;
   }
-  const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  return `${baseUrl}/asset/${assetCode}`;
+  
+  return `${envUrl || "http://192.168.1.88:3003"}/asset/${assetCode}`;
 }
 
 /**

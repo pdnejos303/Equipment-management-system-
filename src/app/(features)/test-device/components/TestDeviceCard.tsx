@@ -4,6 +4,7 @@
 import { Laptop, Clock, Trash2, Edit2, Save, X, User as UserIcon } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useState } from "react";
+import { TestDeviceAction } from "./TestDeviceAction";
 
 export default function TestDeviceCard({
   device,
@@ -13,8 +14,7 @@ export default function TestDeviceCard({
   toggleSelection,
   handleRemoveDevice,
   handleSaveNote,
-  handleBorrow,
-  handleReturn,
+  onActionComplete,
 }: {
   device: any;
   currentUser: any;
@@ -23,8 +23,7 @@ export default function TestDeviceCard({
   toggleSelection: (id: string, forceSelect?: boolean) => void;
   handleRemoveDevice: (id: string) => Promise<void>;
   handleSaveNote: (id: string, note: string) => Promise<void>;
-  handleBorrow: (id: string) => Promise<void>;
-  handleReturn: (id: string) => Promise<void>;
+  onActionComplete: () => Promise<void>;
 }) {
   const { t } = useI18n();
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
@@ -34,7 +33,7 @@ export default function TestDeviceCard({
   const currentLog = isBorrowed ? device.testDeviceLogs[0] : null;
   const isMyBorrow = currentLog?.userId === currentUser.id;
   const isAdmin = currentUser.role === "ADMIN";
-  const isSelectable = !isBorrowed || isMyBorrow || isAdmin;
+  const isSelectable = !isBorrowed || isMyBorrow || isAdmin || !currentLog?.userId;
 
   const onSaveNote = async () => {
     await handleSaveNote(device.id, editNoteValue);
@@ -73,7 +72,7 @@ export default function TestDeviceCard({
             <span className="px-3 py-1 bg-amber-500 text-white text-xs font-bold rounded-xl shadow-sm flex items-center gap-1.5 backdrop-blur-sm max-w-full">
               <Clock size={12} className="shrink-0" />
               <span className="truncate block">
-                {t("testDeviceFeat.borrowed")} ({currentLog?.user?.name || currentLog?.user?.email || t("testDeviceFeat.someone")})
+                {t("testDeviceFeat.borrowed")} ({currentLog?.guestName || currentLog?.user?.name || currentLog?.user?.email || t("testDeviceFeat.someone")})
               </span>
             </span>
           ) : (
@@ -141,30 +140,12 @@ export default function TestDeviceCard({
         {/* Removed amber box based on user feedback */}
 
         <div className="mt-auto pt-2">
-          {!isBorrowed ? (
-            <button
-              disabled={loadingId === device.id}
-              onClick={() => handleBorrow(device.id)}
-              className="w-full py-2.5 bg-brand-500 hover:bg-brand-600 text-white rounded-xl font-medium transition-colors flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-            >
-              {loadingId === device.id ? t("testDeviceFeat.processing") : t("testDeviceFeat.borrowNow")}
-            </button>
-          ) : (isMyBorrow || isAdmin) ? (
-            <button
-              disabled={loadingId === device.id}
-              onClick={() => handleReturn(device.id)}
-              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium transition-colors shadow-[0_0_15px_rgba(5,150,105,0.3)] flex justify-center items-center gap-2 disabled:opacity-70"
-            >
-              {loadingId === device.id ? t("testDeviceFeat.processing") : t("testDeviceFeat.returnDevice")}
-            </button>
-          ) : (
-            <button
-              disabled
-              className="w-full py-2.5 bg-gray-200 text-[var(--text-subtle)] rounded-xl font-medium cursor-not-allowed flex justify-center items-center px-2"
-            >
-              {t("testDeviceFeat.borrowedByOthers")}
-            </button>
-          )}
+          <TestDeviceAction 
+            assetId={device.id} 
+            testDeviceLogs={device.testDeviceLogs}
+            showBorrowedBadge={false}
+            onActionComplete={onActionComplete}
+          />
         </div>
       </div>
     </div>

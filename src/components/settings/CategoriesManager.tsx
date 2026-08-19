@@ -202,7 +202,7 @@ function CategoryEditor({
           onClick={save}
           disabled={saving}
           className="p-1.5 rounded-md bg-brand-500 text-black hover:bg-brand-400 transition disabled:opacity-50"
-          aria-label="Save"
+          aria-label={t("forms.save") || "Save"}
         >
           <Check size={14} />
         </button>
@@ -210,7 +210,7 @@ function CategoryEditor({
           onClick={onCancel}
           disabled={saving}
           className="p-1.5 rounded-md border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-default)] hover:bg-[var(--surface-hover)] transition"
-          aria-label="Cancel"
+          aria-label={t("forms.cancel") || "Cancel"}
         >
           <X size={14} />
         </button>

@@ -123,10 +123,13 @@ export async function updateTestDeviceNote(rawAssetId: string, rawNote: string) 
   });
 }
 
-export async function borrowDevice(rawAssetId: string) {
+export async function borrowDevice(rawAssetId: string, guestName?: string) {
   const assetId = AssetIdSchema.parse(rawAssetId);
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id) throw new Error("testDeviceFeat.errUnauthorized");
+  
+  if (!session?.user?.id && !guestName) {
+    throw new Error("testDeviceFeat.errUnauthorized");
+  }
 
   // Check if it's already borrowed
   const existingLog = await prisma.testDeviceLog.findFirst({
@@ -139,7 +142,8 @@ export async function borrowDevice(rawAssetId: string) {
     prisma.testDeviceLog.create({
       data: {
         assetId,
-        userId: session.user.id,
+        userId: session?.user?.id || null,
+        guestName: guestName || null,
       },
     }),
     prisma.asset.update({
@@ -152,15 +156,21 @@ export async function borrowDevice(rawAssetId: string) {
 export async function returnDevice(rawAssetId: string) {
   const assetId = AssetIdSchema.parse(rawAssetId);
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id) throw new Error("testDeviceFeat.errUnauthorized");
-
+  
   const log = await prisma.testDeviceLog.findFirst({
     where: { assetId, returnedAt: null },
   });
 
   if (!log) throw new Error("testDeviceFeat.errNotBorrowed");
-  const isAdmin = (session.user as any).role === "ADMIN";
-  if (!isAdmin && log.userId !== session.user.id) throw new Error("testDeviceFeat.errReturnOnlyYours");
+  
+  // If borrowed by a logged-in user, only that user or an admin can return it
+  if (log.userId) {
+    if (!session?.user?.id) throw new Error("testDeviceFeat.errUnauthorized");
+    const isAdmin = (session.user as any).role === "ADMIN";
+    if (!isAdmin && log.userId !== session.user.id) {
+      throw new Error("testDeviceFeat.errReturnOnlyYours");
+    }
+  }
 
   await prisma.$transaction([
     prisma.testDeviceLog.update({
@@ -234,7 +244,7 @@ export async function returnMultipleDevices(rawAssetIds: string[]) {
   if (logs.length === 0) return;
 
   const isAdmin = (session.user as any).role === "ADMIN";
-  const userLogs = isAdmin ? logs : logs.filter(l => l.userId === session.user.id);
+  const userLogs = isAdmin ? logs : logs.filter(l => l.userId === session.user.id || !l.userId);
   if (userLogs.length === 0) throw new Error("testDeviceFeat.errReturnOnlyYours");
 
   const logIds = userLogs.map(l => l.id);

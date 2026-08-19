@@ -84,6 +84,8 @@ function buildFilters(url: URL) {
   const status = url.searchParams.get("status") || "";
   const location = url.searchParams.get("location") || "";
   const asOfRaw = url.searchParams.get("asOf") || "";
+  const startDate = url.searchParams.get("startDate") || "";
+  const endDate = url.searchParams.get("endDate") || "";
 
   let asOf: Date = new Date();
   if (asOfRaw) {
@@ -98,9 +100,29 @@ function buildFilters(url: URL) {
   if (category) where.category = category;
   if (status) where.status = status;
   if (location) where.location = { contains: location };
-  if (asOfRaw) where.purchaseDate = { lte: asOf };
 
-  return { where, asOf, asOfRaw, hasFilters: !!(category || status || location || asOfRaw) };
+  if (startDate || endDate) {
+    where.purchaseDate = {};
+    if (startDate) {
+      const s = new Date(startDate);
+      s.setHours(0, 0, 0, 0);
+      where.purchaseDate.gte = s;
+    }
+    if (endDate) {
+      const e = new Date(endDate);
+      e.setHours(23, 59, 59, 999);
+      where.purchaseDate.lte = e;
+    }
+  } else if (asOfRaw) {
+    where.purchaseDate = { lte: asOf };
+  }
+
+  return { 
+    where, 
+    asOf, 
+    asOfRaw, 
+    hasFilters: !!(category || status || location || asOfRaw || startDate || endDate) 
+  };
 }
 
 export async function GET(req: NextRequest) {
@@ -156,7 +178,6 @@ export async function GET(req: NextRequest) {
     }
 
     // CSV with BOM for Excel support
-    const BOM = "\uFEFF";
     const headers = Object.keys(rows[0] || {});
     const csvLines = [
       headers.join(","),
@@ -173,11 +194,16 @@ export async function GET(req: NextRequest) {
       ),
     ];
 
-    const csv = BOM + csvLines.join("\n");
+    const csvContent = csvLines.join("\n");
+    const buffer = Buffer.concat([
+      Buffer.from([0xef, 0xbb, 0xbf]),
+      Buffer.from(csvContent, "utf8")
+    ]);
+
     const stamp = asOfRaw ? format(asOf, "yyyyMMdd") : format(new Date(), "yyyyMMdd");
     const filename = `equipment_${stamp}.csv`;
 
-    return new NextResponse(csv, {
+    return new NextResponse(buffer, {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
         "Content-Disposition": `attachment; filename="${filename}"`,

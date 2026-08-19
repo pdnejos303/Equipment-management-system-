@@ -2,6 +2,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Noto_Sans_Thai } from "next/font/google";
 import { Providers } from "@/components/Providers";
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import NextTopLoader from "nextjs-toploader";
 import "./globals.css";
 
@@ -27,6 +28,7 @@ export const metadata: Metadata = {
   },
   description:
     "ระบบจัดการอุปกรณ์สำหรับธุรกิจขนาดเล็ก · Equipment management system for small business · 中小企業向け機器管理システム",
+  manifest: "/manifest.json",
   robots: { index: false, follow: false },
 };
 
@@ -64,7 +66,10 @@ export default function RootLayout({
           speed={200}
           shadow="0 0 8px #f59e0b, 0 0 4px #f59e0baa"
         />
-        <Providers>{children}</Providers>
+        <Providers>
+          <ServiceWorkerRegister />
+          {children}
+        </Providers>
       </body>
     </html>
   );

@@ -83,6 +83,35 @@ export async function showPasswordPrompt({
   return result.isConfirmed && typeof result.value === "string" ? result.value : null;
 }
 
+/** text input prompt — returns the entered text or null if cancelled */
+export async function showInputPrompt({
+  title,
+  text,
+  placeholder = "Enter text...",
+  confirmText = "Confirm",
+  cancelText = "Cancel",
+}: {
+  title: string;
+  text?: string;
+  placeholder?: string;
+  confirmText?: string;
+  cancelText?: string;
+}): Promise<string | null> {
+  const result = await swal.fire({
+    icon: "info",
+    title,
+    text,
+    input: "text",
+    inputPlaceholder: placeholder,
+    showCancelButton: true,
+    confirmButtonText: confirmText,
+    cancelButtonText: cancelText,
+    reverseButtons: true,
+    inputValidator: (value) => (!value ? " " : null),
+  });
+  return result.isConfirmed && typeof result.value === "string" ? result.value : null;
+}
+
 /** confirm dialog — return true if confirmed */
 export async function showConfirm({
   title,

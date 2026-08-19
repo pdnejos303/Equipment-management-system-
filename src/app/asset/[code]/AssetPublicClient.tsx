@@ -6,9 +6,12 @@ import { useCategories } from "@/lib/useCategories";
 import { formatDate, formatMoney } from "@/lib/utils";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Package } from "lucide-react";
+import { TestDeviceAction } from "../../(features)/test-device/components/TestDeviceAction";
+import Link from "next/link";
 
 interface Props {
   asset: {
+    id: string;
     code: string;
     name: string;
     brand: string | null;
@@ -17,9 +20,17 @@ interface Props {
     category: string;
     status: string;
     photo: string | null;
+    isTestDevice?: boolean;
+    testDeviceLogs?: {
+      userId: string | null;
+      guestName: string | null;
+      user: { name: string | null; email: string | null } | null;
+    }[];
   };
   purchasePrice: number;
   purchaseDate: string;
+  isLoggedIn?: boolean;
+  currentUser?: any;
 }
 
 const statusConfig: Record<string, { color: string; bg: string; dot: string }> = {
@@ -29,9 +40,10 @@ const statusConfig: Record<string, { color: string; bg: string; dot: string }> =
   RETIRED:     { color: "#dc2626", bg: "rgba(220,38,38,0.10)", dot: "#dc2626" },
 };
 
-export function AssetPublicClient({ asset, purchasePrice, purchaseDate }: Props) {
+export function AssetPublicClient({ asset, purchasePrice, purchaseDate, isLoggedIn, currentUser }: Props) {
   const { t, locale } = useI18n();
   const { labelFor } = useCategories();
+
   const sc = statusConfig[asset.status] || statusConfig.ACTIVE;
 
   return (
@@ -42,9 +54,28 @@ export function AssetPublicClient({ asset, purchasePrice, purchaseDate }: Props)
           <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "rgb(var(--brand-rgb) / 0.1)", border: "1px solid rgb(var(--brand-rgb) / 0.2)" }}>
             <Package size={14} className="text-brand-500" />
           </div>
-          <span className="text-sm font-bold tracking-tight">Asset Management</span>
+          <span className="text-sm font-bold tracking-tight">{t("app.title")}</span>
         </div>
-        <LanguageSwitcher />
+        <div className="flex items-center gap-3">
+          <LanguageSwitcher />
+          {isLoggedIn ? (
+            <Link 
+              href="/overview"
+              className="text-xs font-semibold px-3 py-1.5 rounded-md transition-colors"
+              style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-default)" }}
+            >
+              Dashboard
+            </Link>
+          ) : (
+            <Link 
+              href={`/login?callbackUrl=/asset/${asset.code}`}
+              className="text-xs font-semibold px-3 py-1.5 rounded-md transition-colors"
+              style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-default)" }}
+            >
+              {t("login.tabLogin")}
+            </Link>
+          )}
+        </div>
       </div>
 
       <div className="max-w-md mx-auto pb-10">
@@ -109,13 +140,32 @@ export function AssetPublicClient({ asset, purchasePrice, purchaseDate }: Props)
           ))}
         </div>
 
+        {/* Test Device Actions */}
+        {asset.isTestDevice && (
+          <div className="px-5 mt-4">
+            <TestDeviceAction 
+              assetId={asset.id} 
+              testDeviceLogs={asset.testDeviceLogs}
+              showBorrowedBadge={true}
+              buttonClassName="py-3" // Slightly taller button to match previous design
+              currentUser={currentUser}
+              onActionComplete={() => {
+                // To keep it simple, we could just reload the page or let the user refresh,
+                // But previously we updated local state. It's actually cleaner to just refresh the router here 
+                // since this is a public page and we don't have a complex state machine.
+                window.location.reload();
+              }}
+            />
+          </div>
+        )}
+
         {/* Footer */}
         <div className="px-5 mt-8 text-center">
           <div className="flex items-center justify-center gap-1.5 text-xs" style={{ color: "var(--text-subtle)" }}>
             <div className="w-4 h-4 rounded flex items-center justify-center" style={{ background: "rgb(var(--brand-rgb) / 0.1)" }}>
               <Package size={9} className="text-brand-500" style={{ opacity: 0.7 }} />
             </div>
-            <span>Asset Management</span>
+            <span>{t("app.title")}</span>
             {process.env.NEXT_PUBLIC_COMPANY_NAME && (
               <>
                 <span>·</span>

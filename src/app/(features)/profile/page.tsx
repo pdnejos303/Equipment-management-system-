@@ -208,7 +208,10 @@ export default function ProfilePage() {
       <div className="card p-6">
         <h2 className="text-sm font-semibold mb-4" style={{ color: "var(--text-default)" }}>{t("profile.account")}</h2>
         <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
+          onClick={async () => {
+            await signOut({ redirect: false });
+            window.location.href = "/login";
+          }}
           className="btn-danger text-sm"
         >
           <LogOut size={14} />

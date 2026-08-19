@@ -2,18 +2,37 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
-import { History, X, Search, User as UserIcon } from "lucide-react";
+import { History, X, Search, User as UserIcon, Download } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { useI18n } from "@/lib/i18n";
 import { showError } from "@/lib/swal";
 import { Pagination } from "@/components/Pagination";
 import { getMonthlyLogs } from "../actions";
 
+const getFontBase64 = async (url: string) => {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      const base64 = dataUrl.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+};
+
 export default function TestDeviceHistoryModal({
   onClose,
-  locale
+  locale,
+  currentUser
 }: {
   onClose: () => void;
   locale: any;
+  currentUser: any;
 }) {
   const { t } = useI18n();
   const [mounted, setMounted] = useState(false);
@@ -71,6 +90,11 @@ export default function TestDeviceHistoryModal({
           id: log.user.id,
           name: log.user.name || log.user.email
         });
+      } else if (log.guestName) {
+        map.set(`guest-${log.guestName}`, {
+          id: `guest-${log.guestName}`,
+          name: log.guestName
+        });
       }
     });
     return Array.from(map.values());
@@ -81,37 +105,114 @@ export default function TestDeviceHistoryModal({
     !historyBorrowers.find(b => b.id === u.id)
   );
 
-  const filteredHistoryLogs = historyLogs.filter((log: any) => {
-    const searchLower = historySearch.toLowerCase();
-    const userName = (log.user?.name || "").toLowerCase();
-    const userEmail = (log.user?.email || "").toLowerCase();
-    const assetName = (log.asset?.name || "").toLowerCase();
-    const assetCode = (log.asset?.code || "").toLowerCase();
-    const assetNote = (log.asset?.testDeviceNote || "").toLowerCase();
-    const matchSearch = userName.includes(searchLower) || userEmail.includes(searchLower) || assetName.includes(searchLower) || assetCode.includes(searchLower) || assetNote.includes(searchLower);
-    
-    const isReturned = !!log.returnedAt;
-    const matchStatus = historyStatusFilter === "ALL" 
-      ? true 
-      : historyStatusFilter === "RETURNED" ? isReturned : !isReturned;
+  const filteredHistoryLogs = useMemo(() => {
+    const filtered = historyLogs.filter((log: any) => {
+      const searchLower = historySearch.toLowerCase();
+      const userName = (log.guestName || log.user?.name || "").toLowerCase();
+      const userEmail = (log.user?.email || "").toLowerCase();
+      const assetName = (log.asset?.name || "").toLowerCase();
+      const assetCode = (log.asset?.code || "").toLowerCase();
+      const assetNote = (log.asset?.testDeviceNote || "").toLowerCase();
+      const matchSearch = userName.includes(searchLower) || userEmail.includes(searchLower) || assetName.includes(searchLower) || assetCode.includes(searchLower) || assetNote.includes(searchLower);
+      
+      const isReturned = !!log.returnedAt;
+      const matchStatus = historyStatusFilter === "ALL" 
+        ? true 
+        : historyStatusFilter === "RETURNED" ? isReturned : !isReturned;
 
-    const matchDate = historyExactDate ? (
-      (log.borrowedAt && log.borrowedAt.startsWith(historyExactDate)) ||
-      (log.returnedAt && log.returnedAt.startsWith(historyExactDate))
-    ) : true;
+      const matchDate = historyExactDate ? (
+        (log.borrowedAt && log.borrowedAt.startsWith(historyExactDate)) ||
+        (log.returnedAt && log.returnedAt.startsWith(historyExactDate))
+      ) : true;
 
-    const matchBorrower = historyBorrowers.length > 0 ? (
-      historyBorrowers.some(b => log.user?.id === b.id)
-    ) : true;
+      const matchBorrower = historyBorrowers.length > 0 ? (
+        historyBorrowers.some(b => log.user?.id === b.id || (log.guestName && `guest-${log.guestName}` === b.id))
+      ) : true;
 
-    return matchSearch && matchStatus && matchDate && matchBorrower;
-  }).sort((a: any, b: any) => new Date(b.borrowedAt).getTime() - new Date(a.borrowedAt).getTime());
+      return matchSearch && matchStatus && matchDate && matchBorrower;
+    });
+
+    // Sort ascending first to assign sequential index based on date
+    filtered.sort((a: any, b: any) => new Date(a.borrowedAt).getTime() - new Date(b.borrowedAt).getTime());
+
+    const dateCounts: Record<string, number> = {};
+    const withDailyIndex = filtered.map(log => {
+      const dateKey = new Date(log.borrowedAt).toLocaleDateString('en-CA'); // YYYY-MM-DD local format roughly
+      if (!dateCounts[dateKey]) dateCounts[dateKey] = 0;
+      dateCounts[dateKey]++;
+      return { ...log, dailyIndex: dateCounts[dateKey] };
+    });
+
+    // Sort descending for display (newest first)
+    return withDailyIndex.sort((a: any, b: any) => new Date(b.borrowedAt).getTime() - new Date(a.borrowedAt).getTime());
+  }, [historyLogs, historySearch, historyStatusFilter, historyExactDate, historyBorrowers]);
 
   const historyTotal = filteredHistoryLogs.length;
   const totalPages = Math.max(1, Math.ceil(historyTotal / 10));
   const currentSafePage = Math.min(historyPage, totalPages);
   
   const pagedHistoryLogs = filteredHistoryLogs.slice((currentSafePage - 1) * 10, currentSafePage * 10);
+
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportPDF = async () => {
+    setIsExporting(true);
+    try {
+      const doc = new jsPDF();
+      
+      let fontName = "Sarabun";
+      let fontUrl = "/fonts/Sarabun-Regular.ttf";
+      
+      // Use Japanese font if locale is ja
+      if (locale === "ja") {
+        fontName = "MPLUS1p";
+        fontUrl = "/fonts/MPLUS1p-Regular.ttf";
+      }
+
+      const fontBase64 = await getFontBase64(fontUrl);
+      doc.addFileToVFS(`${fontName}-Regular.ttf`, fontBase64);
+      doc.addFont(`${fontName}-Regular.ttf`, fontName, "normal");
+      doc.setFont(fontName);
+
+      doc.text(t("testDeviceFeat.historyLog") || "Test Device History", 14, 15);
+      
+      const tableData = filteredHistoryLogs.map((log: any) => [
+        log.dailyIndex,
+        log.guestName || log.user?.name || log.user?.email || "-",
+        `${log.asset?.name || "-"} \n(${log.asset?.code || "-"})`,
+        log.asset?.serialNumber || "-",
+        new Date(log.borrowedAt).toLocaleString(),
+        log.returnedAt ? new Date(log.returnedAt).toLocaleString() : "-",
+        log.returnedAt ? (t("testDeviceFeat.returned") || "Returned") : (t("testDeviceFeat.borrowed") || "Borrowed")
+      ]);
+  
+      autoTable(doc, {
+        startY: 20,
+        head: [[
+          t("testDeviceFeat.no") || "No",
+          t("testDeviceFeat.user") || "User",
+          t("testDeviceFeat.device") || "Device",
+          t("testDeviceFeat.serialNumber") || "S/N",
+          t("testDeviceFeat.dateBorrowed") || "Borrowed",
+          t("testDeviceFeat.dateReturned") || "Returned",
+          t("testDeviceFeat.status") || "Status"
+        ]],
+        body: tableData,
+        theme: 'grid',
+        styles: { font: fontName, fontSize: 8 },
+        headStyles: { font: fontName, fontStyle: "normal", fillColor: [41, 128, 185] }
+      });
+  
+      doc.save(`TestDeviceHistory_${historyYear}_${historyMonth}.pdf`);
+    } catch (e: any) {
+      console.error(e);
+      showError(t("common.error") || "Error", e.message || "Failed to export PDF");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const [showFilters, setShowFilters] = useState(false);
 
   if (!mounted) return null;
 
@@ -123,149 +224,174 @@ export default function TestDeviceHistoryModal({
           <h2 className="text-xl font-bold text-[var(--text-default)] flex items-center gap-2">
             <History className="text-brand-600" />{t("testDeviceFeat.historyLog")}
           </h2>
-          <button 
-            onClick={onClose}
-            className="p-2 text-[var(--text-muted)] hover:text-[var(--text-muted)] hover:bg-[var(--surface-hover)] rounded-xl transition-colors"
-          >
-            <X size={20} />
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="lg:hidden px-3 py-2 text-sm bg-[var(--surface)] border border-[var(--border)] text-[var(--text-default)] rounded-xl shadow-sm hover:bg-[var(--surface-hover)] transition-colors flex items-center gap-2 font-medium"
+            >
+              <Search size={16} />
+              Filter
+            </button>
+            {currentUser?.role === "ADMIN" && (
+              <button 
+                onClick={handleExportPDF}
+                disabled={isExporting}
+                className="px-4 py-2 text-sm bg-brand-500 text-white rounded-xl shadow-sm hover:bg-brand-600 transition-colors hidden sm:flex items-center gap-2 font-medium disabled:opacity-50"
+              >
+                {isExporting ? (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <Download size={16} />
+                )}
+                {isExporting ? "Exporting..." : "Export PDF"}
+              </button>
+            )}
+            <button 
+              onClick={onClose}
+              className="p-2 text-[var(--text-muted)] hover:text-[var(--text-muted)] hover:bg-[var(--surface-hover)] rounded-xl transition-colors"
+            >
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
         {/* Modal Body */}
-        <div ref={scrollRef} className="flex-1 overflow-auto p-6 flex flex-col">
-          {/* Filters */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-            <div className="flex gap-2">
-              <div className="flex flex-col flex-1">
-                <label className="text-xs font-semibold text-[var(--text-subtle)] mb-1 ml-1 uppercase tracking-wider">{t("testDeviceFeat.month")}</label>
-                <select 
-                  value={historyMonth} 
-                  onChange={(e) => {
-                    const m = parseInt(e.target.value);
-                    setHistoryMonth(m);
-                    loadHistory(historyYear, m);
-                  }}
-                  className="border border-[var(--border)] rounded-xl px-2 py-2.5 bg-[var(--surface)] text-[var(--text-default)] shadow-sm focus:border-brand-500 focus:ring-2 outline-none transition-all text-sm w-full"
-                >
-                  {Array.from({length: 12}).map((_, i) => {
-                    const m = i + 1;
-                    const isCurrent = m === new Date().getMonth() + 1 && historyYear === new Date().getFullYear();
-                    return (
-                      <option key={m} value={m}>
-                        {new Date(2000, i, 1).toLocaleString(locale, { month: 'short' })} {isCurrent ? t("testDeviceFeat.thisMonth") : ''}
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
-              <div className="flex flex-col flex-1">
-                <label className="text-xs font-semibold text-[var(--text-subtle)] mb-1 ml-1 uppercase tracking-wider">{t("testDeviceFeat.year")}</label>
-                <select 
-                  value={historyYear} 
-                  onChange={(e) => {
-                    const y = parseInt(e.target.value);
-                    setHistoryYear(y);
-                    loadHistory(y, historyMonth);
-                  }}
-                  className="border border-[var(--border)] rounded-xl px-2 py-2.5 bg-[var(--surface)] text-[var(--text-default)] shadow-sm focus:border-brand-500 focus:ring-2 outline-none transition-all text-sm w-full"
-                >
-                  {yearOptions.map(y => {
-                    return <option key={y} value={y}>{y}</option>;
-                  })}
-                </select>
-              </div>
-            </div>
-
-            <div className="flex flex-col">
-              <label className="text-xs font-semibold text-[var(--text-subtle)] mb-1 ml-1 uppercase tracking-wider">{t("testDeviceFeat.dateBorrowed")}</label>
-              <input 
-                type="date"
-                value={historyExactDate}
-                onChange={(e) => setHistoryExactDate(e.target.value)}
-                className="border border-[var(--border)] rounded-xl px-4 py-2.5 bg-[var(--surface)] text-[var(--text-default)] shadow-sm focus:border-brand-500 focus:ring-2 outline-none transition-all text-sm w-full"
-              />
-            </div>
-
-            <div className="flex flex-col relative">
-              <label className="text-xs font-semibold text-[var(--text-subtle)] mb-1 ml-1 uppercase tracking-wider">{t("testDeviceFeat.user")}</label>
-              <div 
-                className="w-full min-h-[42px] border border-[var(--border)] rounded-xl px-2 py-1 bg-[var(--surface)] text-[var(--text-default)] shadow-sm focus-within:border-brand-500 focus-within:ring-2 flex flex-wrap gap-1 items-center cursor-text transition-all"
-                onClick={() => setShowBorrowerDropdown(true)}
-              >
-                {historyBorrowers.map(b => (
-                  <span key={b.id} className="bg-brand-500/10 text-brand-700 text-xs px-2 py-1 rounded flex items-center gap-1 font-medium">
-                    {b.name}
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setHistoryBorrowers(prev => prev.filter(x => x.id !== b.id));
-                      }}
-                      className="hover:text-brand-900 focus:outline-none"
-                    >
-                      <X size={12} />
-                    </button>
-                  </span>
-                ))}
-                <input 
-                  type="text" 
-                  placeholder={historyBorrowers.length === 0 ? t("testDeviceFeat.searchBorrower") : ""}
-                  value={borrowerSearchInput}
-                  onChange={(e) => setBorrowerSearchInput(e.target.value)}
-                  onFocus={() => setShowBorrowerDropdown(true)}
-                  onBlur={() => setTimeout(() => setShowBorrowerDropdown(false), 200)}
-                  className="flex-1 bg-transparent min-w-[60px] outline-none text-sm text-[var(--text-default)] py-1"
-                />
-              </div>
-              {showBorrowerDropdown && (
-                <div className="absolute top-[100%] mt-1 left-0 right-0 max-h-48 overflow-y-auto bg-[var(--surface-raised)] border border-[var(--border)] rounded-xl shadow-xl z-50">
-                  {filteredBorrowerOptions.length === 0 ? (
-                    <div className="p-3 text-xs text-[var(--text-muted)] text-center">
-                      {t("testDeviceFeat.noBorrowerFound")}
-                    </div>
-                  ) : (
-                    filteredBorrowerOptions.map(u => (
-                      <div 
-                        key={u.id}
-                        className="p-2.5 text-sm hover:bg-brand-50 cursor-pointer text-[var(--text-default)] border-b border-[var(--border)] last:border-b-0"
-                        onMouseDown={(e) => e.preventDefault()} // prevent blur
-                        onClick={() => {
-                          setHistoryBorrowers(prev => [...prev, u]);
-                          setBorrowerSearchInput("");
-                        }}
-                      >
-                        {u.name}
-                      </div>
-                    ))
-                  )}
+        <div ref={scrollRef} className="flex-1 overflow-auto p-4 md:p-6 flex flex-col">
+          {/* Filters Wrapper */}
+          <div className={showFilters ? "block" : "hidden lg:block"}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+              <div className="flex gap-2">
+                <div className="flex flex-col flex-1">
+                  <label className="text-xs font-semibold text-[var(--text-subtle)] mb-1 ml-1 uppercase tracking-wider">{t("testDeviceFeat.month")}</label>
+                  <select 
+                    value={historyMonth} 
+                    onChange={(e) => {
+                      const m = parseInt(e.target.value);
+                      setHistoryMonth(m);
+                      loadHistory(historyYear, m);
+                    }}
+                    className="border border-[var(--border)] rounded-xl px-2 py-2.5 bg-[var(--surface)] text-[var(--text-default)] shadow-sm focus:border-brand-500 focus:ring-2 outline-none transition-all text-sm w-full"
+                  >
+                    {Array.from({length: 12}).map((_, i) => {
+                      const m = i + 1;
+                      const isCurrent = m === new Date().getMonth() + 1 && historyYear === new Date().getFullYear();
+                      return (
+                        <option key={m} value={m}>
+                          {new Date(2000, i, 1).toLocaleString(locale, { month: 'short' })} {isCurrent ? t("testDeviceFeat.thisMonth") : ''}
+                        </option>
+                      );
+                    })}
+                  </select>
                 </div>
-              )}
-            </div>
-            
-            <div className="flex flex-col">
-              <label className="text-xs font-semibold text-[var(--text-subtle)] mb-1 ml-1 uppercase tracking-wider">{t("testDeviceFeat.search")}</label>
-              <div className="relative">
-                <input 
-                  type="text" 
-                  placeholder={t("testDeviceFeat.searchPlaceholder")}
-                  value={historySearch}
-                  onChange={(e) => setHistorySearch(e.target.value)}
-                  className="w-full border border-[var(--border)] rounded-xl pl-10 pr-4 py-2.5 bg-[var(--surface)] text-[var(--text-default)] shadow-sm focus:border-brand-500 focus:ring-2 outline-none transition-all text-sm"
-                />
-                <Search className="absolute left-3.5 top-3 text-[var(--text-muted)]" size={18} />
+                <div className="flex flex-col flex-1">
+                  <label className="text-xs font-semibold text-[var(--text-subtle)] mb-1 ml-1 uppercase tracking-wider">{t("testDeviceFeat.year")}</label>
+                  <select 
+                    value={historyYear} 
+                    onChange={(e) => {
+                      const y = parseInt(e.target.value);
+                      setHistoryYear(y);
+                      loadHistory(y, historyMonth);
+                    }}
+                    className="border border-[var(--border)] rounded-xl px-2 py-2.5 bg-[var(--surface)] text-[var(--text-default)] shadow-sm focus:border-brand-500 focus:ring-2 outline-none transition-all text-sm w-full"
+                  >
+                    {yearOptions.map(y => {
+                      return <option key={y} value={y}>{y}</option>;
+                    })}
+                  </select>
+                </div>
               </div>
-            </div>
-            
-            <div className="flex flex-col">
-              <label className="text-xs font-semibold text-[var(--text-subtle)] mb-1 ml-1 uppercase tracking-wider">{t("testDeviceFeat.status")}</label>
-              <select 
-                value={historyStatusFilter}
-                onChange={(e) => setHistoryStatusFilter(e.target.value)}
-                className="border border-[var(--border)] rounded-xl px-4 py-2.5 bg-[var(--surface)] text-[var(--text-default)] shadow-sm focus:border-brand-500 focus:ring-2 outline-none transition-all text-sm w-full"
-              >
-                <option value="ALL">{t("testDeviceFeat.all")}</option>
-                <option value="BORROWED">{t("testDeviceFeat.borrowed")}</option>
-                <option value="RETURNED">{t("testDeviceFeat.returned")}</option>
-              </select>
+
+              <div className="flex flex-col">
+                <label className="text-xs font-semibold text-[var(--text-subtle)] mb-1 ml-1 uppercase tracking-wider">{t("testDeviceFeat.dateBorrowed")}</label>
+                <input 
+                  type="date"
+                  value={historyExactDate}
+                  onChange={(e) => setHistoryExactDate(e.target.value)}
+                  className="border border-[var(--border)] rounded-xl px-4 py-2.5 bg-[var(--surface)] text-[var(--text-default)] shadow-sm focus:border-brand-500 focus:ring-2 outline-none transition-all text-sm w-full"
+                />
+              </div>
+
+              <div className="flex flex-col relative">
+                <label className="text-xs font-semibold text-[var(--text-subtle)] mb-1 ml-1 uppercase tracking-wider">{t("testDeviceFeat.user")}</label>
+                <div 
+                  className="w-full min-h-[42px] border border-[var(--border)] rounded-xl px-2 py-1 bg-[var(--surface)] text-[var(--text-default)] shadow-sm focus-within:border-brand-500 focus-within:ring-2 flex flex-wrap gap-1 items-center cursor-text transition-all"
+                  onClick={() => setShowBorrowerDropdown(true)}
+                >
+                  {historyBorrowers.map(b => (
+                    <span key={b.id} className="bg-brand-500/10 text-brand-700 text-xs px-2 py-1 rounded flex items-center gap-1 font-medium">
+                      {b.name}
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setHistoryBorrowers(prev => prev.filter(x => x.id !== b.id));
+                        }}
+                        className="hover:text-brand-900 focus:outline-none"
+                      >
+                        <X size={12} />
+                      </button>
+                    </span>
+                  ))}
+                  <input 
+                    type="text" 
+                    placeholder={historyBorrowers.length === 0 ? t("testDeviceFeat.searchBorrower") : ""}
+                    value={borrowerSearchInput}
+                    onChange={(e) => setBorrowerSearchInput(e.target.value)}
+                    onFocus={() => setShowBorrowerDropdown(true)}
+                    onBlur={() => setTimeout(() => setShowBorrowerDropdown(false), 200)}
+                    className="flex-1 bg-transparent min-w-[60px] outline-none text-sm text-[var(--text-default)] py-1"
+                  />
+                </div>
+                {showBorrowerDropdown && (
+                  <div className="absolute top-[100%] mt-1 left-0 right-0 max-h-48 overflow-y-auto bg-[var(--surface-raised)] border border-[var(--border)] rounded-xl shadow-xl z-50">
+                    {filteredBorrowerOptions.length === 0 ? (
+                      <div className="p-3 text-xs text-[var(--text-muted)] text-center">
+                        {t("testDeviceFeat.noBorrowerFound")}
+                      </div>
+                    ) : (
+                      filteredBorrowerOptions.map(u => (
+                        <div 
+                          key={u.id}
+                          className="p-2.5 text-sm hover:bg-brand-50 cursor-pointer text-[var(--text-default)] border-b border-[var(--border)] last:border-b-0"
+                          onMouseDown={(e) => e.preventDefault()} // prevent blur
+                          onClick={() => {
+                            setHistoryBorrowers(prev => [...prev, u]);
+                            setBorrowerSearchInput("");
+                          }}
+                        >
+                          {u.name}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex flex-col">
+                <label className="text-xs font-semibold text-[var(--text-subtle)] mb-1 ml-1 uppercase tracking-wider">{t("testDeviceFeat.search")}</label>
+                <div className="relative">
+                  <input 
+                    type="text" 
+                    placeholder={t("testDeviceFeat.searchPlaceholder")}
+                    value={historySearch}
+                    onChange={(e) => setHistorySearch(e.target.value)}
+                    className="w-full border border-[var(--border)] rounded-xl pl-10 pr-4 py-2.5 bg-[var(--surface)] text-[var(--text-default)] shadow-sm focus:border-brand-500 focus:ring-2 outline-none transition-all text-sm"
+                  />
+                  <Search className="absolute left-3.5 top-3 text-[var(--text-muted)]" size={18} />
+                </div>
+              </div>
+              
+              <div className="flex flex-col">
+                <label className="text-xs font-semibold text-[var(--text-subtle)] mb-1 ml-1 uppercase tracking-wider">{t("testDeviceFeat.status")}</label>
+                <select 
+                  value={historyStatusFilter}
+                  onChange={(e) => setHistoryStatusFilter(e.target.value)}
+                  className="border border-[var(--border)] rounded-xl px-4 py-2.5 bg-[var(--surface)] text-[var(--text-default)] shadow-sm focus:border-brand-500 focus:ring-2 outline-none transition-all text-sm w-full"
+                >
+                  <option value="ALL">{t("testDeviceFeat.all")}</option>
+                  <option value="BORROWED">{t("testDeviceFeat.borrowed")}</option>
+                  <option value="RETURNED">{t("testDeviceFeat.returned")}</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -297,15 +423,13 @@ export default function TestDeviceHistoryModal({
                   </tr>
                 ) : (
                   pagedHistoryLogs.map((log: any, index: number) => {
-                    const trueIndex = (currentSafePage - 1) * 10 + index + 1;
-                    
                     return (
                     <tr key={log.id} className="hover:bg-[var(--surface-hover)] transition-colors">
                       <td className="px-6 py-4 text-sm font-medium text-[var(--text-subtle)]">
-                        {trueIndex}
+                        {log.dailyIndex}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="font-medium text-[var(--text-default)]">{log.user?.name || log.user?.email}</div>
+                        <div className="font-medium text-[var(--text-default)]">{log.guestName || log.user?.name || log.user?.email || t("testDeviceFeat.someone")}</div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="font-medium text-[var(--text-default)]">{log.asset?.name}</div>

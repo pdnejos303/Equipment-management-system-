@@ -14,6 +14,12 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (status === "loading") return;
+    
+    // Allow unauthenticated access to /scan
+    if (pathname?.startsWith("/scan")) {
+      return;
+    }
+
     if (status === "unauthenticated" || !role) {
       const callback = encodeURIComponent(pathname || "/overview");
       signOut({ redirect: false }).finally(() => {
@@ -22,6 +28,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     }
   }, [status, role, router, pathname]);
 
-  if (status === "loading" || !role) return null;
+  if (status === "loading") return null;
+  if (!pathname?.startsWith("/scan") && !role) return null;
   return <>{children}</>;
 }

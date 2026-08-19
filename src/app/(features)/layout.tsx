@@ -13,10 +13,7 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await getServerSession(authOptions);
-  const role = (session?.user as any)?.role;
-  if (!session?.user || !role) {
-    redirect("/login");
-  }
+  const role = (session?.user as any)?.role || "GUEST";
 
   const alerts = await collectAlerts(60).catch(() => []);
   const alertCount = alerts.length;

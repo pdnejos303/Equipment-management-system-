@@ -85,7 +85,7 @@ export function Pagination({ total, pageSize = 20, paramKey = "page", currentPag
             disabled={currentPage <= 1}
             className={cn("p-1.5 rounded-lg transition-all duration-200", currentPage <= 1 ? "opacity-30 cursor-not-allowed" : "hover:bg-[var(--surface-active)]")}
             style={{ color: "var(--text-muted)" }}
-            title="First page"
+            title={t("pagination.firstPage") || "First page"}
           >
             <ChevronsLeft size={15} />
           </button>
@@ -96,6 +96,7 @@ export function Pagination({ total, pageSize = 20, paramKey = "page", currentPag
           disabled={currentPage <= 1}
           className={cn("p-1.5 rounded-lg transition-all duration-200", currentPage <= 1 ? "opacity-30 cursor-not-allowed" : "hover:bg-[var(--surface-active)]")}
           style={{ color: "var(--text-muted)" }}
+          title={t("pagination.prevPage") || "Previous page"}
         >
           <ChevronLeft size={16} />
         </button>
@@ -127,6 +128,7 @@ export function Pagination({ total, pageSize = 20, paramKey = "page", currentPag
           disabled={currentPage >= totalPages}
           className={cn("p-1.5 rounded-lg transition-all duration-200", currentPage >= totalPages ? "opacity-30 cursor-not-allowed" : "hover:bg-[var(--surface-active)]")}
           style={{ color: "var(--text-muted)" }}
+          title={t("pagination.nextPage") || "Next page"}
         >
           <ChevronRight size={16} />
         </button>
@@ -137,7 +139,7 @@ export function Pagination({ total, pageSize = 20, paramKey = "page", currentPag
             disabled={currentPage >= totalPages}
             className={cn("p-1.5 rounded-lg transition-all duration-200", currentPage >= totalPages ? "opacity-30 cursor-not-allowed" : "hover:bg-[var(--surface-active)]")}
             style={{ color: "var(--text-muted)" }}
-            title="Last page"
+            title={t("pagination.lastPage") || "Last page"}
           >
             <ChevronsRight size={15} />
           </button>

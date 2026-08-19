@@ -58,6 +58,11 @@ const ja = {
     dateReturned: "返却日時",
     duration: "期間",
     someone: "誰か",
+    enterGuestName: "名前を入力してください (Guest):",
+    guestNamePlaceholder: "あなたの名前...",
+    alertBorrowSuccess: "機器の貸出が完了しました",
+    alertReturnSuccess: "機器の返却が完了しました",
+    borrowDevice: "機器を借りる",
   },
   nav: {
     overview: "概要",
@@ -546,7 +551,14 @@ const ja = {
     deletePermanent: "完全に削除",
     deleteFailed: "削除に失敗しました",
   },
-  export: { csv: "CSV", pdf: "PDF" },
+  export: { 
+    csv: "CSV", 
+    pdf: "PDF",
+    exportCsv: "CSVエクスポート",
+    exportPdf: "PDFエクスポート",
+    csvFailed: "CSVエクスポートに失敗しました。コンソールを確認してください。",
+    pdfFailed: "PDFエクスポートに失敗しました。コンソールを確認してください。"
+  },
   public: {
     category: "カテゴリ",
     serial: "S/N",
@@ -664,6 +676,10 @@ const ja = {
   },
   pagination: {
     showing: "{0}-{1} / {2} 件を表示",
+    firstPage: "最初のページ",
+    lastPage: "最後のページ",
+    prevPage: "前のページ",
+    nextPage: "次のページ",
   },
   confirm: {
     ok: "確認",
@@ -882,6 +898,9 @@ const ja = {
     viewInCalendar: "カレンダーで確認",
     delete: "削除",
     cancel: "キャンセル",
+    confirm: "確認",
+    success: "成功",
+    error: "エラー",
   },
   profile: {
     personalInfo: "個人情報",

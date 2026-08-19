@@ -52,7 +52,7 @@ export default function TestDeviceClient({ initialDevices, categories, currentUs
 
   const selectedDevicesList = Array.from(selectedDevices).map(id => initialDevices.find((d: any) => d.id === id)).filter(Boolean);
   const devicesToBorrow = selectedDevicesList.filter(d => !d.testDeviceLogs?.length);
-  const devicesToReturn = selectedDevicesList.filter(d => d.testDeviceLogs?.length > 0 && (d.testDeviceLogs[0].userId === currentUser.id || currentUser.role === "ADMIN"));
+  const devicesToReturn = selectedDevicesList.filter(d => d.testDeviceLogs?.length > 0 && (d.testDeviceLogs[0].userId === currentUser.id || currentUser.role === "ADMIN" || !d.testDeviceLogs[0].userId));
 
   const handleBorrowMultiple = async () => {
     if (devicesToBorrow.length === 0) return;
@@ -101,32 +101,6 @@ export default function TestDeviceClient({ initialDevices, categories, currentUs
       (d.testDeviceNote || "").toLowerCase().includes(searchLower);
     return matchCat && matchSearch;
   });
-
-  const handleBorrow = async (id: string) => {
-    try {
-      setLoadingId(id);
-      await borrowDevice(id);
-      startTransition(() => {
-        router.refresh();
-      });
-    } catch (e: any) {
-      showError(t("common.error") || "Error", t(e.message));
-      setLoadingId(null);
-    }
-  };
-
-  const handleReturn = async (id: string) => {
-    try {
-      setLoadingId(id);
-      await returnDevice(id);
-      startTransition(() => {
-        router.refresh();
-      });
-    } catch (e: any) {
-      showError(t("common.error") || "Error", t(e.message));
-      setLoadingId(null);
-    }
-  };
 
   const handleAddDevice = async (id: string) => {
     try {
@@ -185,7 +159,7 @@ export default function TestDeviceClient({ initialDevices, categories, currentUs
           rootContainer={containerRef.current}
           boundContainer={true}
           selectableTargets={[".selectable-card"]}
-          hitRate={10}
+          hitRate={0}
           selectByClick={true}
           selectFromInside={true}
           toggleContinueSelect={["shift"]}
@@ -282,14 +256,14 @@ export default function TestDeviceClient({ initialDevices, categories, currentUs
 
       {/* Multi-Select ActionBar */}
       {mounted && selectedDevices.size > 0 && createPortal(
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] bg-[var(--surface)] border border-[var(--border)] px-6 py-4 rounded-2xl shadow-2xl flex items-center justify-between gap-8 animate-in fade-in slide-in-from-bottom-8 duration-300">
-          <div className="font-semibold text-brand-500 whitespace-nowrap text-base">
+        <div className="fixed bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 z-[100] w-[92vw] md:w-auto bg-[var(--surface)] border border-[var(--border)] px-4 py-3 md:px-6 md:py-4 rounded-2xl shadow-2xl flex flex-col md:flex-row items-center justify-between gap-3 md:gap-8 animate-in fade-in slide-in-from-bottom-8 duration-300">
+          <div className="font-semibold text-brand-500 whitespace-nowrap text-sm md:text-base text-center w-full md:w-auto">
             {t("testDeviceFeat.selectedCount")?.replace('{count}', selectedDevices.size.toString())}
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap md:flex-nowrap gap-2 w-full md:w-auto justify-center">
             <button 
               onClick={() => setSelectedDevices(new Set())}
-              className="px-4 py-2 text-sm font-medium text-[var(--text-muted)] hover:bg-[var(--surface-hover)] rounded-xl transition-colors"
+              className="px-3 py-2 md:px-4 md:py-2 text-sm font-medium text-[var(--text-muted)] hover:bg-[var(--surface-hover)] rounded-xl transition-colors"
             >
               {t("common.cancel") || "Cancel"}
             </button>
@@ -298,7 +272,7 @@ export default function TestDeviceClient({ initialDevices, categories, currentUs
               <button 
                 onClick={handleReturnMultiple}
                 disabled={loadingId === "multi-return"}
-                className="bg-green-500 text-white hover:bg-green-600 rounded-xl shadow-md text-sm font-medium flex items-center gap-2 whitespace-nowrap px-6 py-2 transition-colors disabled:opacity-50"
+                className="bg-green-500 text-white hover:bg-green-600 rounded-xl shadow-md text-sm font-medium flex-1 md:flex-none flex items-center justify-center gap-1.5 md:gap-2 whitespace-nowrap px-3 md:px-6 py-2 transition-colors disabled:opacity-50"
               >
                 {loadingId === "multi-return" ? t("testDeviceFeat.processing") : `${t("testDeviceFeat.returnDevice") || "Return"} (${devicesToReturn.length})`}
               </button>
@@ -308,7 +282,7 @@ export default function TestDeviceClient({ initialDevices, categories, currentUs
               <button 
                 onClick={handleBorrowMultiple}
                 disabled={loadingId === "multi-borrow"}
-                className="btn-primary rounded-xl shadow-md text-sm flex items-center gap-2 whitespace-nowrap px-6"
+                className="btn-primary rounded-xl shadow-md text-sm flex-1 md:flex-none flex items-center justify-center gap-1.5 md:gap-2 whitespace-nowrap px-3 md:px-6 py-2"
               >
                 {loadingId === "multi-borrow" ? t("testDeviceFeat.processing") : `${t("testDeviceFeat.borrowSelected") || "Borrow"} (${devicesToBorrow.length})`}
               </button>
@@ -330,8 +304,11 @@ export default function TestDeviceClient({ initialDevices, categories, currentUs
             toggleSelection={toggleSelection}
             handleRemoveDevice={handleRemoveDevice}
             handleSaveNote={handleSaveNote}
-            handleBorrow={handleBorrow}
-            handleReturn={handleReturn}
+            onActionComplete={async () => {
+              startTransition(() => {
+                router.refresh();
+              });
+            }}
           />
         ))}
       </div>
@@ -366,6 +343,7 @@ export default function TestDeviceClient({ initialDevices, categories, currentUs
         <TestDeviceHistoryModal
           onClose={() => setShowHistory(false)}
           locale={locale}
+          currentUser={currentUser}
         />
       )}
     </div>

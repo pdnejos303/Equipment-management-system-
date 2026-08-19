@@ -1,23 +1,30 @@
 // Path: src/app/(features)/scan/page.tsx
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ScanLine, Camera, CameraOff, Search, ExternalLink, RotateCcw, QrCode, Keyboard, Zap } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { ScanLine, Camera, CameraOff, Search, ExternalLink, RotateCcw, QrCode, Keyboard, Zap, MonitorDown } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { TestDeviceAction } from "../test-device/components/TestDeviceAction";
+import { showError, showSuccess } from "@/lib/swal";
 
 type ScanState = "idle" | "starting" | "scanning" | "found" | "not-found" | "error";
 
 export default function ScanPage() {
   const { t } = useI18n();
   const router = useRouter();
+  const { data: session } = useSession();
+  const currentUser = session?.user as any;
   const scannerRef = useRef<any>(null);
   const runningRef = useRef(false);
   const mountedRef = useRef(true);
   const [state, setState] = useState<ScanState>("idle");
   const [scannedCode, setScannedCode] = useState("");
-  const [assetInfo, setAssetInfo] = useState<{ id: string; name: string; code: string; status: string } | null>(null);
+  const [assetInfo, setAssetInfo] = useState<{ id: string; name: string; code: string; status: string; isTestDevice?: boolean; testDeviceLogs?: any[] } | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const [actionLoading, setActionLoading] = useState(false);
 
   const stopScanner = useCallback(async () => {
     const scanner = scannerRef.current;
@@ -38,7 +45,7 @@ export default function ScanPage() {
 
   const lookupAsset = useCallback(async (code: string) => {
     try {
-      const res = await fetch(`/api/assets/lookup?code=${encodeURIComponent(code)}`);
+      const res = await fetch(`/api/scan/lookup?code=${encodeURIComponent(code)}`);
       if (!mountedRef.current) return;
       if (res.ok) {
         const data = await res.json();
@@ -263,14 +270,34 @@ export default function ScanPage() {
                 <RotateCcw size={16} />
                 {t("scanner.scanAgain")}
               </button>
-              {state === "found" && assetInfo && (
+              {state === "found" && assetInfo && !assetInfo.isTestDevice && (
                 <button
-                  onClick={() => router.push(`/assets/${assetInfo.id}?from=${encodeURIComponent("/scan")}`)}
+                  onClick={() => {
+                    if (currentUser) {
+                      router.push(`/assets/${assetInfo.id}?from=${encodeURIComponent("/scan")}`);
+                    } else {
+                      router.push(`/asset/${assetInfo.code}`);
+                    }
+                  }}
                   className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold transition-colors flex items-center justify-center gap-2"
                 >
                   <ExternalLink size={16} />
                   {t("scanner.openAsset")}
                 </button>
+              )}
+              {state === "found" && assetInfo && assetInfo.isTestDevice && (
+                <div className="w-full col-span-2">
+                  <TestDeviceAction 
+                    assetId={assetInfo.id} 
+                    testDeviceLogs={assetInfo.testDeviceLogs}
+                    showBorrowedBadge={true}
+                    buttonClassName="py-3"
+                    currentUser={currentUser}
+                    onActionComplete={() => {
+                      lookupAsset(scannedCode);
+                    }}
+                  />
+                </div>
               )}
             </>
           )}

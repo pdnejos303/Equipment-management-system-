@@ -1,15 +1,7 @@
-// Path: src/app/api/assets/lookup/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   const code = req.nextUrl.searchParams.get("code");
   if (!code) {
     return NextResponse.json({ error: "Missing code parameter" }, { status: 400 });
@@ -25,7 +17,7 @@ export async function GET(req: NextRequest) {
       isTestDevice: true,
       testDeviceLogs: {
         where: { returnedAt: null },
-        select: { userId: true },
+        select: { userId: true, guestName: true },
         take: 1,
       },
     },
