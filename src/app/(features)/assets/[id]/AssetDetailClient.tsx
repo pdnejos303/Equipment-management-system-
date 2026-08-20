@@ -181,7 +181,7 @@ body{font-family:'Sarabun',sans-serif;width:80mm;height:50mm}
                   </div>
                   <div className="flex-1 min-w-0 space-y-2">
                     <div className="w-full overflow-hidden flex justify-center [&_svg]:!w-full [&_svg]:!h-auto [&_svg]:!max-w-full">
-                      <BarcodeDisplay value={asset.code} height={36} />
+                      <BarcodeDisplay value={asset.code} text={`${asset.code} - ${asset.name}`} height={36} />
                     </div>
                     <button
                       onClick={handlePrintSticker}

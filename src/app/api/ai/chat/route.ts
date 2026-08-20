@@ -118,25 +118,29 @@ async function execTool(name: string, args: any): Promise<unknown> {
     case "search_assets": {
       const { query, category, status } = args as { query?: string; category?: string; status?: string };
       const q = (query || "").trim();
+      
+      const andConditions: any[] = [];
+      if (category) andConditions.push({ category: category as any });
+      if (status) andConditions.push({ status: status as any });
+      
+      if (q) {
+        const keywords = q.split(/\s+/).filter(Boolean);
+        for (const kw of keywords) {
+          andConditions.push({
+            OR: [
+              { code: { contains: kw } },
+              { name: { contains: kw } },
+              { brand: { contains: kw } },
+              { model: { contains: kw } },
+              { serialNumber: { contains: kw } },
+              { location: { contains: kw } },
+            ],
+          });
+        }
+      }
+      
       const results = await prisma.asset.findMany({
-        where: {
-          AND: [
-            category ? { category: category as any } : {},
-            status ? { status: status as any } : {},
-            q
-              ? {
-                  OR: [
-                    { code: { contains: q } },
-                    { name: { contains: q } },
-                    { brand: { contains: q } },
-                    { model: { contains: q } },
-                    { serialNumber: { contains: q } },
-                    { location: { contains: q } },
-                  ],
-                }
-              : {},
-          ],
-        },
+        where: andConditions.length > 0 ? { AND: andConditions } : {},
         take: 20,
         select: { code: true, name: true, brand: true, model: true, category: true, status: true, location: true },
       });

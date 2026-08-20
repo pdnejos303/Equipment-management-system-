@@ -64,8 +64,11 @@ export async function getAvailableAssets(
 
   if (search) {
     where.OR = [
-      { name: { contains: search } },
       { code: { contains: search } },
+      { name: { contains: search } },
+      { brand: { contains: search } },
+      { model: { contains: search } },
+      { serialNumber: { contains: search } },
     ];
   }
 

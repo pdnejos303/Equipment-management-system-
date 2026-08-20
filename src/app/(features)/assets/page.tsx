@@ -14,12 +14,25 @@ export default async function AssetsPage({
   if (sp.status) where.status = sp.status;
   if (sp.category) where.category = sp.category;
   if (sp.search) {
-    where.OR = [
-      { code: { contains: sp.search } },
-      { name: { contains: sp.search } },
-      { brand: { contains: sp.search } },
-      { serialNumber: { contains: sp.search } },
-    ];
+    const keywords = sp.search.trim().split(/\s+/).filter(Boolean);
+    if (keywords.length > 0) {
+      where.AND = keywords.map(kw => {
+        const num = Number(kw);
+        const orConditions: any[] = [
+          { code: { contains: kw } },
+          { name: { contains: kw } },
+          { brand: { contains: kw } },
+          { model: { contains: kw } },
+          { serialNumber: { contains: kw } },
+          { location: { contains: kw } },
+          { notes: { contains: kw } },
+        ];
+        if (!isNaN(num)) {
+          orConditions.push({ purchasePrice: { equals: num } });
+        }
+        return { OR: orConditions };
+      });
+    }
   }
 
   const assets = await prisma.asset.findMany({
@@ -40,6 +53,7 @@ export default async function AssetsPage({
     category: a.category,
     status: a.status,
     purchasePrice: Number(a.purchasePrice),
+    serialNumber: a.serialNumber,
     photo: a.photos[0]?.url || null,
     assignedTo: a.assignments[0]?.personName || null,
   }));

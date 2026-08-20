@@ -6,12 +6,13 @@ import JsBarcode from "jsbarcode";
 
 interface Props {
   value: string;
+  text?: string;
   height?: number;
   width?: number;
   fontSize?: number;
 }
 
-export function BarcodeDisplay({ value, height = 40, width = 2, fontSize = 12 }: Props) {
+export function BarcodeDisplay({ value, text, height = 40, width = 2, fontSize = 12 }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
@@ -22,6 +23,7 @@ export function BarcodeDisplay({ value, height = 40, width = 2, fontSize = 12 }:
           width,
           height,
           displayValue: true,
+          text: text,
           fontSize,
           margin: 5,
         });
@@ -29,7 +31,7 @@ export function BarcodeDisplay({ value, height = 40, width = 2, fontSize = 12 }:
         console.error("Barcode generation failed:", err);
       }
     }
-  }, [value, height, width, fontSize]);
+  }, [value, text, height, width, fontSize]);
 
   return <svg ref={svgRef} />;
 }

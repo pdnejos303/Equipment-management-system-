@@ -52,6 +52,7 @@ interface AssetRow {
   category: string;
   status: string;
   purchasePrice: number;
+  serialNumber: string | null;
   photo: string | null;
   assignedTo: string | null;
 }
@@ -139,6 +140,7 @@ export function AssetsClient({ data }: { data: AssetsData }) {
       name: a.name,
       brand: a.brand || undefined,
       model: a.model || undefined,
+      serial: a.serialNumber || undefined,
       category: labelFor(a.category) || undefined,
     }));
 
@@ -178,6 +180,25 @@ export function AssetsClient({ data }: { data: AssetsData }) {
     setSelected(new Set());
     router.refresh();
   };
+
+  const handleSearchSubmit = useCallback((e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const search = formData.get("search") as string;
+    const status = formData.get("status") as string;
+    
+    const params = new URLSearchParams(urlSearchParams.toString());
+    if (search) params.set("search", search);
+    else params.delete("search");
+    
+    if (status) params.set("status", status);
+    else params.delete("status");
+
+    if (categoryFilter) params.set("category", categoryFilter);
+    else params.delete("category");
+
+    router.push(`/assets?${params.toString()}`);
+  }, [urlSearchParams, categoryFilter, router]);
 
   return (
     <div className="page-enter">
@@ -220,7 +241,7 @@ export function AssetsClient({ data }: { data: AssetsData }) {
         <AISmartSearch onResults={() => {}} />
       </div>
 
-      <form className="flex flex-col sm:flex-row flex-wrap gap-3 mb-4">
+      <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row flex-wrap gap-3 mb-4">
         {/* Search */}
         <input name="search" placeholder={t("assets.search")} defaultValue={searchParams.search} className="input sm:max-w-xs" />
         <div className="flex gap-3 flex-1 sm:flex-none">

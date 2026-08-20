@@ -189,7 +189,7 @@ function FullTemplate({
       {/* Barcode section */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", minHeight: 0 }}>
         <div style={{ transform: "scale(0.9)", transformOrigin: "center bottom" }}>
-          <BarcodeDisplay value={asset.code} height={barcodeHeight} width={barcodeWidth} fontSize={barcodeFontSize} />
+          <BarcodeDisplay value={asset.code} text={`${asset.code} - ${asset.name}`} height={barcodeHeight} width={barcodeWidth} fontSize={barcodeFontSize} />
         </div>
       </div>
 
@@ -226,15 +226,17 @@ function CompactTemplate({
         <QRCodeDisplay assetCode={asset.code} size={qrSize * 1.15} />
       </div>
       <div style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
-        <div style={{ fontSize: codeFontSize, fontWeight: 800, letterSpacing: "0.03em", lineHeight: 1.2 }}>
-          {asset.code}
-        </div>
-        <div style={{ fontSize: nameFontSize, fontWeight: 600, lineHeight: 1.2, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <div style={{ fontSize: codeFontSize, fontWeight: 800, letterSpacing: "0.03em", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {asset.name}
         </div>
-        {asset.brand && (
-          <div style={{ fontSize: metaFontSize, color: "#666", lineHeight: 1.2, marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        {(asset.brand || asset.model) && (
+          <div style={{ fontSize: nameFontSize, fontWeight: 600, lineHeight: 1.2, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {asset.brand} {asset.model}
+          </div>
+        )}
+        {asset.serial && (
+          <div style={{ fontSize: metaFontSize, color: "#666", lineHeight: 1.2, marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            SN: {asset.serial}
           </div>
         )}
       </div>
@@ -290,7 +292,7 @@ function BarcodeOnlyTemplate({
       <div style={{ fontSize: nameFontSize, fontWeight: 600, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>
         {asset.name}
       </div>
-      <BarcodeDisplay value={asset.code} height={barcodeHeight} width={barcodeWidth} fontSize={barcodeFontSize} />
+      <BarcodeDisplay value={asset.code} text={`${asset.code} - ${asset.name}`} height={barcodeHeight} width={barcodeWidth} fontSize={barcodeFontSize} />
     </div>
   );
 }

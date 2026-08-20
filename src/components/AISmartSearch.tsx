@@ -36,9 +36,33 @@ If it's a question, answer it briefly. Keep response under 200 characters.`,
           locale,
         }),
       });
-      const data = await res.json();
-      if (data.message) {
-        setAnswer(data.message);
+      if (!res.body) return;
+      
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+      let fullText = "";
+
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        if (value) {
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split("\n");
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                if (data.type === "delta" && data.text) {
+                  fullText += data.text;
+                  setAnswer(fullText);
+                }
+              } catch (e) {
+                // ignore JSON parse errors for incomplete lines
+              }
+            }
+          }
+        }
       }
     } catch {
       // silently fail

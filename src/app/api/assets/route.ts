@@ -26,12 +26,25 @@ export async function GET(req: NextRequest) {
     if (status) where.status = status;
     if (category) where.category = category;
     if (search) {
-      where.OR = [
-        { code: { contains: search } },
-        { name: { contains: search } },
-        { brand: { contains: search } },
-        { serialNumber: { contains: search } },
-      ];
+      const keywords = search.trim().split(/\s+/).filter(Boolean);
+      if (keywords.length > 0) {
+        where.AND = keywords.map(kw => {
+          const num = Number(kw);
+          const orConditions: any[] = [
+            { code: { contains: kw } },
+            { name: { contains: kw } },
+            { brand: { contains: kw } },
+            { model: { contains: kw } },
+            { serialNumber: { contains: kw } },
+            { location: { contains: kw } },
+            { notes: { contains: kw } },
+          ];
+          if (!isNaN(num)) {
+            orConditions.push({ purchasePrice: { equals: num } });
+          }
+          return { OR: orConditions };
+        });
+      }
     }
 
     const [assets, total] = await Promise.all([
