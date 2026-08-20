@@ -7,9 +7,11 @@ import { getAssetURL } from "@/lib/codes";
 interface Props {
   assetCode: string;
   size?: number;
+  fgColor?: string;
+  bgColor?: string;
 }
 
-export function QRCodeDisplay({ assetCode, size = 120 }: Props) {
+export function QRCodeDisplay({ assetCode, size = 120, fgColor = "#000000", bgColor = "#ffffff" }: Props) {
   const [src, setSrc] = useState<string>("");
 
   useEffect(() => {
@@ -20,7 +22,7 @@ export function QRCodeDisplay({ assetCode, size = 120 }: Props) {
         const dataUrl = await QRCode.toDataURL(url, {
           width: size,
           margin: 1,
-          color: { dark: "#000000", light: "#ffffff" },
+          color: { dark: fgColor, light: bgColor },
           errorCorrectionLevel: "M",
         });
         setSrc(dataUrl);

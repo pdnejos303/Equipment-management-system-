@@ -10,9 +10,11 @@ interface Props {
   height?: number;
   width?: number;
   fontSize?: number;
+  fgColor?: string;
+  bgColor?: string;
 }
 
-export function BarcodeDisplay({ value, text, height = 40, width = 2, fontSize = 12 }: Props) {
+export function BarcodeDisplay({ value, text, height = 40, width = 2, fontSize = 12, fgColor = "#000000", bgColor = "transparent" }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
@@ -26,6 +28,8 @@ export function BarcodeDisplay({ value, text, height = 40, width = 2, fontSize =
           text: text,
           fontSize,
           margin: 5,
+          lineColor: fgColor,
+          background: bgColor,
         });
       } catch (err) {
         console.error("Barcode generation failed:", err);

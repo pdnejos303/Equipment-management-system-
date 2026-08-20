@@ -34,7 +34,7 @@ interface Props {
 export function LabelPrintDialog({ asset, open, onClose }: Props) {
   const { t } = useI18n();
   const [selectedSize, setSelectedSize] = useState<LabelSize>(LABEL_SIZES[0]);
-  const [template, setTemplate] = useState<LabelTemplateType>("full");
+  const [template, setTemplate] = useState<LabelTemplateType>("compact");
   const [copies, setCopies] = useState(1);
   const [customWidth, setCustomWidth] = useState(80);
   const [customHeight, setCustomHeight] = useState(50);

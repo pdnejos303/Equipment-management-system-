@@ -1,6 +1,8 @@
 // Path: next.config.mjs
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Allow accessing dev server from local network IP
+  allowedDevOrigins: ["localhost", "192.168.1.16"],
   // standalone ใช้สำหรับ Docker build เท่านั้น (Dockerfile copy จาก .next/standalone)
   // Windows local build ไม่ set BUILD_STANDALONE → เลี่ยง EPERM symlink error
   output: process.env.BUILD_STANDALONE ? "standalone" : undefined,

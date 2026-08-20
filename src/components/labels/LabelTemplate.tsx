@@ -18,11 +18,10 @@ interface Props {
   template: LabelTemplateType;
   widthMm: number;
   heightMm: number;
-  /** scale factor for preview (1 = actual size) */
   scale?: number;
   showBorder?: boolean;
-  /** optional brand logo (base64 data URL) shown small in the bottom-left corner */
   logoSrc?: string | null;
+  colorTheme?: string;
 }
 
 export function LabelTemplate({
@@ -33,15 +32,13 @@ export function LabelTemplate({
   scale = 1,
   showBorder = true,
   logoSrc,
+  colorTheme = "classic",
 }: Props) {
   const wPx = mmToPx(widthMm);
   const hPx = mmToPx(heightMm);
 
-  // Calculate dynamic sizes based on label dimensions
   const isSmall = widthMm <= 50 || heightMm <= 30;
   const isTiny = widthMm <= 40 || heightMm <= 25;
-
-  // Logo sizing: small mark capped at ~5mm or ~16% of label height.
   const logoMaxPx = Math.min(mmToPx(5), mmToPx(heightMm * 0.16));
   const showLogo = !!logoSrc && logoMaxPx >= mmToPx(2.5);
 
@@ -52,6 +49,39 @@ export function LabelTemplate({
     : Math.min(mmToPx(heightMm * 0.55), mmToPx(25));
 
   const padding = isTiny ? mmToPx(1.5) : isSmall ? mmToPx(2) : mmToPx(3);
+
+  let backgroundColor = "#ffffff";
+  let backgroundImage = "none";
+  let childBgColor = "#ffffff";
+  let fg = "#000000";
+  
+  if (colorTheme === "ocean") {
+    backgroundImage = "linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)";
+    childBgColor = "transparent";
+    fg = "#0369a1"; // sky-700
+  } else if (colorTheme === "nature") {
+    backgroundImage = "linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)";
+    childBgColor = "transparent";
+    fg = "#15803d"; // green-700
+  } else if (colorTheme === "sunset") {
+    backgroundImage = "linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%)";
+    childBgColor = "transparent";
+    fg = "#c2410c"; // orange-700
+  } else if (colorTheme === "dark") {
+    backgroundColor = "#1e293b";
+    childBgColor = "#1e293b";
+    fg = "#f8fafc";
+  } else if (colorTheme === "polka") {
+    backgroundImage = "radial-gradient(#fbcfe8 20%, transparent 20%), radial-gradient(#fbcfe8 20%, transparent 20%)";
+    backgroundColor = "#fdf2f8";
+    childBgColor = "transparent";
+    fg = "#be185d";
+  } else if (colorTheme === "grid") {
+    backgroundImage = "linear-gradient(#e5e7eb 1px, transparent 1px), linear-gradient(90deg, #e5e7eb 1px, transparent 1px)";
+    backgroundColor = "#ffffff";
+    childBgColor = "transparent";
+    fg = "#374151";
+  }
 
   return (
     <div
@@ -68,8 +98,11 @@ export function LabelTemplate({
           height: hPx,
           transform: `scale(${scale})`,
           transformOrigin: "top left",
-          background: "#ffffff",
-          color: "#000000",
+          backgroundColor,
+          backgroundImage,
+          backgroundSize: colorTheme === "polka" ? "12px 12px" : colorTheme === "grid" ? "10px 10px" : "auto",
+          backgroundPosition: colorTheme === "polka" ? "0 0, 6px 6px" : "0 0",
+          color: fg,
           fontFamily: "'Sarabun', 'Inter', sans-serif",
           padding,
           boxSizing: "border-box",
@@ -86,6 +119,8 @@ export function LabelTemplate({
             isSmall={isSmall}
             isTiny={isTiny}
             heightMm={heightMm}
+            fgColor={fg}
+            bgColor={childBgColor}
           />
         )}
         {template === "compact" && (
@@ -94,6 +129,8 @@ export function LabelTemplate({
             qrSize={qrSize}
             isSmall={isSmall}
             isTiny={isTiny}
+            fgColor={fg}
+            bgColor={childBgColor}
           />
         )}
         {template === "qr-only" && (
@@ -101,6 +138,8 @@ export function LabelTemplate({
             asset={asset}
             widthMm={widthMm}
             heightMm={heightMm}
+            fgColor={fg}
+            bgColor={childBgColor}
           />
         )}
         {template === "barcode-only" && (
@@ -109,6 +148,8 @@ export function LabelTemplate({
             widthMm={widthMm}
             heightMm={heightMm}
             isTiny={isTiny}
+            fgColor={fg}
+            bgColor={childBgColor}
           />
         )}
 
@@ -124,7 +165,7 @@ export function LabelTemplate({
               maxHeight: logoMaxPx,
               maxWidth: logoMaxPx * 3,
               objectFit: "contain",
-              background: "#ffffff",
+              backgroundColor: "#ffffff",
               padding: 0.5,
               borderRadius: 1,
               pointerEvents: "none",
@@ -144,12 +185,16 @@ function FullTemplate({
   isSmall,
   isTiny,
   heightMm,
+  fgColor,
+  bgColor,
 }: {
   asset: LabelAsset;
   qrSize: number;
   isSmall: boolean;
   isTiny: boolean;
   heightMm: number;
+  fgColor: string;
+  bgColor: string;
 }) {
   const codeFontSize = isTiny ? 10 : isSmall ? 12 : 15;
   const nameFontSize = isTiny ? 8 : isSmall ? 9 : 11;
@@ -171,31 +216,31 @@ function FullTemplate({
             {asset.name}
           </div>
           {asset.brand && (
-            <div style={{ fontSize: metaFontSize, color: "#555", lineHeight: 1.2, marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <div style={{ fontSize: metaFontSize, opacity: 0.8, lineHeight: 1.2, marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {asset.brand} {asset.model}
             </div>
           )}
           {asset.serial && !isTiny && (
-            <div style={{ fontSize: metaFontSize - 1, color: "#888", fontFamily: "monospace", lineHeight: 1.2, marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <div style={{ fontSize: metaFontSize - 1, opacity: 0.6, fontFamily: "monospace", lineHeight: 1.2, marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               S/N: {asset.serial}
             </div>
           )}
         </div>
         <div style={{ flexShrink: 0 }}>
-          <QRCodeDisplay assetCode={asset.code} size={qrSize} />
+          <QRCodeDisplay assetCode={asset.code} size={qrSize} fgColor={fgColor} bgColor={bgColor} />
         </div>
       </div>
 
       {/* Barcode section */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", minHeight: 0 }}>
         <div style={{ transform: "scale(0.9)", transformOrigin: "center bottom" }}>
-          <BarcodeDisplay value={asset.code} text={`${asset.code} - ${asset.name}`} height={barcodeHeight} width={barcodeWidth} fontSize={barcodeFontSize} />
+          <BarcodeDisplay value={asset.code} text={`${asset.code} - ${asset.name}`} height={barcodeHeight} width={barcodeWidth} fontSize={barcodeFontSize} fgColor={fgColor} bgColor={bgColor} />
         </div>
       </div>
 
       {/* Footer */}
       {heightMm >= 35 && (
-        <div style={{ fontSize: footerFontSize, color: "#aaa", textAlign: "center", marginTop: 1, lineHeight: 1 }}>
+        <div style={{ fontSize: footerFontSize, opacity: 0.5, textAlign: "center", marginTop: 1, lineHeight: 1 }}>
           Scan to view • Asset Management
         </div>
       )}
@@ -210,11 +255,15 @@ function CompactTemplate({
   qrSize,
   isSmall,
   isTiny,
+  fgColor,
+  bgColor,
 }: {
   asset: LabelAsset;
   qrSize: number;
   isSmall: boolean;
   isTiny: boolean;
+  fgColor: string;
+  bgColor: string;
 }) {
   const codeFontSize = isTiny ? 10 : isSmall ? 13 : 16;
   const nameFontSize = isTiny ? 8 : isSmall ? 9 : 11;
@@ -223,7 +272,7 @@ function CompactTemplate({
   return (
     <div style={{ display: "flex", alignItems: "center", height: "100%", gap: isTiny ? 4 : 8 }}>
       <div style={{ flexShrink: 0 }}>
-        <QRCodeDisplay assetCode={asset.code} size={qrSize * 1.15} />
+        <QRCodeDisplay assetCode={asset.code} size={qrSize * 1.15} fgColor={fgColor} bgColor={bgColor} />
       </div>
       <div style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
         <div style={{ fontSize: codeFontSize, fontWeight: 800, letterSpacing: "0.03em", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -235,7 +284,7 @@ function CompactTemplate({
           </div>
         )}
         {asset.serial && (
-          <div style={{ fontSize: metaFontSize, color: "#666", lineHeight: 1.2, marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <div style={{ fontSize: metaFontSize, opacity: 0.7, lineHeight: 1.2, marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             SN: {asset.serial}
           </div>
         )}
@@ -250,10 +299,14 @@ function QROnlyTemplate({
   asset,
   widthMm,
   heightMm,
+  fgColor,
+  bgColor,
 }: {
   asset: LabelAsset;
   widthMm: number;
   heightMm: number;
+  fgColor: string;
+  bgColor: string;
 }) {
   const minDim = Math.min(widthMm, heightMm);
   const qrSize = mmToPx(minDim * 0.7);
@@ -261,7 +314,7 @@ function QROnlyTemplate({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%" }}>
-      <QRCodeDisplay assetCode={asset.code} size={qrSize} />
+      <QRCodeDisplay assetCode={asset.code} size={qrSize} fgColor={fgColor} bgColor={bgColor} />
       <div style={{ fontSize, fontWeight: 700, marginTop: 3, textAlign: "center", letterSpacing: "0.05em" }}>
         {asset.code}
       </div>
@@ -276,11 +329,15 @@ function BarcodeOnlyTemplate({
   widthMm,
   heightMm,
   isTiny,
+  fgColor,
+  bgColor,
 }: {
   asset: LabelAsset;
   widthMm: number;
   heightMm: number;
   isTiny: boolean;
+  fgColor: string;
+  bgColor: string;
 }) {
   const barcodeHeight = isTiny ? mmToPx(heightMm * 0.45) : mmToPx(heightMm * 0.5);
   const barcodeWidth = widthMm <= 50 ? 1.2 : 1.8;
@@ -292,7 +349,7 @@ function BarcodeOnlyTemplate({
       <div style={{ fontSize: nameFontSize, fontWeight: 600, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>
         {asset.name}
       </div>
-      <BarcodeDisplay value={asset.code} text={`${asset.code} - ${asset.name}`} height={barcodeHeight} width={barcodeWidth} fontSize={barcodeFontSize} />
+      <BarcodeDisplay value={asset.code} text={`${asset.code} - ${asset.name}`} height={barcodeHeight} width={barcodeWidth} fontSize={barcodeFontSize} fgColor={fgColor} bgColor={bgColor} />
     </div>
   );
 }

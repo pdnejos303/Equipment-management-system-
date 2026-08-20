@@ -203,17 +203,16 @@ export function BatchPhotoForm({ open, onClose, assetIds }: Props) {
               </button>
             </>
           ) : (
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              className="absolute inset-0 flex flex-col items-center justify-center text-gray-600 hover:text-gray-400 transition-colors"
+            <label
+              htmlFor="batch-photo-upload"
+              className="absolute inset-0 flex flex-col items-center justify-center text-gray-600 hover:text-gray-400 transition-colors cursor-pointer"
             >
               <div className="w-16 h-16 rounded-2xl bg-surface flex items-center justify-center mb-3 border border-border">
                 <ImagePlus size={28} className="text-gray-500" />
               </div>
               <p className="text-sm font-medium text-gray-400">{t("photoUpload.dragDrop")}</p>
               <p className="text-xs text-gray-600 mt-1">{t("photoUpload.fileTypes")}</p>
-            </button>
+            </label>
           )}
 
           {dragOver && (
@@ -228,9 +227,10 @@ export function BatchPhotoForm({ open, onClose, assetIds }: Props) {
 
         <input
           ref={fileRef}
+          id="batch-photo-upload"
           type="file"
           accept="image/*"
-          className="hidden"
+          className="sr-only"
           onChange={(e) => {
             pickFile(e.target.files?.[0]);
             e.target.value = "";

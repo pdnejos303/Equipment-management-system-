@@ -43,10 +43,11 @@ export function BatchLabelDialog({ assets, open, onClose }: Props) {
   const { t } = useI18n();
   const [presetId, setPresetId] = useState<string>(A4_LAYOUTS[0].id);
   const [customCfg, setCustomCfg] = useState<CustomLayoutConfig>(DEFAULT_CUSTOM_LAYOUT);
-  const [template, setTemplate] = useState<LabelTemplateType>("full");
+  const [template, setTemplate] = useState<LabelTemplateType>("compact");
   const [previewPage, setPreviewPage] = useState(0);
   const [startPosition, setStartPosition] = useState(0);
   const [showCutLines, setShowCutLines] = useState(false);
+  const [colorTheme, setColorTheme] = useState<string>("classic");
   const [logoSrc, setLogoSrc] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
@@ -179,10 +180,14 @@ export function BatchLabelDialog({ assets, open, onClose }: Props) {
           position: absolute;
           overflow: hidden;
           box-sizing: border-box;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
           ${showCutLines ? `border: ${CUT_LINE_WIDTH_MM}mm solid ${CUT_LINE_COLOR};` : ""}
         }
         .active-print-portal .label-template-root > div {
           border: none !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
       }
     `;
@@ -361,6 +366,34 @@ export function BatchLabelDialog({ assets, open, onClose }: Props) {
                 </div>
               </div>
 
+              {/* Color Theme */}
+              <div>
+                <h3 className="text-sm font-semibold mb-2" style={{ color: "var(--text-muted)" }}>{t("labels.colorTheme") || "Color Theme"}</h3>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { id: "classic", label: "Classic (B/W)" },
+                    { id: "ocean", label: "Ocean Blue" },
+                    { id: "nature", label: "Nature Green" },
+                    { id: "sunset", label: "Sunset Orange" },
+                    { id: "dark", label: "Dark Mode" },
+                    { id: "polka", label: "Polka Dots (Pink)" },
+                    { id: "grid", label: "Grid Pattern" },
+                  ].map((theme) => (
+                    <button
+                      key={theme.id}
+                      onClick={() => setColorTheme(theme.id)}
+                      className={`px-3 py-1.5 rounded-lg border transition text-sm ${
+                        colorTheme === theme.id
+                          ? "border-brand-500 bg-brand-500/10 text-brand-400"
+                          : "border-border bg-surface-dark text-gray-400 hover:border-gray-600"
+                      }`}
+                    >
+                      {theme.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Start position */}
               <div>
                 <h3 className="text-sm font-semibold mb-2" style={{ color: "var(--text-muted)" }}>{t("labels.startPosition")}</h3>
@@ -423,6 +456,8 @@ export function BatchLabelDialog({ assets, open, onClose }: Props) {
               <div className="bg-surface-dark rounded-lg p-3 border border-border">
                 <p className="text-xs text-gray-500 leading-relaxed">
                   {t("labels.printerTip")}
+                  <br /><br />
+                  <span className="text-brand-500 font-medium">Tip for Color Themes:</span> Make sure to enable <b>"Background graphics"</b> in your browser&apos;s Print dialog to print colors and patterns!
                 </p>
               </div>
             </div>
@@ -469,6 +504,7 @@ export function BatchLabelDialog({ assets, open, onClose }: Props) {
                           scale={previewScale}
                           showBorder={!showCutLines}
                           logoSrc={logoSrc}
+                          colorTheme={colorTheme}
                         />
                       ) : !showCutLines ? (
                         <div
@@ -553,6 +589,7 @@ export function BatchLabelDialog({ assets, open, onClose }: Props) {
                         scale={1}
                         showBorder={false}
                         logoSrc={logoSrc}
+                        colorTheme={colorTheme}
                       />
                     )}
                   </div>

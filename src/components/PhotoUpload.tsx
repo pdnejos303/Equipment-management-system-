@@ -214,21 +214,21 @@ export function PhotoUpload({
               <p className="text-xs">{t("photoUpload.noPhotos")}</p>
             </div>
           ) : (
-            <div
+            <label
+              htmlFor={`photo-upload-${assetId}`}
               className="flex flex-col items-center justify-center h-full cursor-pointer text-gray-600 hover:text-gray-400 transition-colors bg-surface-dark"
-              onClick={() => fileRef.current?.click()}
             >
               <div className="w-16 h-16 rounded-2xl bg-surface flex items-center justify-center mb-3 border border-border">
                 <ImagePlus size={28} className="text-gray-500" />
               </div>
               <p className="text-sm font-medium text-gray-400">{t("photoUpload.dragDrop")}</p>
               <p className="text-xs text-gray-600 mt-1">{t("photoUpload.fileTypes")}</p>
-            </div>
+            </label>
           )}
 
           {/* Drag overlay */}
           {dragOver && (
-            <div className="absolute inset-0 bg-brand-500/10 border-2 border-brand-500 rounded-xl flex items-center justify-center">
+            <div className="absolute inset-0 bg-brand-500/10 border-2 border-brand-500 rounded-xl flex items-center justify-center pointer-events-none">
               <div className="text-center">
                 <Upload size={32} className="text-brand-500 mx-auto mb-2" />
                 <p className="text-brand-500 text-sm font-semibold">{t("photoUpload.dropHere")}</p>
@@ -299,12 +299,12 @@ export function PhotoUpload({
             {/* Add more button */}
             {!readOnly && (
               <div className="aspect-square">
-                <button
-                  onClick={() => fileRef.current?.click()}
-                  className="w-full h-full rounded-lg border-2 border-dashed border-border flex items-center justify-center text-gray-600 hover:border-gray-500 hover:text-gray-400 transition-colors bg-surface-dark hover:bg-surface-hover"
+                <label
+                  htmlFor={`photo-upload-${assetId}`}
+                  className="w-full h-full rounded-lg border-2 border-dashed border-border flex items-center justify-center text-gray-600 hover:border-gray-500 hover:text-gray-400 transition-colors bg-surface-dark hover:bg-surface-hover cursor-pointer"
                 >
                   <Upload size={16} />
-                </button>
+                </label>
               </div>
             )}
           </div>
@@ -313,9 +313,10 @@ export function PhotoUpload({
         {!readOnly && (
           <input
             ref={fileRef}
+            id={`photo-upload-${assetId}`}
             type="file"
             accept="image/*"
-            className="hidden"
+            className="sr-only"
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) uploadFile(file);
