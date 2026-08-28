@@ -1,14 +1,13 @@
-// Path: src/app/(features)/assets/[id]/edit/page.tsx
+// Path: src/components/forms/EditAssetModal.tsx
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n";
 import { useCategories } from "@/lib/useCategories";
 import { CategoryFilter } from "@/components/ui/CategoryFilter";
 import { showSuccess, showError } from "@/lib/swal";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { FormFooter } from "@/components/ui/FormFooter";
+import { Modal } from "@/components/ui/Modal";
 
 function Field({
   label, required, children,
@@ -30,18 +29,27 @@ function Field({
   );
 }
 
-export default function EditAssetPage() {
-  const router = useRouter(); // royter object สำหรับ navigate ระหว่างหน้า
-  const params = useParams(); // ดึง URL params เพื่อรู้ว่ากำลัง edit asset ไหน
-  const { t } = useI18n(); // translation function 
+export function EditAssetModal({
+  assetId,
+  open,
+  onClose,
+}: {
+  assetId: string;
+  open: boolean;
+  onClose: () => void;
+}) {
+  const router = useRouter();
+  const { t } = useI18n();
   const { categories } = useCategories();
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);  
-  const [error, setError] = useState("");  // kept for load-time errors only
-  const [form, setForm] = useState<any>(null); // any ก็คือไม่สน type 
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [form, setForm] = useState<any>(null);
 
   useEffect(() => {
-    fetch(`/api/assets/${params.id}`)
+    if (!open) return;
+    setLoading(true);
+    fetch(`/api/assets/${assetId}`)
       .then((r) => r.json())
       .then((data) => {
         setForm({
@@ -62,7 +70,7 @@ export default function EditAssetPage() {
         setLoading(false);
       })
       .catch(() => { setError(t("editAsset.notFound")); setLoading(false); });
-  }, [params.id, t]);
+  }, [assetId, open, t]);
 
   const set = (k: string, v: string) => setForm((f: any) => ({ ...f, [k]: v }));
 
@@ -72,34 +80,31 @@ export default function EditAssetPage() {
     try {
       const body = {
         ...form,
-        purchasePrice: parseFloat(form.purchasePrice),
-        expectedLife: parseInt(form.expectedLife),
+        purchasePrice: parseFloat(form.purchasePrice) || 0,
+        expectedLife: parseInt(form.expectedLife) || 0,
         warrantyEnd: form.warrantyEnd || null,
         nextMaintenance: form.nextMaintenance || null,
       };
-      const res = await fetch(`/api/assets/${params.id}`, {
+      const res = await fetch(`/api/assets/${assetId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
       if (!res.ok) { showError(t("editAsset.saveFailed")); setSaving(false); return; }
       await showSuccess(t("editAsset.title"), t("dashboard.savedSuccess"));
-      router.push(`/assets/${params.id}`);
       router.refresh();
+      onClose();
+      setSaving(false);
     } catch { showError(t("editAsset.error")); setSaving(false); }
   };
 
-  if (loading) return <div className="py-20 text-center text-gray-500">{t("editAsset.loading")}</div>;
-  if (!form) return <div className="py-20 text-center text-red-400">{error || t("editAsset.notFound")}</div>;
-
   return (
-    <div className="max-w-3xl mx-auto">
-      <PageHeader
-        backHref={`/assets/${params.id}`}
-        backLabel={t("editAsset.back")}
-        title={t("editAsset.title")}
-      />
-      <div className="card">
+    <Modal open={open} onClose={onClose} title={t("editAsset.title")} width="max-w-2xl">
+      {loading ? (
+        <div className="py-20 text-center text-[var(--text-muted)]">{t("editAsset.loading")}</div>
+      ) : !form ? (
+        <div className="py-20 text-center text-red-400">{error || t("editAsset.notFound")}</div>
+      ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
           <section>
             <h3 className="section-label mb-3">{t("newAsset.basicInfo")}</h3>
@@ -121,14 +126,14 @@ export default function EditAssetPage() {
               <Field label={t("editAsset.serialNumber")}>
                 <input value={form.serialNumber} onChange={(e) => set("serialNumber", e.target.value)} className="input" />
               </Field>
-                <Field label={t("editAsset.category")}>
-                  <CategoryFilter
-                    value={form.category}
-                    onChange={(val) => set("category", val)}
-                    hideAllOption={true}
-                    className="w-full"
-                  />
-                </Field>
+              <Field label={t("editAsset.category")}>
+                <CategoryFilter
+                  value={form.category}
+                  onChange={(val) => set("category", val)}
+                  hideAllOption={true}
+                  className="w-full"
+                />
+              </Field>
             </div>
           </section>
 
@@ -165,16 +170,25 @@ export default function EditAssetPage() {
             </div>
           </section>
 
-          <FormFooter
-            className="mt-2 pt-4 border-t border-border"
-            cancelLabel={t("editAsset.cancel")}
-            cancelHref={`/assets/${params.id}`}
-            submitLabel={t("editAsset.save")}
-            submittingLabel={t("editAsset.saving")}
-            submitting={saving}
-          />
+          <div className="pt-4 mt-2 flex justify-end gap-3 border-t border-[var(--border)]">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={saving}
+              className="btn-ghost"
+            >
+              {t("editAsset.cancel")}
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="btn-primary"
+            >
+              {saving ? t("editAsset.saving") : t("editAsset.save")}
+            </button>
+          </div>
         </form>
-      </div>
-    </div>
+      )}
+    </Modal>
   );
 }

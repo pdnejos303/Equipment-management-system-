@@ -2,11 +2,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import { useRole } from "@/lib/useRole";
 import { useI18n } from "@/lib/i18n";
 import { showConfirm, showSuccess, showError } from "@/lib/swal";
+import { EditAssetModal } from "@/components/forms/EditAssetModal";
 
 interface CurrentAssignment {
   id: string;
@@ -48,18 +49,30 @@ export function AssetActions({ assetId, assetName }: Props) {
     router.refresh();
   };
 
+  const [showEdit, setShowEdit] = useState(false);
+
   return (
-    <div className="flex flex-wrap gap-2">
-      {canEdit && (
-        <Link href={`/assets/${assetId}/edit`} className="btn-ghost text-sm flex items-center gap-1">
-          <Pencil size={14} /> {t("actions.edit")}
-        </Link>
+    <>
+      <div className="flex flex-wrap gap-2">
+        {canEdit && (
+          <button onClick={() => setShowEdit(true)} className="btn-ghost text-sm flex items-center gap-1">
+            <Pencil size={14} /> {t("actions.edit")}
+          </button>
+        )}
+        {canDelete && (
+          <button onClick={handleDelete} className="btn-danger text-sm flex items-center gap-1">
+            <Trash2 size={14} /> {t("actions.delete")}
+          </button>
+        )}
+      </div>
+
+      {showEdit && (
+        <EditAssetModal
+          assetId={assetId}
+          open={showEdit}
+          onClose={() => setShowEdit(false)}
+        />
       )}
-      {canDelete && (
-        <button onClick={handleDelete} className="btn-danger text-sm flex items-center gap-1">
-          <Trash2 size={14} /> {t("actions.delete")}
-        </button>
-      )}
-    </div>
+    </>
   );
 }
