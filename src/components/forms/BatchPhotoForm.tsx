@@ -1,7 +1,7 @@
 // Path: src/components/forms/BatchPhotoForm.tsx
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useId } from "react";
 import NextImage from "next/image";
 import { useRouter } from "next/navigation";
 import { ImagePlus, Upload, Trash2, X } from "lucide-react";
@@ -61,6 +61,7 @@ export function BatchPhotoForm({ open, onClose, assetIds }: Props) {
   const [dragOver, setDragOver] = useState(false);
   const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const inputId = useId();
 
   useEffect(() => {
     if (!file) {
@@ -203,8 +204,8 @@ export function BatchPhotoForm({ open, onClose, assetIds }: Props) {
               </button>
             </>
           ) : (
-            <label
-              htmlFor="batch-photo-upload"
+            <div
+              onClick={() => fileRef.current?.click()}
               className="absolute inset-0 flex flex-col items-center justify-center text-gray-600 hover:text-gray-400 transition-colors cursor-pointer"
             >
               <div className="w-16 h-16 rounded-2xl bg-surface flex items-center justify-center mb-3 border border-border">
@@ -212,7 +213,7 @@ export function BatchPhotoForm({ open, onClose, assetIds }: Props) {
               </div>
               <p className="text-sm font-medium text-gray-400">{t("photoUpload.dragDrop")}</p>
               <p className="text-xs text-gray-600 mt-1">{t("photoUpload.fileTypes")}</p>
-            </label>
+            </div>
           )}
 
           {dragOver && (
@@ -227,7 +228,7 @@ export function BatchPhotoForm({ open, onClose, assetIds }: Props) {
 
         <input
           ref={fileRef}
-          id="batch-photo-upload"
+          id={`batch-photo-upload-${inputId}`}
           type="file"
           accept="image/*"
           className="sr-only"

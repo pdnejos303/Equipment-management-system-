@@ -1,5 +1,6 @@
 // Path: src/app/api/assignments/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { eventEmitter } from "@/lib/eventEmitter";
 import { prisma } from "@/lib/prisma";
 import { getSessionWithRole } from "@/lib/role-guard";
 import { z } from "zod";
@@ -43,6 +44,7 @@ export async function PATCH(
       });
     }
 
+    eventEmitter.emit("update");
     return NextResponse.json(assignment);
   } catch (error) {
     if (error instanceof z.ZodError) {

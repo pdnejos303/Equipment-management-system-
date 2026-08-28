@@ -6,6 +6,7 @@
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
+import { eventEmitter } from "@/lib/eventEmitter";
 import { prisma } from "@/lib/prisma";
 import { getSessionWithRole } from "@/lib/role-guard";
 import { z } from "zod";
@@ -87,6 +88,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (overlap) {
+    eventEmitter.emit("update");
       return NextResponse.json(
         { error: "This time slot is already booked" },
         { status: 409 }
@@ -104,6 +106,7 @@ export async function POST(req: NextRequest) {
         conditionBefore: data.conditionBefore,
       },
     });
+    eventEmitter.emit("update");
     return NextResponse.json(booking, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError)
@@ -111,3 +114,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Failed" }, { status: 500 });
   }
 }
+

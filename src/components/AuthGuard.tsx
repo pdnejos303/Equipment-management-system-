@@ -1,34 +1,38 @@
 // Path: src/components/AuthGuard.tsx
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 
-export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { data: session, status } = useSession();
+export function AuthGuard({ 
+  children, 
+  session, 
+  role 
+}: { 
+  children: React.ReactNode;
+  session: any;
+  role: string;
+}) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const role = (session?.user as any)?.role;
-
   useEffect(() => {
-    if (status === "loading") return;
-    
     // Allow unauthenticated access to /scan
     if (pathname?.startsWith("/scan")) {
       return;
     }
 
-    if (status === "unauthenticated" || !role) {
+    if (!session || !role || role === "GUEST") {
       const callback = encodeURIComponent(pathname || "/overview");
       signOut({ redirect: false }).finally(() => {
         router.replace(`/login?callbackUrl=${callback}`);
       });
     }
-  }, [status, role, router, pathname]);
+  }, [session, role, router, pathname]);
 
-  if (status === "loading") return null;
-  if (!pathname?.startsWith("/scan") && !role) return null;
+  if (!pathname?.startsWith("/scan") && (!session || !role || role === "GUEST")) {
+    return null;
+  }
   return <>{children}</>;
 }

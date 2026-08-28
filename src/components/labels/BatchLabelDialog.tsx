@@ -221,14 +221,12 @@ export function BatchLabelDialog({ assets, open, onClose }: Props) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-overlay-in"
-      style={{ willChange: "opacity" }}
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex justify-center items-center p-4 md:p-6 transition-opacity animate-overlay-in"
     >
-      <div className="absolute inset-0 bg-black/75" onClick={onClose} />
+      <div className="absolute inset-0" onClick={onClose} />
 
       <div
-        className="relative bg-surface border border-border rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col animate-modal-in"
-        style={{ willChange: "transform, opacity", transform: "translateZ(0)" }}
+        className="relative bg-[var(--surface)] rounded-xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">

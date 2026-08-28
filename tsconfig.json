@@ -39,6 +39,8 @@
     "prisma.config.ts",
     "prisma/**/*.ts",
     "vitest.config.ts",
-    "vitest.setup.ts"
+    "vitest.setup.ts",
+    "**/*.test.ts",
+    "**/*.test.tsx"
   ]
 }

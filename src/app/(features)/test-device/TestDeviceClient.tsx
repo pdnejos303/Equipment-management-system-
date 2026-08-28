@@ -13,6 +13,7 @@ import AddTestDeviceModal from "./components/AddTestDeviceModal";
 import TestDeviceHistoryModal from "./components/TestDeviceHistoryModal";
 import TestDeviceCard from "./components/TestDeviceCard";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { useAutoRefresh } from "@/lib/useAutoRefresh";
 
 export default function TestDeviceClient({ initialDevices, categories, currentUser }: any) {
   const router = useRouter();
@@ -26,6 +27,8 @@ export default function TestDeviceClient({ initialDevices, categories, currentUs
   const [selectedDevices, setSelectedDevices] = useState<Set<string>>(new Set());
   const [mounted, setMounted] = useState(false);
   const [isPending, startTransition] = useTransition();
+
+  useAutoRefresh();
 
   useEffect(() => {
     if (!isPending) {

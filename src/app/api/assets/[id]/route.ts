@@ -1,5 +1,6 @@
 // Path: src/app/api/assets/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { eventEmitter } from "@/lib/eventEmitter";
 import { prisma } from "@/lib/prisma";
 import { getSessionWithRole } from "@/lib/role-guard";
 import { storageProvider } from "@/lib/storage";
@@ -74,6 +75,7 @@ export async function PATCH(
       data,
     });
 
+    eventEmitter.emit("update");
     return NextResponse.json(asset);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -130,6 +132,7 @@ export async function DELETE(
       }
     }
 
+    eventEmitter.emit("update");
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("DELETE /api/assets/[id] error:", error);

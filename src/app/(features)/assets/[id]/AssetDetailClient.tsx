@@ -396,7 +396,7 @@ body{font-family:'Sarabun',sans-serif;width:80mm;height:50mm}
             model: asset.model || undefined,
             serial: asset.serialNumber || undefined,
           }}
-          template="full"
+          template="compact"
           widthMm={80}
           heightMm={50}
           scale={1}

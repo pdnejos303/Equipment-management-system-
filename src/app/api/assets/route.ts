@@ -6,6 +6,7 @@
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
+import { eventEmitter } from "@/lib/eventEmitter";
 import { prisma } from "@/lib/prisma";
 import { getSessionWithRole } from "@/lib/role-guard";
 import { z } from "zod";
@@ -114,6 +115,7 @@ export async function POST(req: NextRequest) {
     // point at the "category" field with a localized reason.
     const categoryExists = await prisma.category.findUnique({ where: { key: data.category } });
     if (!categoryExists) {
+    eventEmitter.emit("update");
       return NextResponse.json(
         {
           error: `Unknown category: ${data.category}`,
@@ -128,6 +130,7 @@ export async function POST(req: NextRequest) {
       where: { code: data.code },
     });
     if (existing) {
+    eventEmitter.emit("update");
       return NextResponse.json(
         {
           error: `Code ${data.code} already exists`,
@@ -139,18 +142,22 @@ export async function POST(req: NextRequest) {
 
     const asset = await prisma.asset.create({ data });
 
+    eventEmitter.emit("update");
     return NextResponse.json(asset, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
+    eventEmitter.emit("update");
       return NextResponse.json(
         { error: "Validation failed", details: error.errors },
         { status: 400 }
       );
     }
     console.error("POST /api/assets error:", error);
+    eventEmitter.emit("update");
     return NextResponse.json(
       { error: "Failed to create asset" },
       { status: 500 }
     );
   }
 }
+

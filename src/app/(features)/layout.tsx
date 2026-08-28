@@ -19,7 +19,7 @@ export default async function DashboardLayout({
   const alertCount = alerts.length;
 
   return (
-    <AuthGuard>
+    <AuthGuard session={session} role={role}>
       <DashboardShell alertCount={alertCount}>{children}</DashboardShell>
       <AIChatWidget />
     </AuthGuard>

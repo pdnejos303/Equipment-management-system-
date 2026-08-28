@@ -1,5 +1,6 @@
 // Path: src/app/api/bookings/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { eventEmitter } from "@/lib/eventEmitter";
 import { prisma } from "@/lib/prisma";
 import { getSessionWithRole } from "@/lib/role-guard";
 import { z } from "zod";
@@ -31,6 +32,7 @@ export async function PATCH(
       },
     });
 
+    eventEmitter.emit("update");
     return NextResponse.json(booking);
   } catch (error) {
     if (error instanceof z.ZodError) {

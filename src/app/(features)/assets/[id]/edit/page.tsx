@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useI18n } from "@/lib/i18n";
 import { useCategories } from "@/lib/useCategories";
+import { CategoryFilter } from "@/components/ui/CategoryFilter";
 import { showSuccess, showError } from "@/lib/swal";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { FormFooter } from "@/components/ui/FormFooter";
@@ -120,13 +121,14 @@ export default function EditAssetPage() {
               <Field label={t("editAsset.serialNumber")}>
                 <input value={form.serialNumber} onChange={(e) => set("serialNumber", e.target.value)} className="input" />
               </Field>
-              <Field label={t("editAsset.category")}>
-                <select value={form.category} onChange={(e) => set("category", e.target.value)} className="select">
-                  {categories.map((c) => (
-                    <option key={c.key} value={c.key}>{c.emoji ? `${c.emoji} ` : ""}{c.label}</option>
-                  ))}
-                </select>
-              </Field>
+                <Field label={t("editAsset.category")}>
+                  <CategoryFilter
+                    value={form.category}
+                    onChange={(val) => set("category", val)}
+                    hideAllOption={true}
+                    className="w-full"
+                  />
+                </Field>
             </div>
           </section>
 

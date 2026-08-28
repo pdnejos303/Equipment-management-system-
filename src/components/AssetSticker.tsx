@@ -71,7 +71,7 @@ export function AssetSticker({
           <div id="sticker-print-area">
             <LabelTemplate
               asset={asset}
-              template="full"
+              template="compact"
               widthMm={80}
               heightMm={50}
               scale={1.1}

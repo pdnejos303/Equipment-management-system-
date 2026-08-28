@@ -1,7 +1,7 @@
 // Path: src/components/PhotoUpload.tsx
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useId } from "react";
 import NextImage from "next/image";
 import { X, Star, Upload, ImagePlus } from "lucide-react";
 import type { AssetPhoto } from "@/types";
@@ -87,6 +87,7 @@ export function PhotoUpload({
   const [compressionInfo, setCompressionInfo] = useState<string | null>(null);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const inputId = useId();
 
   const uploadFile = useCallback(
     async (file: File) => {
@@ -214,8 +215,8 @@ export function PhotoUpload({
               <p className="text-xs">{t("photoUpload.noPhotos")}</p>
             </div>
           ) : (
-            <label
-              htmlFor={`photo-upload-${assetId}`}
+            <div
+              onClick={() => fileRef.current?.click()}
               className="flex flex-col items-center justify-center h-full cursor-pointer text-gray-600 hover:text-gray-400 transition-colors bg-surface-dark"
             >
               <div className="w-16 h-16 rounded-2xl bg-surface flex items-center justify-center mb-3 border border-border">
@@ -223,7 +224,7 @@ export function PhotoUpload({
               </div>
               <p className="text-sm font-medium text-gray-400">{t("photoUpload.dragDrop")}</p>
               <p className="text-xs text-gray-600 mt-1">{t("photoUpload.fileTypes")}</p>
-            </label>
+            </div>
           )}
 
           {/* Drag overlay */}
@@ -299,12 +300,13 @@ export function PhotoUpload({
             {/* Add more button */}
             {!readOnly && (
               <div className="aspect-square">
-                <label
-                  htmlFor={`photo-upload-${assetId}`}
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
                   className="w-full h-full rounded-lg border-2 border-dashed border-border flex items-center justify-center text-gray-600 hover:border-gray-500 hover:text-gray-400 transition-colors bg-surface-dark hover:bg-surface-hover cursor-pointer"
                 >
                   <Upload size={16} />
-                </label>
+                </button>
               </div>
             )}
           </div>
@@ -313,7 +315,7 @@ export function PhotoUpload({
         {!readOnly && (
           <input
             ref={fileRef}
-            id={`photo-upload-${assetId}`}
+            id={`photo-upload-${inputId}`}
             type="file"
             accept="image/*"
             className="sr-only"

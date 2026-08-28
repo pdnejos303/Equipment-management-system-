@@ -22,11 +22,13 @@ export const LABEL_SIZES: LabelSize[] = [
   { id: "50x30",  name: "labels.size.50x30",  widthMm: 50,  heightMm: 30,  description: "labels.sizeDesc.50x30" },
   { id: "50x25",  name: "labels.size.50x25",  widthMm: 50,  heightMm: 25,  description: "labels.sizeDesc.50x25" },
   { id: "40x30",  name: "labels.size.40x30",  widthMm: 40,  heightMm: 30,  description: "labels.sizeDesc.40x30" },
+  { id: "20x20",  name: "labels.size.20x20",  widthMm: 20,  heightMm: 20,  description: "labels.sizeDesc.20x20" },
+  { id: "15x15",  name: "labels.size.15x15",  widthMm: 15,  heightMm: 15,  description: "labels.sizeDesc.15x15" },
 ];
 
 // ── Label Templates ──
 
-export type LabelTemplateType = "full" | "compact" | "qr-only" | "barcode-only";
+export type LabelTemplateType = "compact" | "full" | "qr-only" | "barcode-only" | "qr-micro";
 
 export interface LabelTemplateOption {
   id: LabelTemplateType;
@@ -37,9 +39,10 @@ export interface LabelTemplateOption {
 }
 
 export const LABEL_TEMPLATES: LabelTemplateOption[] = [
-  { id: "full",         name: "labels.template.full",     description: "labels.templateDesc.full",     minWidthMm: 50, minHeightMm: 30 },
   { id: "compact",      name: "labels.template.compact",  description: "labels.templateDesc.compact",  minWidthMm: 40, minHeightMm: 25 },
+  { id: "full",         name: "labels.template.full",     description: "labels.templateDesc.full",     minWidthMm: 50, minHeightMm: 30 },
   { id: "qr-only",      name: "labels.template.qrOnly",   description: "labels.templateDesc.qrOnly",   minWidthMm: 25, minHeightMm: 25 },
+  { id: "qr-micro",     name: "labels.template.qrMicro",  description: "labels.templateDesc.qrMicro",  minWidthMm: 15, minHeightMm: 15 },
   { id: "barcode-only", name: "labels.template.barcodeOnly", description: "labels.templateDesc.barcodeOnly", minWidthMm: 40, minHeightMm: 15 },
 ];
 

@@ -7,6 +7,7 @@ import { Modal } from "@/components/ui/Modal";
 import { FormFooter } from "@/components/ui/FormFooter";
 import { useI18n } from "@/lib/i18n";
 import { useCategories } from "@/lib/useCategories";
+import { CategoryFilter } from "@/components/ui/CategoryFilter";
 import { showSuccess, showError } from "@/lib/swal";
 
 interface Props {
@@ -106,11 +107,11 @@ export function BatchEditAssetsForm({ open, onClose, assetIds }: Props) {
     const fail = results.length - ok;
 
     if (fail === 0) {
-      await showSuccess(t("labels.batchEditTitle"), t("labels.batchUpdatedSuccess", ok));
+      await showSuccess(t("labels.batchEditTitle", assetIds.length), t("labels.batchUpdatedSuccess", ok));
     } else if (ok === 0) {
-      showError(t("labels.batchEditTitle"), t("labels.batchUpdateFailed"));
+      showError(t("labels.batchEditTitle", assetIds.length), t("labels.batchUpdateFailed"));
     } else {
-      await showSuccess(t("labels.batchEditTitle"), t("labels.batchPartialSuccess", ok, fail));
+      await showSuccess(t("labels.batchEditTitle", assetIds.length), t("labels.batchPartialSuccess", ok, fail));
     }
 
     reset();
@@ -156,19 +157,12 @@ export function BatchEditAssetsForm({ open, onClose, assetIds }: Props) {
             <label className={fieldLabelCls} style={fieldLabelStyle}>
               {t("editAsset.category")}
             </label>
-            <select
-              value={values.category}
-              onChange={(e) => setVal("category", e.target.value)}
-              className="select w-full"
-            >
-              <option value={UNCHANGED}>{t("labels.leaveUnchanged")}</option>
-              {categories.map((c) => (
-                <option key={c.key} value={c.key}>
-                  {c.emoji ? `${c.emoji} ` : ""}
-                  {c.label}
-                </option>
-              ))}
-            </select>
+            <CategoryFilter
+              value={values.category === UNCHANGED ? "" : values.category}
+              onChange={(val) => setVal("category", val === "" ? UNCHANGED : val)}
+              allLabel={t("labels.leaveUnchanged")}
+              className="w-full"
+            />
           </div>
 
           <div>

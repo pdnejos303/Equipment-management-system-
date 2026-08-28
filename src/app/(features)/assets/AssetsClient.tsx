@@ -15,8 +15,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { AddAssetForm } from "@/components/forms/AddAssetForm";
 import { BatchEditAssetsForm } from "@/components/forms/BatchEditAssetsForm";
 import { BatchPhotoForm } from "@/components/forms/BatchPhotoForm";
-import { CategoriesManagerDialog } from "@/components/settings/CategoriesManagerDialog";
-import { SearchableSelect } from "@/components/ui/SearchableSelect";
+import { CategoryFilter } from "@/components/ui/CategoryFilter";
 import { useRole } from "@/lib/useRole";
 import { useCategories } from "@/lib/useCategories";
 import { useAssetColumns } from "@/lib/useAssetColumns";
@@ -86,7 +85,6 @@ export function AssetsClient({ data }: { data: AssetsData }) {
   const [showBatchPhoto, setShowBatchPhoto] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [showAddAsset, setShowAddAsset] = useState(false);
-  const [showManageCategories, setShowManageCategories] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState(searchParams.category || "");
   const [viewMode, setViewMode] = useState<ViewMode>("table");
 
@@ -105,12 +103,6 @@ export function AssetsClient({ data }: { data: AssetsData }) {
   }, []);
 
   const statuses = ["ACTIVE", "AVAILABLE", "MAINTENANCE", "RETIRED"];
-
-  const categoryOptions = categories.map((c) => ({
-    value: c.key,
-    label: c.label,
-    prefix: c.emoji || undefined,
-  }));
 
   const isAllSelected = assets.length > 0 && selected.size === assets.length;
   const isSomeSelected = selected.size > 0;
@@ -251,28 +243,11 @@ export function AssetsClient({ data }: { data: AssetsData }) {
             {statuses.map((s) => <option key={s} value={s}>{t(`status.${s}`)}</option>)}
           </select>
           {/* Category */}
-          <SearchableSelect
-            name="category"
-            value={categoryFilter}
-            onChange={setCategoryFilter}
-            options={categoryOptions}
-            allLabel={t("assets.allCategory")}
-            ariaLabel={t("assets.allCategory")}
-            className="flex-1 sm:w-56 sm:flex-none"
+          <CategoryFilter 
+            value={categoryFilter} 
+            onChange={setCategoryFilter} 
+            allLabel={t("assets.allCategory")} 
           />
-          {/* Manage Categories */}
-          {canCreate && (
-            <button
-              type="button"
-              onClick={() => setShowManageCategories(true)}
-              className="btn-ghost text-sm flex items-center gap-1.5 min-h-[40px] flex-shrink-0"
-              title={t("assets.manageCategories")}
-              aria-label={t("assets.manageCategories")}
-            >
-              <Settings2 size={14} />
-              <span className="hidden sm:inline">{t("assets.manageCategories")}</span>
-            </button>
-          )}
         </div>
         <button type="submit" className="btn-ghost text-sm min-h-[40px]">{t("assets.searchBtn")}</button>
         <div className="flex rounded-lg border border-border overflow-hidden shrink-0 ml-auto sm:ml-0">
@@ -554,11 +529,6 @@ export function AssetsClient({ data }: { data: AssetsData }) {
       )}
 
       <AddAssetForm open={showAddAsset} onClose={() => setShowAddAsset(false)} />
-
-      <CategoriesManagerDialog
-        open={showManageCategories}
-        onClose={() => setShowManageCategories(false)}
-      />
     </div>
   );
 }

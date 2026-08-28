@@ -8,7 +8,7 @@ import { X } from "lucide-react";
 interface Props {
   open: boolean;
   onClose: () => void;
-  title: string;
+  title: React.ReactNode;
   children: React.ReactNode;
   width?: string;
 }
@@ -48,30 +48,26 @@ export function Modal({ open, onClose, title, children, width = "max-w-lg" }: Pr
   return createPortal(
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 animate-overlay-in"
-      style={{ willChange: "opacity" }}
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex justify-center items-center p-4 md:p-6 transition-opacity animate-overlay-in"
       onClick={(e) => {
         if (e.target === overlayRef.current) onClose();
       }}
     >
-      <div className={`bg-surface border border-border rounded-2xl w-full ${width} max-h-[90vh] overflow-y-auto animate-modal-in relative`}
-        style={{
-          boxShadow: "0 24px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.03) inset",
-          willChange: "transform, opacity",
-          transform: "translateZ(0)",
-        }}>
-        {/* Top accent line */}
-        <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-[rgb(var(--brand-rgb)/0.3)] to-transparent" />
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border/60">
-          <h2 className="text-lg font-semibold">{title}</h2>
+      <div className={`bg-[var(--surface)] rounded-xl w-full ${width} max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200`}>
+        <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--surface-hover)] shrink-0">
+          <h2 className="text-xl font-bold text-[var(--text-default)] flex items-center gap-2">
+            {title}
+          </h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-subtle)] hover:text-[var(--text-default)] hover:bg-[var(--surface-hover)] transition-all duration-150"
+            className="p-2 text-[var(--text-muted)] hover:text-[var(--text-default)] hover:bg-[var(--surface-hover)] rounded-xl transition-colors"
           >
-            <X size={18} />
+            <X size={20} />
           </button>
         </div>
-        <div className="px-6 py-5">{children}</div>
+        <div className="flex-1 overflow-y-auto p-6">
+          {children}
+        </div>
       </div>
     </div>,
     document.body

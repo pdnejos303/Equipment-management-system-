@@ -16,10 +16,11 @@ interface Props {
   value: string;
   onChange: (value: string) => void;
   options: SearchableOption[];
-  allLabel: string;
+  allLabel?: string;
   placeholder?: string;
   className?: string;
   ariaLabel?: string;
+  hideAllOption?: boolean;
 }
 
 export function SearchableSelect({
@@ -31,6 +32,7 @@ export function SearchableSelect({
   placeholder,
   className = "",
   ariaLabel,
+  hideAllOption = false,
 }: Props) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
@@ -81,7 +83,7 @@ export function SearchableSelect({
   }
 
   function onInputKey(e: React.KeyboardEvent) {
-    const total = filtered.length + 1; // +1 for the "all" row
+    const total = filtered.length + (hideAllOption ? 0 : 1);
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setHighlight((h) => (h + 1) % total);
@@ -90,8 +92,8 @@ export function SearchableSelect({
       setHighlight((h) => (h - 1 + total) % total);
     } else if (e.key === "Enter") {
       e.preventDefault();
-      if (highlight === 0) commit("");
-      else commit(filtered[highlight - 1]?.value ?? "");
+      if (!hideAllOption && highlight === 0) commit("");
+      else commit(filtered[highlight - (hideAllOption ? 0 : 1)]?.value ?? "");
     }
   }
 
@@ -113,7 +115,7 @@ export function SearchableSelect({
         >
           {current
             ? `${current.prefix ? `${current.prefix} ` : ""}${current.label}`
-            : allLabel}
+            : (allLabel || placeholder || t("common.select") || "Select...")}
         </span>
         <ChevronDown
           size={14}
@@ -156,19 +158,21 @@ export function SearchableSelect({
           </div>
 
           <ul role="listbox" className="py-1 max-h-64 overflow-y-auto">
-            <li>
-              <button
-                type="button"
-                onMouseEnter={() => setHighlight(0)}
-                onClick={() => commit("")}
-                className={`w-full flex items-center justify-between gap-3 px-3 py-2 text-left text-sm transition-colors ${
-                  highlight === 0 ? "bg-[var(--surface-hover)]" : ""
-                } ${value === "" ? "text-brand-500 font-semibold" : ""}`}
-              >
-                <span>{allLabel}</span>
-                {value === "" && <Check size={14} className="text-brand-500" />}
-              </button>
-            </li>
+            {!hideAllOption && (
+              <li>
+                <button
+                  type="button"
+                  onMouseEnter={() => setHighlight(0)}
+                  onClick={() => commit("")}
+                  className={`w-full flex items-center justify-between gap-3 px-3 py-2 text-left text-sm transition-colors ${
+                    highlight === 0 ? "bg-[var(--surface-hover)]" : ""
+                  } ${value === "" ? "text-brand-500 font-semibold" : ""}`}
+                >
+                  <span>{allLabel}</span>
+                  {value === "" && <Check size={14} className="text-brand-500" />}
+                </button>
+              </li>
+            )}
             {filtered.length === 0 ? (
               <li className="px-3 py-4 text-xs text-center text-gray-500">
                 {t("picker.noMatch")}
@@ -176,12 +180,12 @@ export function SearchableSelect({
             ) : (
               filtered.map((opt, i) => {
                 const selected = opt.value === value;
-                const isHi = highlight === i + 1;
+                const isHi = highlight === i + (hideAllOption ? 0 : 1);
                 return (
                   <li key={opt.value}>
                     <button
                       type="button"
-                      onMouseEnter={() => setHighlight(i + 1)}
+                      onMouseEnter={() => setHighlight(i + (hideAllOption ? 0 : 1))}
                       onClick={() => commit(opt.value)}
                       className={`w-full flex items-center justify-between gap-3 px-3 py-2 text-left text-sm transition-colors ${
                         isHi ? "bg-[var(--surface-hover)]" : ""

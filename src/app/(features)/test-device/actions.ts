@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { z } from "zod";
+import { eventEmitter } from "@/lib/eventEmitter";
 
 const AssetIdSchema = z.string().min(1, "Asset ID is required");
 const NoteSchema = z.string().max(1000, "Note is too long").nullable().optional();
@@ -95,6 +96,7 @@ export async function addTestDevice(rawAssetId: string) {
     where: { id: assetId },
     data: { isTestDevice: true },
   });
+  eventEmitter.emit("update");
 }
 
 export async function removeTestDevice(rawAssetId: string) {
@@ -112,6 +114,7 @@ export async function removeTestDevice(rawAssetId: string) {
     where: { id: assetId },
     data: { isTestDevice: false },
   });
+  eventEmitter.emit("update");
 }
 
 export async function updateTestDeviceNote(rawAssetId: string, rawNote: string) {
@@ -124,6 +127,7 @@ export async function updateTestDeviceNote(rawAssetId: string, rawNote: string) 
     where: { id: assetId },
     data: { testDeviceNote: note },
   });
+  eventEmitter.emit("update");
 }
 
 export async function borrowDevice(rawAssetId: string, guestName?: string) {
@@ -154,6 +158,8 @@ export async function borrowDevice(rawAssetId: string, guestName?: string) {
       data: { status: "ACTIVE" },
     })
   ]);
+  eventEmitter.emit("update");
+  eventEmitter.emit("update");
 }
 
 export async function returnDevice(rawAssetId: string) {
@@ -185,6 +191,8 @@ export async function returnDevice(rawAssetId: string) {
       data: { status: "AVAILABLE" },
     })
   ]);
+  eventEmitter.emit("update");
+  eventEmitter.emit("update");
 }
 
 export async function getMonthlyLogs(rawYear: number, rawMonth: number) {
@@ -233,6 +241,8 @@ export async function borrowMultipleDevices(rawAssetIds: string[]) {
       data: { status: "ACTIVE" },
     })
   ]);
+  eventEmitter.emit("update");
+  eventEmitter.emit("update");
 }
 
 export async function returnMultipleDevices(rawAssetIds: string[]) {
@@ -263,4 +273,6 @@ export async function returnMultipleDevices(rawAssetIds: string[]) {
       data: { status: "AVAILABLE" },
     })
   ]);
+  eventEmitter.emit("update");
+  eventEmitter.emit("update");
 }

@@ -1,5 +1,6 @@
 // Path: src/app/api/assignments/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { eventEmitter } from "@/lib/eventEmitter";
 import { prisma } from "@/lib/prisma";
 import { getSessionWithRole } from "@/lib/role-guard";
 import { z } from "zod";
@@ -88,6 +89,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    eventEmitter.emit("update");
     return NextResponse.json(assignment, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -97,3 +99,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Failed" }, { status: 500 });
   }
 }
+

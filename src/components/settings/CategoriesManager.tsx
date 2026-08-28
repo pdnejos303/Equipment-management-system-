@@ -27,7 +27,7 @@ export function CategoriesManager() {
         <div className="flex justify-end">
           <button
             onClick={() => setAdding(true)}
-            className="btn-ghost text-xs flex items-center gap-1.5 flex-shrink-0"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-border rounded-md bg-surface hover:bg-surface-hover text-gray-300 hover:text-gray-100 transition-colors"
           >
             <Plus size={12} /> {t("settings.categoryAdd")}
           </button>

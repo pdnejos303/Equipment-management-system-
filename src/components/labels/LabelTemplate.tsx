@@ -142,6 +142,15 @@ export function LabelTemplate({
             bgColor={childBgColor}
           />
         )}
+        {template === "qr-micro" && (
+          <QRMicroTemplate
+            asset={asset}
+            widthMm={widthMm}
+            heightMm={heightMm}
+            fgColor={fg}
+            bgColor={childBgColor}
+          />
+        )}
         {template === "barcode-only" && (
           <BarcodeOnlyTemplate
             asset={asset}
@@ -318,6 +327,31 @@ function QROnlyTemplate({
       <div style={{ fontSize, fontWeight: 700, marginTop: 3, textAlign: "center", letterSpacing: "0.05em" }}>
         {asset.code}
       </div>
+    </div>
+  );
+}
+
+// ── QR Micro Template (No text, max size) ──
+
+function QRMicroTemplate({
+  asset,
+  widthMm,
+  heightMm,
+  fgColor,
+  bgColor,
+}: {
+  asset: LabelAsset;
+  widthMm: number;
+  heightMm: number;
+  fgColor: string;
+  bgColor: string;
+}) {
+  const minDim = Math.min(widthMm, heightMm);
+  const qrSize = mmToPx(minDim * 0.9);
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", width: "100%" }}>
+      <QRCodeDisplay assetCode={asset.code} size={qrSize} fgColor={fgColor} bgColor={bgColor} />
     </div>
   );
 }
