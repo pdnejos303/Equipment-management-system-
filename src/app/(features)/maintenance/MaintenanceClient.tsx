@@ -79,7 +79,7 @@ export function MaintenanceClient({ data }: { data: MaintenanceData }) {
     try {
       const res = await fetch(`/api/maintenance/${r.id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed");
-      await showSuccess(t("maintPage.deleted"));
+      showSuccess(t("maintPage.deleted"));
       router.refresh();
     } catch {
       showError(t("maintPage.deleteFailed"));

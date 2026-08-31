@@ -44,7 +44,7 @@ export function AssetActions({ assetId, assetName }: Props) {
       showError(t("actions.deleteFailed"), data.error);
       return;
     }
-    await showSuccess(t("actions.deleteTitle"), t("actions.deleteFailed").replace("ไม่สำเร็จ", "สำเร็จ"));
+    showSuccess(t("actions.deleteTitle"), t("actions.deleteFailed").replace("ไม่สำเร็จ", "สำเร็จ"));
     router.push("/assets");
     router.refresh();
   };

@@ -90,7 +90,7 @@ function AuthForms() {
         setLoading(false);
         return;
       }
-      await showSuccess(t("login.registerSuccess"), t("login.registerSuccessMsg"));
+      showSuccess(t("login.registerSuccess"), t("login.registerSuccessMsg"));
       setMode("login");
       setName("");
       setConfirmPassword("");

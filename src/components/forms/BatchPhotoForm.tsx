@@ -133,14 +133,14 @@ export function BatchPhotoForm({ open, onClose, assetIds }: Props) {
       const { ok, failed } = (await res.json()) as { ok: number; failed: number };
 
       if (failed === 0) {
-        await showSuccess(
+        showSuccess(
           t("labels.batchPhotoTitle", assetIds.length),
           t("labels.batchPhotoSuccess", ok)
         );
       } else if (ok === 0) {
         showError(t("labels.batchPhotoTitle", assetIds.length), t("labels.batchPhotoFailed"));
       } else {
-        await showSuccess(
+        showSuccess(
           t("labels.batchPhotoTitle", assetIds.length),
           t("labels.batchPartialSuccess", ok, failed)
         );

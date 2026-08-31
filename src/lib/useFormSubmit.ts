@@ -95,7 +95,7 @@ export function useFormSubmit<T extends Record<string, any>>({
         return false;
       }
       const data = await res.json().catch(() => ({}));
-      await showSuccess(successTitle);
+      showSuccess(successTitle);
       if (onSuccess) onSuccess(data);
       else router.refresh();
       setLoading(false);

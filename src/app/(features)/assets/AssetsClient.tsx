@@ -79,7 +79,7 @@ export function AssetsClient({ data }: { data: AssetsData }) {
     const fromPath = qs ? `/assets?${qs}` : "/assets";
     return `/assets/${id}?from=${encodeURIComponent(fromPath)}`;
   }, [urlSearchParams]);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selected, setSelected] = useState<Map<string, AssetRow>>(new Map());
   const [showBatchPrint, setShowBatchPrint] = useState(false);
   const [showBatchEdit, setShowBatchEdit] = useState(false);
   const [showBatchPhoto, setShowBatchPhoto] = useState(false);
@@ -104,28 +104,32 @@ export function AssetsClient({ data }: { data: AssetsData }) {
 
   const statuses = ["ACTIVE", "AVAILABLE", "MAINTENANCE", "RETIRED"];
 
-  const isAllSelected = assets.length > 0 && selected.size === assets.length;
+  const isAllSelected = assets.length > 0 && assets.every((a) => selected.has(a.id));
   const isSomeSelected = selected.size > 0;
+  const isSomeCurrentSelected = assets.some((a) => selected.has(a.id));
 
   const toggleAll = useCallback(() => {
-    if (isAllSelected) {
-      setSelected(new Set());
-    } else {
-      setSelected(new Set(assets.map((a) => a.id)));
-    }
+    setSelected((prev) => {
+      const next = new Map(prev);
+      if (isAllSelected) {
+        assets.forEach((a) => next.delete(a.id));
+      } else {
+        assets.forEach((a) => next.set(a.id, a));
+      }
+      return next;
+    });
   }, [isAllSelected, assets]);
 
-  const toggleOne = useCallback((id: string) => {
+  const toggleOne = useCallback((a: AssetRow) => {
     setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      const next = new Map(prev);
+      if (next.has(a.id)) next.delete(a.id);
+      else next.set(a.id, a);
       return next; 
     });
   }, []);
 
-  const selectedAssets: LabelAsset[] = assets
-    .filter((a) => selected.has(a.id))
+  const selectedAssets: LabelAsset[] = Array.from(selected.values())
     .map((a) => ({
       id: a.id,
       code: a.code,
@@ -136,7 +140,7 @@ export function AssetsClient({ data }: { data: AssetsData }) {
       category: labelFor(a.category) || undefined,
     }));
 
-  const selectedIds = Array.from(selected);
+  const selectedIds = Array.from(selected.keys());
 
   const handleBatchDelete = async () => {
     const confirmed = await showConfirm({
@@ -162,14 +166,14 @@ export function AssetsClient({ data }: { data: AssetsData }) {
     setBulkDeleting(false);
 
     if (fail === 0) {
-      await showSuccess(t("labels.batchDeleteTitle", ok), t("labels.batchDeletedSuccess", ok));
+      showSuccess(t("labels.batchDeleteTitle", ok), t("labels.batchDeletedSuccess", ok));
     } else if (ok === 0) {
       showError(t("labels.batchDeleteTitle", selected.size), t("labels.batchDeleteFailed"));
     } else {
-      await showSuccess(t("labels.batchDeleteTitle", ok), t("labels.batchPartialSuccess", ok, fail));
+      showSuccess(t("labels.batchDeleteTitle", ok), t("labels.batchPartialSuccess", ok, fail));
     }
 
-    setSelected(new Set());
+    setSelected(new Map());
     router.refresh();
   };
 
@@ -329,7 +333,7 @@ export function AssetsClient({ data }: { data: AssetsData }) {
             </button>
           )}
           <button
-            onClick={() => setSelected(new Set())}
+            onClick={() => setSelected(new Map())}
             className="text-sm text-gray-400 hover:text-gray-200 transition px-2"
           >
             {t("labels.clearSelection")}
@@ -367,7 +371,7 @@ export function AssetsClient({ data }: { data: AssetsData }) {
                     <input
                       type="checkbox"
                       checked={isSelected}
-                      onChange={() => toggleOne(a.id)}
+                      onChange={() => toggleOne(a)}
                       className="w-4 h-4 rounded border-gray-600 bg-surface-dark text-brand-500 focus:ring-brand-500 focus:ring-offset-0 cursor-pointer"
                     />
                   </label>
@@ -430,7 +434,7 @@ export function AssetsClient({ data }: { data: AssetsData }) {
                   <input
                     type="checkbox"
                     checked={isAllSelected}
-                    ref={(el) => { if (el) el.indeterminate = isSomeSelected && !isAllSelected; }}
+                    ref={(el) => { if (el) el.indeterminate = isSomeCurrentSelected && !isAllSelected; }}
                     onChange={toggleAll}
                     className="w-4 h-4 rounded border-gray-600 bg-surface-dark text-brand-500 focus:ring-brand-500 focus:ring-offset-0 cursor-pointer"
                   />
@@ -458,7 +462,7 @@ export function AssetsClient({ data }: { data: AssetsData }) {
                     <input
                       type="checkbox"
                       checked={selected.has(a.id)}
-                      onChange={() => toggleOne(a.id)}
+                      onChange={() => toggleOne(a)}
                       className="w-4 h-4 rounded border-gray-600 bg-surface-dark text-brand-500 focus:ring-brand-500 focus:ring-offset-0 cursor-pointer"
                     />
                   </label>

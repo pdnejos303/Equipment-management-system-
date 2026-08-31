@@ -14,6 +14,7 @@ const darkTheme = {
   confirmButtonColor: "#f59e0b",
   cancelButtonColor: "#2a2a2a",
   customClass: {
+    container: "!z-[10000]",
     popup: "!rounded-2xl !border !border-[#222] !shadow-2xl",
     title: "!text-[#ededed] !text-lg !font-bold",
     htmlContainer: "!text-[#6b7280] !text-sm",

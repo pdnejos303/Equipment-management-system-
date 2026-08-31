@@ -107,11 +107,11 @@ export function BatchEditAssetsForm({ open, onClose, assetIds }: Props) {
     const fail = results.length - ok;
 
     if (fail === 0) {
-      await showSuccess(t("labels.batchEditTitle", assetIds.length), t("labels.batchUpdatedSuccess", ok));
+      showSuccess(t("labels.batchEditTitle", assetIds.length), t("labels.batchUpdatedSuccess", ok));
     } else if (ok === 0) {
       showError(t("labels.batchEditTitle", assetIds.length), t("labels.batchUpdateFailed"));
     } else {
-      await showSuccess(t("labels.batchEditTitle", assetIds.length), t("labels.batchPartialSuccess", ok, fail));
+      showSuccess(t("labels.batchEditTitle", assetIds.length), t("labels.batchPartialSuccess", ok, fail));
     }
 
     reset();

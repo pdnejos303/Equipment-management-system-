@@ -221,7 +221,7 @@ export function AddAssetForm({ open, onClose }: Props) {
       }[];
 
     if (failures.length === 0) {
-      await swal.fire({
+      swal.fire({
         icon: "success",
         title: t("newAsset.bulkSuccessMsg"),
         text: `${okCount} ${t("newAsset.bulkItems")}`,

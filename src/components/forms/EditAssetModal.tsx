@@ -91,7 +91,7 @@ export function EditAssetModal({
         body: JSON.stringify(body),
       });
       if (!res.ok) { showError(t("editAsset.saveFailed")); setSaving(false); return; }
-      await showSuccess(t("editAsset.title"), t("dashboard.savedSuccess"));
+      showSuccess(t("editAsset.title"), t("dashboard.savedSuccess"));
       router.refresh();
       onClose();
       setSaving(false);
