@@ -121,8 +121,8 @@ export default function TestDeviceHistoryModal({
         : historyStatusFilter === "RETURNED" ? isReturned : !isReturned;
 
       const matchDate = historyExactDate ? (
-        (log.borrowedAt && log.borrowedAt.startsWith(historyExactDate)) ||
-        (log.returnedAt && log.returnedAt.startsWith(historyExactDate))
+        (log.borrowedAt && new Date(log.borrowedAt).toLocaleDateString('en-CA') === historyExactDate) ||
+        (log.returnedAt && new Date(log.returnedAt).toLocaleDateString('en-CA') === historyExactDate)
       ) : true;
 
       const matchBorrower = historyBorrowers.length > 0 ? (

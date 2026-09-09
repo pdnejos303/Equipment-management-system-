@@ -64,3 +64,15 @@ prisma/dev.db
 prisma/*.db-journal
 
 
+
+# Local test and ad-hoc scripts
+/scripts/clean.py
+/scripts/fix.py
+/scripts/inject.py
+/scripts/inject_actions.py
+/scripts/remove_autorefresh.py
+/scripts/smart_inject.py
+/scripts/test-sse.js
+/archive/
+test.html
+.sse_trigger
