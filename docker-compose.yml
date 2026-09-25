@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: adminpass
       POSTGRES_DB: equiptrackdb
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
       - equiptrack-pgdata:/var/lib/postgresql/data
     networks:
