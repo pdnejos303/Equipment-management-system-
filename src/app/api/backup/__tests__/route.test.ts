@@ -4,6 +4,10 @@ import { NextRequest } from "next/server";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import AdmZip from "adm-zip";
 
+vi.mock("next/cache", () => ({
+  revalidatePath: vi.fn(),
+}));
+
 // Mock dependencies
 vi.mock("@/lib/role-guard", () => ({
   getSessionWithRole: vi.fn().mockResolvedValue({ role: "ADMIN" }),
@@ -141,8 +145,10 @@ describe("Backup API Route", () => {
     expect(prisma.asset.upsert).toHaveBeenCalled();
   });
 
-  it("DELETE should wipe all data and re-create admin user", async () => {
+  it("DELETE should wipe all data but keep admin intact if exists", async () => {
     const { prisma } = await import("@/lib/prisma");
+    // Mock that an admin already exists
+    (prisma.user.findMany as any).mockResolvedValueOnce([{ id: "admin-1", role: "ADMIN", email: "admin@company.com" }]);
 
     const response = await DELETE();
     expect(response.status).toBe(200);
@@ -150,8 +156,6 @@ describe("Backup API Route", () => {
     const json = await response.json();
     expect(json.ok).toBe(true);
     expect(json.admin).toBeDefined();
-    expect(json.admin.email).toBe("admin@company.com");
-    expect(json.admin.name).toBe("Admin");
 
     // Verify all tables were wiped in the correct order
     expect(prisma.testDeviceLog.deleteMany).toHaveBeenCalled();
@@ -160,20 +164,15 @@ describe("Backup API Route", () => {
     expect(prisma.assignment.deleteMany).toHaveBeenCalled();
     expect(prisma.assetPhoto.deleteMany).toHaveBeenCalled();
     expect(prisma.asset.deleteMany).toHaveBeenCalled();
+    
+    // Verify user/session/account deletions were called (but we mock them to return {})
     expect(prisma.session.deleteMany).toHaveBeenCalled();
     expect(prisma.account.deleteMany).toHaveBeenCalled();
     expect(prisma.verificationToken.deleteMany).toHaveBeenCalled();
     expect(prisma.user.deleteMany).toHaveBeenCalled();
 
-    // Verify admin was re-created
-    expect(prisma.user.create).toHaveBeenCalledWith({
-      data: expect.objectContaining({
-        email: "admin@company.com",
-        name: "Admin",
-        role: "ADMIN",
-        hashedPassword: expect.any(String),
-      }),
-    });
+    // Verify admin was NOT re-created since they exist
+    expect(prisma.user.create).not.toHaveBeenCalled();
   });
 
   it("DELETE should return 403 for non-admin users", async () => {

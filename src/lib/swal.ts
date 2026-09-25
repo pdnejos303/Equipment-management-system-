@@ -11,7 +11,7 @@ import Swal from "sweetalert2";
 const darkTheme = {
   background: "#111111",
   color: "#ededed",
-  confirmButtonColor: "#f59e0b",
+  confirmButtonColor: "#3b82f6",
   cancelButtonColor: "#2a2a2a",
   customClass: {
     container: "!z-[10000]",
@@ -134,8 +134,47 @@ export async function showConfirm({
     showCancelButton: true,
     confirmButtonText: confirmText,
     cancelButtonText: cancelText,
-    confirmButtonColor: danger ? "#ef4444" : "#f59e0b",
+    confirmButtonColor: danger ? "#ef4444" : "#3b82f6",
     reverseButtons: true,
   });
   return result.isConfirmed;
+}
+
+/** แสดงผลสรุปการทำ bulk action (มีรายละเอียดของ error) */
+export function showBulkResult({
+  title,
+  ok,
+  fail,
+  errors,
+}: {
+  title: string;
+  ok: number;
+  fail: number;
+  errors: string[];
+}) {
+  const icon = fail === 0 ? "success" : ok === 0 ? "error" : "warning";
+  
+  let html = `<p class="mb-3">สำเร็จ: <b class="text-green-500">${ok}</b> รายการ, ล้มเหลว: <b class="text-red-500">${fail}</b> รายการ</p>`;
+  
+  if (errors.length > 0) {
+    html += `<div class="max-h-48 overflow-y-auto text-left bg-black/30 p-3 rounded-lg border border-[#333] text-[13px] space-y-1">`;
+    const toShow = errors.slice(0, 10);
+    toShow.forEach(e => {
+      html += `<div class="text-red-400 break-words flex items-start gap-2">
+        <span class="mt-0.5">•</span>
+        <span>${e}</span>
+      </div>`;
+    });
+    if (errors.length > 10) {
+      html += `<div class="text-gray-500 italic mt-2">...และรายการที่ล้มเหลวอีก ${errors.length - 10} รายการ</div>`;
+    }
+    html += `</div>`;
+  }
+
+  return swal.fire({
+    icon,
+    title,
+    html,
+    confirmButtonText: "รับทราบ",
+  });
 }

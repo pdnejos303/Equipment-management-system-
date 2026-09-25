@@ -8,12 +8,12 @@ import { ImagePlus, Upload, Trash2, X } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { FormFooter } from "@/components/ui/FormFooter";
 import { useI18n } from "@/lib/i18n";
-import { showSuccess, showError } from "@/lib/swal";
+import { showBulkResult, showError } from "@/lib/swal";
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  assetIds: string[];
+  assets: { id: string; code: string }[];
 }
 
 async function compressImage(file: File, maxWidth = 1920, quality = 0.82): Promise<File> {
@@ -51,7 +51,7 @@ async function compressImage(file: File, maxWidth = 1920, quality = 0.82): Promi
   });
 }
 
-export function BatchPhotoForm({ open, onClose, assetIds }: Props) {
+export function BatchPhotoForm({ open, onClose, assets }: Props) {
   const { t } = useI18n();
   const router = useRouter();
 
@@ -104,7 +104,7 @@ export function BatchPhotoForm({ open, onClose, assetIds }: Props) {
     [pickFile]
   );
 
-  const canSubmit = (file !== null || replaceExisting) && assetIds.length > 0 && !saving;
+  const canSubmit = (file !== null || replaceExisting) && assets.length > 0 && !saving;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,7 +117,7 @@ export function BatchPhotoForm({ open, onClose, assetIds }: Props) {
         const compressed = await compressImage(file);
         fd.append("file", compressed);
       }
-      fd.append("assetIds", JSON.stringify(assetIds));
+      fd.append("assetIds", JSON.stringify(assets.map(a => a.id)));
       fd.append("replaceExisting", String(replaceExisting));
 
       const res = await fetch("/api/assets/batch-photos", {
@@ -130,28 +130,33 @@ export function BatchPhotoForm({ open, onClose, assetIds }: Props) {
         throw new Error(errBody.error || `HTTP ${res.status}`);
       }
 
-      const { ok, failed } = (await res.json()) as { ok: number; failed: number };
+      const result = await res.json() as { ok: number; failed: number; errors: string[] };
 
-      if (failed === 0) {
-        showSuccess(
-          t("labels.batchPhotoTitle", assetIds.length),
-          t("labels.batchPhotoSuccess", ok)
-        );
-      } else if (ok === 0) {
-        showError(t("labels.batchPhotoTitle", assetIds.length), t("labels.batchPhotoFailed"));
-      } else {
-        showSuccess(
-          t("labels.batchPhotoTitle", assetIds.length),
-          t("labels.batchPartialSuccess", ok, failed)
-        );
-      }
+      // Map raw assetId in error messages to [Code]
+      const errorDetails = result.errors.map(errStr => {
+        const idMatch = errStr.match(/^([^:]+):(.*)$/);
+        if (idMatch) {
+          const matchedId = idMatch[1];
+          const msg = idMatch[2];
+          const asset = assets.find(a => a.id === matchedId);
+          if (asset) return `[${asset.code}] ${msg.trim()}`;
+        }
+        return errStr;
+      });
+
+      showBulkResult({
+        title: t("labels.batchPhotoTitle", assets.length),
+        ok: result.ok,
+        fail: result.failed,
+        errors: errorDetails,
+      });
 
       reset();
       onClose();
       router.refresh();
     } catch (err) {
       console.error("batch photo error:", err);
-      showError(t("labels.batchPhotoTitle", assetIds.length), t("labels.batchPhotoFailed"));
+      showError(t("labels.batchPhotoTitle", assets.length), t("labels.batchPhotoFailed"));
       setSaving(false);
     }
   };
@@ -160,7 +165,7 @@ export function BatchPhotoForm({ open, onClose, assetIds }: Props) {
     <Modal
       open={open}
       onClose={handleClose}
-      title={t("labels.batchPhotoTitle", assetIds.length)}
+      title={t("labels.batchPhotoTitle", assets.length)}
       width="max-w-xl"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -262,10 +267,10 @@ export function BatchPhotoForm({ open, onClose, assetIds }: Props) {
           onCancel={handleClose}
           submitLabel={
             file && replaceExisting
-              ? t("labels.batchPhotoApplyReplace", assetIds.length)
+              ? t("labels.batchPhotoApplyReplace", assets.length)
               : file
-              ? t("labels.batchPhotoApplyAdd", assetIds.length)
-              : t("labels.batchPhotoApplyDelete", assetIds.length)
+              ? t("labels.batchPhotoApplyAdd", assets.length)
+              : t("labels.batchPhotoApplyDelete", assets.length)
           }
           submittingLabel={t("editAsset.saving")}
           submitting={saving}

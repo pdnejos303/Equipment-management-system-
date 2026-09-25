@@ -8,12 +8,12 @@ import { FormFooter } from "@/components/ui/FormFooter";
 import { useI18n } from "@/lib/i18n";
 import { useCategories } from "@/lib/useCategories";
 import { CategoryFilter } from "@/components/ui/CategoryFilter";
-import { showSuccess, showError } from "@/lib/swal";
+import { showBulkResult } from "@/lib/swal";
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  assetIds: string[];
+  assets: { id: string; code: string }[];
 }
 
 const STATUSES = ["ACTIVE", "AVAILABLE", "MAINTENANCE", "RETIRED"] as const;
@@ -39,7 +39,7 @@ const EMPTY: FormValues = {
   notes: "",
 };
 
-export function BatchEditAssetsForm({ open, onClose, assetIds }: Props) {
+export function BatchEditAssetsForm({ open, onClose, assets }: Props) {
   const { t } = useI18n();
   const router = useRouter();
   const { categories } = useCategories();
@@ -75,7 +75,7 @@ export function BatchEditAssetsForm({ open, onClose, assetIds }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!hasChanges || assetIds.length === 0) return;
+    if (!hasChanges || assets.length === 0) return;
 
     const payload: Record<string, unknown> = {};
     if (values.status !== UNCHANGED) payload.status = values.status;
@@ -90,29 +90,38 @@ export function BatchEditAssetsForm({ open, onClose, assetIds }: Props) {
     if (values.notes.trim() !== "") payload.notes = values.notes;
 
     setSaving(true);
+    const errorDetails: string[] = [];
+
     const results = await Promise.allSettled(
-      assetIds.map((id) =>
-        fetch(`/api/assets/${id}`, {
+      assets.map(async (asset) => {
+        const r = await fetch(`/api/assets/${asset.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
-        }).then((r) => {
-          if (!r.ok) throw new Error(String(r.status));
-          return r;
-        })
-      )
+        });
+        if (!r.ok) {
+          const data = await r.json().catch(() => ({}));
+          throw new Error(`[${asset.code}] ${data.error || r.statusText || r.status}`);
+        }
+        return r;
+      })
     );
 
     const ok = results.filter((r) => r.status === "fulfilled").length;
     const fail = results.length - ok;
 
-    if (fail === 0) {
-      showSuccess(t("labels.batchEditTitle", assetIds.length), t("labels.batchUpdatedSuccess", ok));
-    } else if (ok === 0) {
-      showError(t("labels.batchEditTitle", assetIds.length), t("labels.batchUpdateFailed"));
-    } else {
-      showSuccess(t("labels.batchEditTitle", assetIds.length), t("labels.batchPartialSuccess", ok, fail));
-    }
+    results.forEach((r) => {
+      if (r.status === "rejected") {
+        errorDetails.push(r.reason?.message || "Unknown error");
+      }
+    });
+
+    showBulkResult({
+      title: t("labels.batchEditTitle", assets.length),
+      ok,
+      fail,
+      errors: errorDetails,
+    });
 
     reset();
     onClose();
@@ -126,7 +135,7 @@ export function BatchEditAssetsForm({ open, onClose, assetIds }: Props) {
     <Modal
       open={open}
       onClose={handleClose}
-      title={t("labels.batchEditTitle", assetIds.length)}
+      title={t("labels.batchEditTitle", assets.length)}
       width="max-w-2xl"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -232,7 +241,7 @@ export function BatchEditAssetsForm({ open, onClose, assetIds }: Props) {
         <FormFooter
           cancelLabel={t("editAsset.cancel")}
           onCancel={handleClose}
-          submitLabel={t("labels.batchEditApply", assetIds.length)}
+          submitLabel={t("labels.batchEditApply", assets.length)}
           submittingLabel={t("editAsset.saving")}
           submitting={saving}
           disabled={!hasChanges}

@@ -19,7 +19,6 @@ const MAIN_NAV = [
   { key: "overview", tKey: "nav.overview", href: "/overview", icon: LayoutDashboard },
   { key: "assets", tKey: "nav.assets", href: "/assets", icon: Package },
   { key: "scan", tKey: "nav.scan", href: "/scan", icon: ScanLine, mobileOnly: true },
-  { key: "maintenance", tKey: "nav.maintenance", href: "/maintenance", icon: Wrench },
   { key: "test-device", tKey: "nav.testDevice", href: "/test-device", icon: Smartphone },
 ] as const;
 

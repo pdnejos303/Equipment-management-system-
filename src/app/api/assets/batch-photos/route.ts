@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ ok, failed, errors: errors.slice(0, 5) });
+    return NextResponse.json({ ok, failed, errors });
   } catch (error) {
     console.error("POST /api/assets/batch-photos error:", error);
     return NextResponse.json({ error: "Batch photo operation failed" }, { status: 500 });

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "test": "vitest",
     "dev": "node scripts/run-next.mjs dev",
     "build": "next build",
     "start": "node scripts/run-next.mjs start",

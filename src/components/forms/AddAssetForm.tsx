@@ -237,7 +237,7 @@ export function AddAssetForm({ open, onClose }: Props) {
           const label = [entry.item.code, entry.item.name].filter(Boolean).join(" — ");
           const reason = r.reason instanceof Error ? r.reason.message : String(r.reason);
           return `<div style="padding:6px 0;border-bottom:1px solid #2a2a2a">
-            <span style="color:#f59e0b;font-weight:600;font-size:12px">แถว ${rowNum}</span>
+            <span style="color:#3b82f6;font-weight:600;font-size:12px">แถว ${rowNum}</span>
             <span style="color:#ededed;font-size:12px;margin-left:6px">${label}</span>
             <p style="color:#f87171;font-size:12px;margin:3px 0 0">${reason}</p>
           </div>`;
@@ -274,7 +274,7 @@ export function AddAssetForm({ open, onClose }: Props) {
               type="button"
               onClick={() => setBulkMode(false)}
               className="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors"
-              style={!bulkMode ? { background: "#f59e0b", color: "#000" } : { color: "var(--text-muted)" }}
+              style={!bulkMode ? { background: "var(--brand)", color: "#fff" } : { color: "var(--text-muted)" }}
             >
               {t("newAsset.singleMode")}
             </button>
@@ -282,7 +282,7 @@ export function AddAssetForm({ open, onClose }: Props) {
               type="button"
               onClick={() => setBulkMode(true)}
               className="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors"
-              style={bulkMode ? { background: "#f59e0b", color: "#000" } : { color: "var(--text-muted)" }}
+              style={bulkMode ? { background: "var(--brand)", color: "#fff" } : { color: "var(--text-muted)" }}
             >
               {t("newAsset.bulkMode")}
             </button>

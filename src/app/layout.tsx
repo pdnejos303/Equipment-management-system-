@@ -35,7 +35,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#faf8f5",
+  themeColor: "#fafafa",
 };
 
 export default function RootLayout({
@@ -59,12 +59,12 @@ export default function RootLayout({
       </head>
       <body className="antialiased bg-background text-[var(--text-default)]">
         <NextTopLoader
-          color="#f59e0b"
+          color="#3b82f6"
           height={2}
           showSpinner={false}
           easing="ease"
           speed={200}
-          shadow="0 0 8px #f59e0b, 0 0 4px #f59e0baa"
+          shadow="0 0 8px #3b82f6, 0 0 4px #3b82f6aa"
         />
         <Providers>
           <ServiceWorkerRegister />

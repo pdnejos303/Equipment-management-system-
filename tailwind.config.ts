@@ -19,17 +19,17 @@ const config: Config = {
         foreground: "var(--foreground)",
         // Brand — CSS-var driven so all 4 themes can swap at runtime
         brand: {
-          50:  "#fffbeb",
-          100: "#fef3c7",
-          200: "#fde68a",
-          300: "#fcd34d",
+          50:  "#eff6ff",
+          100: "#dbeafe",
+          200: "#bfdbfe",
+          300: "#93c5fd",
           400: "rgb(var(--brand-light-rgb) / <alpha-value>)",
           500: "rgb(var(--brand-rgb) / <alpha-value>)",
           600: "rgb(var(--brand-dark-rgb) / <alpha-value>)",
-          700: "#b45309",
-          800: "#92400e",
-          900: "#78350f",
-          950: "#451a03",
+          700: "#1d4ed8",
+          800: "#1e40af",
+          900: "#1e3a8a",
+          950: "#172554",
         },
         // Surface layers — CSS-var driven; DEFAULT+dark use rgb() for /opacity support
         surface: {

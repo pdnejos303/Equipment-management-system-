@@ -437,7 +437,7 @@ export function DashboardClient({ data }: { data?: ServerData }) {
                 <Area type="monotone" dataKey="repair" stackId="1" fill="url(#repairGrad)" stroke="#ef4444" strokeWidth={2} name={t("maintType.REPAIR")} />
                 <Area type="monotone" dataKey="preventive" stackId="1" fill="url(#preventGrad)" stroke="#3b82f6" strokeWidth={2} name={t("maintType.PREVENTIVE")} />
                 <Bar dataKey="inspection" fill="#22c55e" radius={[4, 4, 0, 0]} barSize={12} name={t("maintType.INSPECTION")} opacity={0.8} />
-                <Line type="monotone" dataKey="total" stroke="#f59e0b" strokeWidth={2.5} dot={{ fill: "#f59e0b", r: 3 }} name={t("dashboard.totalLineLabel")} />
+                <Line type="monotone" dataKey="total" stroke="#3b82f6" strokeWidth={2.5} dot={{ fill: "#3b82f6", r: 3 }} name={t("dashboard.totalLineLabel")} />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
@@ -577,8 +577,8 @@ export function DashboardClient({ data }: { data?: ServerData }) {
                 <AreaChart data={d.assignmentTrend} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                   <defs>
                     <linearGradient id="assignGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.4} />
-                      <stop offset="100%" stopColor="#f59e0b" stopOpacity={0} />
+                      <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.4} />
+                      <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="returnGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#22c55e" stopOpacity={0.4} />
@@ -589,7 +589,7 @@ export function DashboardClient({ data }: { data?: ServerData }) {
                   <XAxis dataKey="month" tick={{ fill: "var(--text-subtle)", fontSize: 11 }} tickLine={false} axisLine={false} />
                   <YAxis tick={{ fill: "var(--text-subtle)", fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
                   <Tooltip content={<ChartTooltip />} />
-                  <Area type="monotone" dataKey="assigned" fill="url(#assignGrad)" stroke="#f59e0b" strokeWidth={2} name={t("dashboard.assignedLabel")} />
+                  <Area type="monotone" dataKey="assigned" fill="url(#assignGrad)" stroke="#3b82f6" strokeWidth={2} name={t("dashboard.assignedLabel")} />
                   <Area type="monotone" dataKey="returned" fill="url(#returnGrad)" stroke="#22c55e" strokeWidth={2} name={t("dashboard.returnedLabel")} />
                 </AreaChart>
               </ResponsiveContainer>

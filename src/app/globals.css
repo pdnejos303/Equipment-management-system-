@@ -16,8 +16,7 @@
 
 /* ── Design tokens ──────────────────────────────────────── */
 
-/* ── Theme: Obsidian (default — dark amber) ─────────────── */
-:root,
+/* ── Theme: Obsidian (dark amber) ─────────────── */
 [data-theme="obsidian"] {
   /* Brand RGB channels — used by Tailwind opacity modifiers */
   --brand-rgb:       245 158 11;   /* amber-500 */
@@ -231,7 +230,8 @@
   --text-accent:    rgb(var(--brand-rgb));
 }
 
-/* ── Theme: Snow (light — clean white, blue) ─────────── */
+/* ── Theme: Snow (default — clean white, blue) ─────────── */
+:root,
 [data-theme="snow"] {
   --brand-rgb:       59 130 246;   /* blue-500 */
   --brand-light-rgb: 96 165 250;   /* blue-400 */

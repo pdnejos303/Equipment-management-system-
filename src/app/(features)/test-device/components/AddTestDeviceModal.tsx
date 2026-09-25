@@ -157,7 +157,7 @@ export default function AddTestDeviceModal({
           )}
 
           {/* Pagination Controls */}
-          {availableAssets.length > 0 && addTotalPages > 1 && (
+          {addTotalPages > 1 && (
             <div className="flex justify-center items-center gap-4 mt-6">
               <button 
                 onClick={() => setAddPage(p => Math.max(1, p - 1))}

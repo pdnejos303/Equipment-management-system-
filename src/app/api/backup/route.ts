@@ -1,5 +1,6 @@
 // Path: src/app/api/backup/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getSessionWithRole } from "@/lib/role-guard";
 import AdmZip from "adm-zip";
@@ -490,6 +491,7 @@ export async function POST(req: NextRequest) {
       })
     );
 
+    revalidatePath("/", "layout");
     return NextResponse.json({ ok: true, stats });
   } catch (error) {
     console.error("POST /api/backup error:", error);
@@ -517,40 +519,52 @@ export async function DELETE() {
     // Hash password BEFORE deleting any data to prevent catastrophic failure
     const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 12);
 
-    // Delete in foreign-key order (child → parent) + create admin inside a transaction
-    const results = await prisma.$transaction([
+    const adminUsers = await prisma.user.findMany({ where: { role: 'ADMIN' }, select: { id: true } });
+    const adminIds = adminUsers.map(u => u.id);
+
+    const queries: any[] = [
       prisma.testDeviceLog.deleteMany(),
       prisma.booking.deleteMany(),
       prisma.maintenanceRecord.deleteMany(),
       prisma.assignment.deleteMany(),
       prisma.assetPhoto.deleteMany(),
       prisma.asset.deleteMany(),
-      
-      // NextAuth tables
-      prisma.session.deleteMany(),
-      prisma.account.deleteMany(),
-      prisma.verificationToken.deleteMany(),
-      
-      // Users last
-      prisma.user.deleteMany(),
-      
-      // Re-create default admin
-      prisma.user.create({
-        data: {
-          email: ADMIN_EMAIL,
-          name: ADMIN_NAME,
-          role: "ADMIN",
-          hashedPassword,
-        },
-      })
-    ]);
-    const admin = results[results.length - 1] as any;
+    ];
 
-    console.log(`🔄 Factory reset complete. Admin: ${admin?.email}`);
+    if (adminIds.length > 0) {
+      queries.push(
+        prisma.session.deleteMany({ where: { userId: { notIn: adminIds } } }),
+        prisma.account.deleteMany({ where: { userId: { notIn: adminIds } } }),
+        prisma.verificationToken.deleteMany(),
+        prisma.user.deleteMany({ where: { role: { not: 'ADMIN' } } })
+      );
+    } else {
+      queries.push(
+        prisma.session.deleteMany(),
+        prisma.account.deleteMany(),
+        prisma.verificationToken.deleteMany(),
+        prisma.user.deleteMany(),
+        prisma.user.create({
+          data: {
+            email: ADMIN_EMAIL,
+            name: ADMIN_NAME,
+            role: "ADMIN",
+            hashedPassword,
+          },
+        })
+      );
+    }
 
+    const results = await prisma.$transaction(queries);
+    const adminCreated = adminIds.length === 0 ? results[results.length - 1] : adminUsers[0];
+
+    console.log(`🔄 Factory reset complete. Admin kept intact or created.`);
+
+    revalidatePath("/", "layout");
+    
     return NextResponse.json({
       ok: true,
-      admin: { email: admin.email, name: admin.name },
+      admin: { email: adminCreated?.email || ADMIN_EMAIL, name: adminCreated?.name || ADMIN_NAME },
     });
   } catch (error) {
     console.error("DELETE /api/backup error:", error);

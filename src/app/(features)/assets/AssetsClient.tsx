@@ -19,7 +19,7 @@ import { CategoryFilter } from "@/components/ui/CategoryFilter";
 import { useRole } from "@/lib/useRole";
 import { useCategories } from "@/lib/useCategories";
 import { useAssetColumns } from "@/lib/useAssetColumns";
-import { showConfirm, showSuccess, showError } from "@/lib/swal";
+import { showConfirm, showSuccess, showError, showBulkResult } from "@/lib/swal";
 import {
   Plus,
   Settings2,
@@ -153,25 +153,37 @@ export function AssetsClient({ data }: { data: AssetsData }) {
     if (!confirmed) return;
 
     setBulkDeleting(true);
+    const errorDetails: string[] = [];
+    const selectedAssetsArray = Array.from(selected.values());
+
     const results = await Promise.allSettled(
-      selectedIds.map((id) =>
-        fetch(`/api/assets/${id}`, { method: "DELETE" }).then((r) => {
-          if (!r.ok) throw new Error(String(r.status));
-          return r;
-        })
-      )
+      selectedAssetsArray.map(async (asset) => {
+        const r = await fetch(`/api/assets/${asset.id}`, { method: "DELETE" });
+        if (!r.ok) {
+          const data = await r.json().catch(() => ({}));
+          throw new Error(`[${asset.code}] ${data.error || r.statusText || r.status}`);
+        }
+        return r;
+      })
     );
+
     const ok = results.filter((r) => r.status === "fulfilled").length;
     const fail = results.length - ok;
+
+    results.forEach((r) => {
+      if (r.status === "rejected") {
+        errorDetails.push(r.reason?.message || "Unknown error");
+      }
+    });
+
     setBulkDeleting(false);
 
-    if (fail === 0) {
-      showSuccess(t("labels.batchDeleteTitle", ok), t("labels.batchDeletedSuccess", ok));
-    } else if (ok === 0) {
-      showError(t("labels.batchDeleteTitle", selected.size), t("labels.batchDeleteFailed"));
-    } else {
-      showSuccess(t("labels.batchDeleteTitle", ok), t("labels.batchPartialSuccess", ok, fail));
-    }
+    showBulkResult({
+      title: t("labels.batchDeleteTitle", selected.size),
+      ok,
+      fail,
+      errors: errorDetails,
+    });
 
     setSelected(new Map());
     router.refresh();
@@ -519,7 +531,7 @@ export function AssetsClient({ data }: { data: AssetsData }) {
         <BatchEditAssetsForm
           open={showBatchEdit}
           onClose={() => setShowBatchEdit(false)}
-          assetIds={selectedIds}
+          assets={selectedAssets}
         />
       )}
 
@@ -528,7 +540,7 @@ export function AssetsClient({ data }: { data: AssetsData }) {
         <BatchPhotoForm
           open={showBatchPhoto}
           onClose={() => setShowBatchPhoto(false)}
-          assetIds={selectedIds}
+          assets={selectedAssets}
         />
       )}
 

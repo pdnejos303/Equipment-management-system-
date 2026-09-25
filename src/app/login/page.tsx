@@ -61,6 +61,7 @@ function AuthForms() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
 
     if (rememberMe) {
@@ -77,19 +78,34 @@ function AuthForms() {
         callbackUrl,
       });
       
-      if (result?.error) {
-        // Fallback in case t("login.error") is missing or returns the key
-        const fallbackError = "เข้าสู่ระบบไม่สำเร็จ / Login failed";
-        let defaultErr = t("login.error");
-        if (!defaultErr || defaultErr === "login.error") defaultErr = fallbackError;
+      if (!result) {
+        showError("เข้าสู่ระบบไม่สำเร็จ", "ไม่มีการตอบกลับจากเซิร์ฟเวอร์");
+        return;
+      }
+
+      if (result.error) {
+        let errorTitle = "เข้าสู่ระบบไม่สำเร็จ";
+        let errorDetail = result.error;
         
-        const errorMsg = result.error !== "CredentialsSignin" && result.error ? result.error : defaultErr;
-        showError(errorMsg);
-      } else if (result?.url) {
-        router.push(callbackUrl);
+        if (result.error === "CredentialsSignin") {
+          errorDetail = "อีเมลหรือรหัสผ่านไม่ถูกต้อง";
+        }
+        
+        showError(errorTitle, errorDetail);
+      } else if (result.ok) {
+        showSuccess("เข้าสู่ระบบสำเร็จ", "กำลังพาท่านเข้าสู่ระบบ...");
+        setTimeout(() => {
+          window.location.href = callbackUrl;
+        }, 800);
+      } else {
+        showError("เข้าสู่ระบบไม่สำเร็จ", "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ");
       }
     } catch (error: any) {
-      showError("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์", error?.message || "");
+      let errorMsg = error?.message || "";
+      if (errorMsg.includes("Unexpected token") || errorMsg.includes("is not valid JSON") || errorMsg.includes("JSON")) {
+        errorMsg = "เซิร์ฟเวอร์ทำงานหนักหรือรับคำขอถี่เกินไป กรุณารอสักครู่แล้วลองใหม่";
+      }
+      showError("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์", errorMsg);
     } finally {
       setLoading(false);
     }
@@ -97,6 +113,7 @@ function AuthForms() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     if (password.length < 6) {
       showError(t("login.passwordMin"));
       return;
@@ -113,8 +130,13 @@ function AuthForms() {
         body: JSON.stringify({ name, email, password }),
       });
       if (!res.ok) {
-        const data = await res.json();
-        showError(data.error || t("forms.error"));
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const data = await res.json();
+          showError(data.error || t("forms.error"));
+        } else {
+          showError("ข้อผิดพลาดจากเซิร์ฟเวอร์", "เซิร์ฟเวอร์ทำงานหนักหรือรับคำขอถี่เกินไป");
+        }
         setLoading(false);
         return;
       }

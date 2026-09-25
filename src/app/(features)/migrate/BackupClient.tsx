@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n";
 import { signOut } from "next-auth/react";
 import { Download, Upload, CheckCircle2, AlertTriangle, HardDrive, RefreshCw, Lock, ImageIcon, FileText, Eye, EyeOff, Trash2, LogOut } from "lucide-react";
@@ -29,6 +30,7 @@ function defaultFilename(): string {
 
 export function BackupClient() {
   const { t } = useI18n();
+  const router = useRouter();
 
   // ── Export modal state ──
   const [exportOpen, setExportOpen] = useState(false);
@@ -144,6 +146,7 @@ export function BackupClient() {
 
       setRestoreResult(result.stats);
       showSuccess(t("backup.restoreSuccess"), "");
+      router.refresh();
     } catch (err: any) {
       showError(t("backup.restoreError"), err.message);
     }
@@ -174,6 +177,7 @@ export function BackupClient() {
       setResetResult(result.admin);
       setResetConfirmText("");
       showSuccess(t("backup.resetSuccess"), "");
+      router.refresh();
     } catch (err: any) {
       showError(t("backup.resetError"), err.message);
     }
@@ -372,26 +376,8 @@ export function BackupClient() {
           </div>
           <div className="p-4 bg-surface-dark rounded-xl space-y-4">
             <p className="text-sm" style={{ color: "var(--text-default)" }}>
-              {t("backup.resetAdminInfo")}
+              ระบบได้ทำการล้างข้อมูลเสร็จสมบูรณ์แล้ว บัญชีผู้ดูแลระบบ (Admin) ของคุณไม่ถูกลบ คุณสามารถใช้งานระบบต่อได้ทันที
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm bg-black/20 p-3 rounded-lg border border-border">
-              <div>
-                <span className="text-gray-500">Email: </span>
-                <code className="text-brand-500 font-semibold">{resetResult.email}</code>
-              </div>
-              <div>
-                <span className="text-gray-500">Password: </span>
-                <span className="text-xs text-gray-400 italic">(Check environment variables)</span>
-              </div>
-            </div>
-            
-            <button
-              onClick={() => signOut({ callbackUrl: "/login" })}
-              className="btn-primary w-full sm:w-auto flex items-center justify-center gap-2 mt-2"
-            >
-              <LogOut size={16} />
-              Go to Login
-            </button>
           </div>
         </div>
       )}
