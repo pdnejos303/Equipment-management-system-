@@ -14,8 +14,20 @@ import TestDeviceHistoryModal from "./components/TestDeviceHistoryModal";
 import TestDeviceCard from "./components/TestDeviceCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { useAutoRefresh } from "@/lib/useAutoRefresh";
+import { getTestDevices, getCategories } from "./actions";
 
-export default function TestDeviceClient({ initialDevices, categories, currentUser }: any) {
+type TestDeviceArray = Awaited<ReturnType<typeof getTestDevices>>;
+type CategoriesArray = Awaited<ReturnType<typeof getCategories>>;
+
+export default function TestDeviceClient({ 
+  initialDevices, 
+  categories, 
+  currentUser 
+}: { 
+  initialDevices: TestDeviceArray; 
+  categories: CategoriesArray; 
+  currentUser: any; 
+}) {
   const router = useRouter();
   const { t, locale } = useI18n();
   
@@ -174,27 +186,20 @@ export default function TestDeviceClient({ initialDevices, categories, currentUs
             }
           }}
           onSelect={(e) => {
-          e.added.forEach(el => {
-            const id = el.getAttribute("data-id");
-            if (id) {
-              setSelectedDevices(prev => {
-                const next = new Set(prev);
-                next.add(id);
-                return next;
+            if (e.added.length === 0 && e.removed.length === 0) return;
+            setSelectedDevices(prev => {
+              const next = new Set(prev);
+              e.added.forEach(el => {
+                const id = el.getAttribute("data-id");
+                if (id) next.add(id);
               });
-            }
-          });
-          e.removed.forEach(el => {
-            const id = el.getAttribute("data-id");
-            if (id) {
-              setSelectedDevices(prev => {
-                const next = new Set(prev);
-                next.delete(id);
-                return next;
+              e.removed.forEach(el => {
+                const id = el.getAttribute("data-id");
+                if (id) next.delete(id);
               });
-            }
-          });
-        }}
+              return next;
+            });
+          }}
       />
       )}
       

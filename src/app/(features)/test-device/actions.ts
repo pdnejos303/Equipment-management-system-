@@ -159,7 +159,6 @@ export async function borrowDevice(rawAssetId: string, guestName?: string) {
     })
   ]);
   eventEmitter.emit("update");
-  eventEmitter.emit("update");
 }
 
 export async function returnDevice(rawAssetId: string) {
@@ -191,7 +190,6 @@ export async function returnDevice(rawAssetId: string) {
       data: { status: "AVAILABLE" },
     })
   ]);
-  eventEmitter.emit("update");
   eventEmitter.emit("update");
 }
 
@@ -242,7 +240,6 @@ export async function borrowMultipleDevices(rawAssetIds: string[]) {
     })
   ]);
   eventEmitter.emit("update");
-  eventEmitter.emit("update");
 }
 
 export async function returnMultipleDevices(rawAssetIds: string[]) {
@@ -273,6 +270,5 @@ export async function returnMultipleDevices(rawAssetIds: string[]) {
       data: { status: "AVAILABLE" },
     })
   ]);
-  eventEmitter.emit("update");
   eventEmitter.emit("update");
 }

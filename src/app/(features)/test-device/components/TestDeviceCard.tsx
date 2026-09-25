@@ -5,6 +5,9 @@ import { Laptop, Clock, Trash2, Edit2, Save, X, User as UserIcon } from "lucide-
 import { useI18n } from "@/lib/i18n";
 import { useState } from "react";
 import { TestDeviceAction } from "./TestDeviceAction";
+import { getTestDevices } from "../actions";
+
+type TestDeviceItem = Awaited<ReturnType<typeof getTestDevices>>[number];
 
 export default function TestDeviceCard({
   device,
@@ -16,7 +19,7 @@ export default function TestDeviceCard({
   handleSaveNote,
   onActionComplete,
 }: {
-  device: any;
+  device: TestDeviceItem;
   currentUser: any;
   selectedDevices: Set<string>;
   loadingId: string | null;

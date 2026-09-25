@@ -68,7 +68,8 @@ services:
     container_name: equiptrack-nginx
     restart: unless-stopped
     ports:
-      - "3003:80"    # Proxy to app
+      - "80:80"      # รับ HTTP (Production)
+      - "443:443"    # รับ HTTPS (ถ้ามีการเปิดใช้ SSL ในอนาคต)
     volumes:
       # config files
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro

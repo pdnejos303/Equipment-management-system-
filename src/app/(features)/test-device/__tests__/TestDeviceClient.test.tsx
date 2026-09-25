@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import TestDeviceClient from '../TestDeviceClient';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
@@ -120,6 +120,7 @@ describe('TestDeviceClient', () => {
   });
 
   it('calls borrowDevice when Borrow Now is clicked', async () => {
+    (actions.borrowDevice as any).mockResolvedValueOnce(undefined);
     render(
       <TestDeviceClient 
         initialDevices={[mockAvailableDevice]}
@@ -129,7 +130,9 @@ describe('TestDeviceClient', () => {
     );
     
     const borrowBtn = screen.getByRole('button', { name: 'testDeviceFeat.borrowDevice' });
-    fireEvent.click(borrowBtn);
+    await act(async () => {
+      fireEvent.click(borrowBtn);
+    });
     
     expect(actions.borrowDevice).toHaveBeenCalledWith('dev1', undefined);
     expect(actions.borrowDevice).toHaveBeenCalledTimes(1);

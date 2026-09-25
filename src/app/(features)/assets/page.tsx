@@ -19,13 +19,13 @@ export default async function AssetsPage({
       where.AND = keywords.map(kw => {
         const num = Number(kw);
         const orConditions: any[] = [
-          { code: { contains: kw } },
-          { name: { contains: kw } },
-          { brand: { contains: kw } },
-          { model: { contains: kw } },
-          { serialNumber: { contains: kw } },
-          { location: { contains: kw } },
-          { notes: { contains: kw } },
+          { code: { contains: kw, mode: "insensitive" } },
+          { name: { contains: kw, mode: "insensitive" } },
+          { brand: { contains: kw, mode: "insensitive" } },
+          { model: { contains: kw, mode: "insensitive" } },
+          { serialNumber: { contains: kw, mode: "insensitive" } },
+          { location: { contains: kw, mode: "insensitive" } },
+          { notes: { contains: kw, mode: "insensitive" } },
         ];
         if (!isNaN(num)) {
           orConditions.push({ purchasePrice: { equals: num } });
