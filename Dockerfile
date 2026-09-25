@@ -71,8 +71,12 @@ COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 RUN mkdir -p /app/data /app/uploads \
  && chown -R nextjs:nodejs /app/data /app/uploads
 
+# Copy the seed-admin script
+COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
+
 USER nextjs
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "npx prisma db push --skip-generate --accept-data-loss=false && node server.js"]
+# On startup: push schema → seed admin if DB is empty → start server
+CMD ["sh", "-c", "npx prisma db push --skip-generate --accept-data-loss=false && node scripts/seed-admin.mjs && node server.js"]

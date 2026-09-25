@@ -3,7 +3,8 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { useI18n } from "@/lib/i18n";
-import { Download, Upload, CheckCircle2, AlertTriangle, HardDrive, RefreshCw, Lock, ImageIcon, FileText, Eye, EyeOff } from "lucide-react";
+import { signOut } from "next-auth/react";
+import { Download, Upload, CheckCircle2, AlertTriangle, HardDrive, RefreshCw, Lock, ImageIcon, FileText, Eye, EyeOff, Trash2, LogOut } from "lucide-react";
 import { showError, showSuccess, showConfirm, showPasswordPrompt } from "@/lib/swal";
 import { Modal } from "@/components/ui/Modal";
 import { format } from "date-fns";
@@ -41,6 +42,11 @@ export function BackupClient() {
   const [restoreMode, setRestoreMode] = useState<RestoreMode>("skip");
   const [restoring, setRestoring] = useState(false);
   const [restoreResult, setRestoreResult] = useState<RestoreStats | null>(null);
+
+  // ── Reset state ──
+  const [resetting, setResetting] = useState(false);
+  const [resetConfirmText, setResetConfirmText] = useState("");
+  const [resetResult, setResetResult] = useState<{ email: string; name: string } | null>(null);
 
   const sanitizedPreview = useMemo(
     () => (fileName.trim() ? fileName.trim() : defaultFilename()),
@@ -143,6 +149,36 @@ export function BackupClient() {
     }
     setRestoring(false);
   }, [restoreMode, t]);
+
+  // ── Reset ──
+
+  const handleReset = async () => {
+    if (resetConfirmText !== "RESET") return;
+
+    const confirmed = await showConfirm({
+      title: t("backup.resetConfirmTitle"),
+      text: t("backup.resetConfirmText"),
+      confirmText: t("backup.resetConfirmBtn"),
+      cancelText: t("backup.cancel"),
+      danger: true,
+    });
+    if (!confirmed) return;
+
+    setResetting(true);
+    setResetResult(null);
+    try {
+      const res = await fetch("/api/backup", { method: "DELETE" });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Reset failed");
+
+      setResetResult(result.admin);
+      setResetConfirmText("");
+      showSuccess(t("backup.resetSuccess"), "");
+    } catch (err: any) {
+      showError(t("backup.resetError"), err.message);
+    }
+    setResetting(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -280,6 +316,82 @@ export function BackupClient() {
                 <p className="text-xl font-bold text-brand-500">{s.value}</p>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Factory Reset ── */}
+      <div className="card border border-red-500/20">
+        <div className="flex items-start gap-4">
+          <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center flex-shrink-0">
+            <Trash2 size={20} className="text-red-500" />
+          </div>
+          <div className="flex-1">
+            <h2 className="font-semibold mb-1 text-red-400">{t("backup.resetTitle")}</h2>
+            <p className="text-sm text-gray-500 mb-4">{t("backup.resetDesc")}</p>
+
+            <div className="flex items-start gap-2 mb-4 p-3 bg-red-500/10 rounded-lg border border-red-500/20">
+              <AlertTriangle size={15} className="text-red-400 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-red-400">{t("backup.resetWarning")}</p>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-default)" }}>
+                {t("backup.resetTypeConfirm")}
+              </label>
+              <input
+                type="text"
+                value={resetConfirmText}
+                onChange={(e) => setResetConfirmText(e.target.value.toUpperCase())}
+                placeholder="RESET"
+                className="input w-full max-w-xs font-mono tracking-widest"
+                disabled={resetting}
+                spellCheck={false}
+                autoComplete="off"
+              />
+            </div>
+
+            <button
+              onClick={handleReset}
+              disabled={resetting || resetConfirmText !== "RESET"}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700 transition disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {resetting ? <RefreshCw size={16} className="animate-spin" /> : <Trash2 size={16} />}
+              {resetting ? t("backup.resetting") : t("backup.resetBtn")}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Reset Result ── */}
+      {resetResult && (
+        <div className="card border border-green-500/20">
+          <div className="flex items-center gap-2 mb-3">
+            <CheckCircle2 size={20} className="text-green-500" />
+            <h2 className="font-semibold" style={{ color: "var(--text-default)" }}>{t("backup.resetSuccess")}</h2>
+          </div>
+          <div className="p-4 bg-surface-dark rounded-xl space-y-4">
+            <p className="text-sm" style={{ color: "var(--text-default)" }}>
+              {t("backup.resetAdminInfo")}
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm bg-black/20 p-3 rounded-lg border border-border">
+              <div>
+                <span className="text-gray-500">Email: </span>
+                <code className="text-brand-500 font-semibold">{resetResult.email}</code>
+              </div>
+              <div>
+                <span className="text-gray-500">Password: </span>
+                <span className="text-xs text-gray-400 italic">(Check environment variables)</span>
+              </div>
+            </div>
+            
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="btn-primary w-full sm:w-auto flex items-center justify-center gap-2 mt-2"
+            >
+              <LogOut size={16} />
+              Go to Login
+            </button>
           </div>
         </div>
       )}

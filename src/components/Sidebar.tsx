@@ -18,7 +18,7 @@ import { useI18n } from "@/lib/i18n";
 const MAIN_NAV = [
   { key: "overview", tKey: "nav.overview", href: "/overview", icon: LayoutDashboard },
   { key: "assets", tKey: "nav.assets", href: "/assets", icon: Package },
-  { key: "scan", tKey: "nav.scan", href: "/scan", icon: ScanLine },
+  { key: "scan", tKey: "nav.scan", href: "/scan", icon: ScanLine, mobileOnly: true },
   { key: "maintenance", tKey: "nav.maintenance", href: "/maintenance", icon: Wrench },
   { key: "test-device", tKey: "nav.testDevice", href: "/test-device", icon: Smartphone },
 ] as const;
@@ -35,6 +35,7 @@ type NavItem = {
   href: string;
   icon: ComponentType<{ size?: number; className?: string }>;
   hasBadge?: boolean;
+  mobileOnly?: boolean;
 };
 
 interface SidebarProps {
@@ -99,7 +100,8 @@ export function Sidebar({ alertCount = 0, mobileOpen, onCloseMobile }: SidebarPr
           "flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 relative group min-h-[44px]",
           active
             ? "bg-brand-500/10 text-brand-500"
-            : "text-gray-400 hover:text-[var(--text-default)] hover:bg-[var(--surface-hover)]"
+            : "text-gray-400 hover:text-[var(--text-default)] hover:bg-[var(--surface-hover)]",
+          item.mobileOnly && "lg:hidden" 
         )}
         aria-label={!showLabel ? t(item.tKey) : undefined}
         aria-current={active ? "page" : undefined}

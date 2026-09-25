@@ -167,7 +167,7 @@ export async function GET(req: NextRequest) {
   const password = searchParams.get("password") ?? "";
 
   try {
-    const [users, assets, assetPhotos, assignments, maintenanceRecords, bookings] =
+    const [users, assets, assetPhotos, assignments, maintenanceRecords, bookings, categories, testDeviceLogs] =
       await Promise.all([
         prisma.user.findMany({
           select: {
@@ -180,6 +180,8 @@ export async function GET(req: NextRequest) {
         prisma.assignment.findMany(),
         prisma.maintenanceRecord.findMany(),
         prisma.booking.findMany(),
+        prisma.category.findMany(),
+        prisma.testDeviceLog.findMany(),
       ]);
 
     const zip = new AdmZip();
@@ -223,7 +225,7 @@ export async function GET(req: NextRequest) {
         imagesTotal: assetPhotos.length,
         imagesIncluded: includeImages,
       },
-      tables: { users, assets, assetPhotos, assignments, maintenanceRecords, bookings },
+      tables: { users, assets, assetPhotos, assignments, maintenanceRecords, bookings, categories, testDeviceLogs },
     };
     zip.addFile("data.json", Buffer.from(JSON.stringify(data, null, 2), "utf-8"));
 
@@ -310,6 +312,8 @@ export async function POST(req: NextRequest) {
         assignments: any[];
         maintenanceRecords: any[];
         bookings: any[];
+        categories?: any[];
+        testDeviceLogs?: any[];
       };
     };
 
@@ -344,17 +348,20 @@ export async function POST(req: NextRequest) {
     const stats = {
       users: 0, assets: 0, assetPhotos: 0,
       assignments: 0, maintenanceRecords: 0, bookings: 0,
+      categories: 0, testDeviceLogs: 0,
       images: imagesRestored,
       imagesMissing,
     };
 
     if (mode === "replace") {
       // Reverse dependency order; skip users so admin doesn't lock self out
+      await prisma.testDeviceLog.deleteMany();
       await prisma.booking.deleteMany();
       await prisma.maintenanceRecord.deleteMany();
       await prisma.assignment.deleteMany();
       await prisma.assetPhoto.deleteMany();
       await prisma.asset.deleteMany();
+      await prisma.category.deleteMany();
     }
 
     const CHUNK = 100;
@@ -398,6 +405,7 @@ export async function POST(req: NextRequest) {
         warrantyEnd: a.warrantyEnd ? new Date(a.warrantyEnd) : null,
         nextMaintenance: a.nextMaintenance ? new Date(a.nextMaintenance) : null,
         location: a.location, notes: a.notes,
+        testDeviceNote: a.testDeviceNote, isTestDevice: a.isTestDevice ?? false,
       };
       return prisma.asset.upsert({
         where: { id: a.id },
@@ -458,9 +466,94 @@ export async function POST(req: NextRequest) {
       })
     );
 
+    stats.categories = await batchUpsert(tables.categories ?? [], (c: any) =>
+      prisma.category.upsert({
+        where: { id: c.id },
+        create: {
+          id: c.id, key: c.key, label: c.label, emoji: c.emoji,
+          order: c.order, isDefault: c.isDefault,
+          createdAt: new Date(c.createdAt),
+        },
+        update: mode === "replace" ? { key: c.key, label: c.label, emoji: c.emoji, order: c.order, isDefault: c.isDefault } : {},
+      })
+    );
+
+    stats.testDeviceLogs = await batchUpsert(tables.testDeviceLogs ?? [], (t: any) =>
+      prisma.testDeviceLog.upsert({
+        where: { id: t.id },
+        create: {
+          id: t.id, assetId: t.assetId, userId: t.userId, guestName: t.guestName,
+          borrowedAt: new Date(t.borrowedAt),
+          returnedAt: t.returnedAt ? new Date(t.returnedAt) : null,
+        },
+        update: {},
+      })
+    );
+
     return NextResponse.json({ ok: true, stats });
   } catch (error) {
     console.error("POST /api/backup error:", error);
     return NextResponse.json({ error: "Restore failed" }, { status: 500 });
+  }
+}
+
+// ── DELETE /api/backup — Factory reset: wipe all data + re-create admin (Admin only) ──
+
+export async function DELETE() {
+  const session = await getSessionWithRole();
+  if (!session || session.role !== "ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  try {
+    // Dynamic import so bcryptjs is only loaded when needed
+    const bcryptModule = await import("bcryptjs");
+    const bcrypt = bcryptModule.default || bcryptModule;
+
+    const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "admin@company.com";
+    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "admin123";
+    const ADMIN_NAME = process.env.ADMIN_NAME ?? "Admin";
+
+    // Hash password BEFORE deleting any data to prevent catastrophic failure
+    const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 12);
+
+    // Delete in foreign-key order (child → parent) + create admin inside a transaction
+    const results = await prisma.$transaction([
+      prisma.testDeviceLog.deleteMany(),
+      prisma.booking.deleteMany(),
+      prisma.maintenanceRecord.deleteMany(),
+      prisma.assignment.deleteMany(),
+      prisma.assetPhoto.deleteMany(),
+      prisma.asset.deleteMany(),
+      
+      // NextAuth tables
+      prisma.session.deleteMany(),
+      prisma.account.deleteMany(),
+      prisma.verificationToken.deleteMany(),
+      
+      // Users last
+      prisma.user.deleteMany(),
+      
+      // Re-create default admin
+      prisma.user.create({
+        data: {
+          email: ADMIN_EMAIL,
+          name: ADMIN_NAME,
+          role: "ADMIN",
+          hashedPassword,
+        },
+      })
+    ]);
+    const admin = results[results.length - 1] as any;
+
+    console.log(`🔄 Factory reset complete. Admin: ${admin?.email}`);
+
+    return NextResponse.json({
+      ok: true,
+      admin: { email: admin.email, name: admin.name },
+    });
+  } catch (error) {
+    console.error("DELETE /api/backup error:", error);
+    return NextResponse.json({ error: "Reset failed" }, { status: 500 });
   }
 }

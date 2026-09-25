@@ -7,7 +7,9 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     refresh: vi.fn(),
-  })
+  }),
+  usePathname: () => '/',
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 // Mock next/link
@@ -21,6 +23,24 @@ vi.mock('@/lib/i18n', () => ({
     t: (key: string) => key,
   })
 }));
+
+// Mock next-auth/react
+vi.mock('next-auth/react', () => ({
+  useSession: () => ({
+    data: { user: { id: 'user1', email: 'user1@example.com', name: 'User One' } },
+    status: 'authenticated',
+  }),
+}));
+
+// Mock EventSource as a class
+class MockEventSource {
+  onopen: any = null;
+  onmessage: any = null;
+  onerror: any = null;
+  close = vi.fn();
+  constructor(url: string) {}
+}
+global.EventSource = MockEventSource as any;
 
 // Mock server actions
 vi.mock('../actions', () => ({
@@ -82,7 +102,7 @@ describe('TestDeviceClient', () => {
     expect(screen.getByText('Available Laptop')).toBeInTheDocument();
     expect(screen.getByText('DEV-001')).toBeInTheDocument();
     expect(screen.getByText('For API testing')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'testDeviceFeat.borrowNow' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'testDeviceFeat.borrowDevice' })).toBeInTheDocument();
   });
 
   it('renders borrowed devices correctly with return option for the borrower', () => {
@@ -94,8 +114,8 @@ describe('TestDeviceClient', () => {
       />
     );
     expect(screen.getByText('Borrowed Laptop')).toBeInTheDocument();
-    expect(screen.getByText('testDeviceFeat.currentlyUsedBy')).toBeInTheDocument();
-    expect(screen.getByText('User One')).toBeInTheDocument();
+    expect(screen.getByText((content) => content.includes('testDeviceFeat.borrowed'))).toBeInTheDocument();
+    expect(screen.getByText((content) => content.includes('User One'))).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'testDeviceFeat.returnDevice' })).toBeInTheDocument();
   });
 
@@ -108,10 +128,10 @@ describe('TestDeviceClient', () => {
       />
     );
     
-    const borrowBtn = screen.getByRole('button', { name: 'testDeviceFeat.borrowNow' });
+    const borrowBtn = screen.getByRole('button', { name: 'testDeviceFeat.borrowDevice' });
     fireEvent.click(borrowBtn);
     
-    expect(actions.borrowDevice).toHaveBeenCalledWith('dev1');
+    expect(actions.borrowDevice).toHaveBeenCalledWith('dev1', undefined);
     expect(actions.borrowDevice).toHaveBeenCalledTimes(1);
   });
   

@@ -35,24 +35,31 @@ providers.push(
     },
 
     async authorize(credentials) {
-      // 1. Validation: เช็คว่าส่ง email กับ password มาจริงไหม ถ้าไม่มีให้เตะออกทันที (return null)
-      if (!credentials?.email || !credentials?.password) return null;
-// 2. Database Lookup: ใช้ Prisma ไปดึงข้อมูล User จาก DB โดยหาจาก Email
+      if (!credentials?.email || !credentials?.password) {
+        throw new Error("กรุณากรอกอีเมลและรหัสผ่าน");
+      }
+      
       const user = await prisma.user.findUnique({
         where: { email: credentials.email },
       });
-// 3. User Existence & Password Check: 
-  // - ถ้าไม่เจอ User ใน DB หรือ User คนนั้นไม่มี password (เช่น สมัครผ่าน Google มาก่อน) ให้ return null
-      if (!user || !user.hashedPassword) return null;
-// 4. Hash Verification: ใช้ bcrypt เทียบ Password (Plain text) กับ hashedPassword ใน DB
+
+      if (!user) {
+        throw new Error("ไม่พบผู้ใช้งานที่ใช้อีเมลนี้");
+      }
+      
+      if (!user.hashedPassword) {
+        throw new Error("ไม่สามารถเข้าสู่ระบบด้วยรหัสผ่านได้ กรุณาเข้าสู่ระบบด้วยวิธีอื่น");
+      }
+
       const isValid = await bcrypt.compare(
         credentials.password,
         user.hashedPassword
       );
-      // 5. Auth Result:
-  // - ถ้า Password ไม่ตรง return null (NextAuth จะถือว่า Login Failed)
-      if (!isValid) return null;
-// - ถ้าผ่านหมด ให้ส่ง Object ของ User กลับไป (ข้อมูลนี้จะไปอยู่ใน JWT ต่อ)
+
+      if (!isValid) {
+        throw new Error("รหัสผ่านไม่ถูกต้อง");
+      }
+
       return {
         id: user.id,
         name: user.name,

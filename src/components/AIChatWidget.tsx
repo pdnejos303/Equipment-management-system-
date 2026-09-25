@@ -1,5 +1,5 @@
-// Path: src/components/AIChatWidget.tsx
 "use client";
+// Path: src/components/AIChatWidget.tsx
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { MessageCircle, X, Send, Sparkles, Loader2, Trash2 } from "lucide-react";
