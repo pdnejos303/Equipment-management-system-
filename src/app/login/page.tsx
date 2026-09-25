@@ -69,19 +69,29 @@ function AuthForms() {
       localStorage.removeItem("rememberedEmail");
     }
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-      callbackUrl,
-    });
-    
-    if (result?.error) {
-      const errorMsg = result.error !== "CredentialsSignin" && result.error ? result.error : t("login.error");
-      showError(errorMsg);
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+        callbackUrl,
+      });
+      
+      if (result?.error) {
+        // Fallback in case t("login.error") is missing or returns the key
+        const fallbackError = "เข้าสู่ระบบไม่สำเร็จ / Login failed";
+        let defaultErr = t("login.error");
+        if (!defaultErr || defaultErr === "login.error") defaultErr = fallbackError;
+        
+        const errorMsg = result.error !== "CredentialsSignin" && result.error ? result.error : defaultErr;
+        showError(errorMsg);
+      } else if (result?.url) {
+        router.push(callbackUrl);
+      }
+    } catch (error: any) {
+      showError("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์", error?.message || "");
+    } finally {
       setLoading(false);
-    } else if (result?.url) {
-      router.push(callbackUrl);
     }
   };
 
