@@ -12,7 +12,7 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 COPY package.json pnpm-lock.yaml* ./
 COPY prisma ./prisma
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+RUN npm install -g pnpm@10 && pnpm install --frozen-lockfile
 # ===== Stage 2: Builder =====
 FROM node:20-alpine AS builder
 RUN apk add --no-cache libc6-compat openssl
@@ -67,9 +67,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
-# โฟลเดอร์เก็บ SQLite DB + รูปอุปกรณ์ (mount เป็น Docker volume)
-RUN mkdir -p /app/data /app/uploads \
- && chown -R nextjs:nodejs /app/data /app/uploads
+# โฟลเดอร์เก็บรูปอุปกรณ์ (mount เป็น Docker volume)
+RUN mkdir -p /app/uploads \
+ && chown -R nextjs:nodejs /app/uploads
 
 # Copy the seed-admin script
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
