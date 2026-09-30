@@ -43,6 +43,8 @@ export function BackupClient() {
   // ── Restore state ──
   const [restoreMode, setRestoreMode] = useState<RestoreMode>("skip");
   const [restoring, setRestoring] = useState(false);
+  const [restoreProgress, setRestoreProgress] = useState<number | null>(null);
+  const [restoreStep, setRestoreStep] = useState("");
   const [restoreResult, setRestoreResult] = useState<RestoreStats | null>(null);
 
   // ── Reset state ──
@@ -129,6 +131,9 @@ export function BackupClient() {
 
     setRestoring(true);
     setRestoreResult(null);
+    setRestoreProgress(0);
+    setRestoreStep("Uploading...");
+    
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -136,22 +141,59 @@ export function BackupClient() {
       if (restorePassword) formData.append("password", restorePassword);
 
       const res = await fetch("/api/backup", { method: "POST", body: formData });
-      const result = await res.json();
+      
       if (!res.ok) {
-        if (result.error === "password_wrong") {
+        const err = await res.json().catch(() => ({ error: res.statusText }));
+        if (err.error === "password_wrong") {
           throw new Error(t("backup.passwordWrong"));
         }
-        throw new Error(result.error || result.message);
+        throw new Error(err.error || err.message || "Upload failed");
       }
+      
+      if (!res.body) throw new Error("No response body");
+      
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
 
-      setRestoreResult(result.stats);
-      showSuccess(t("backup.restoreSuccess"), "");
-      router.refresh();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const data = JSON.parse(line);
+            if (data.error) {
+              if (data.error === "password_wrong") throw new Error(t("backup.passwordWrong"));
+              throw new Error(data.error);
+            }
+            if (data.step && data.progress !== undefined) {
+               setRestoreStep(data.step);
+               setRestoreProgress(data.progress);
+            }
+            if (data.stats && data.progress === 100) {
+               setRestoreResult(data.stats);
+               showSuccess(t("backup.restoreSuccess"), "");
+               router.refresh();
+            }
+          } catch (e: any) {
+            // Ignore JSON parse errors for partial lines or re-throw our own Error
+            if (!(e instanceof SyntaxError)) throw e;
+          }
+        }
+      }
     } catch (err: any) {
       showError(t("backup.restoreError"), err.message);
     }
     setRestoring(false);
-  }, [restoreMode, t]);
+    setRestoreProgress(null);
+    setRestoreStep("");
+  }, [restoreMode, t, router]);
 
   // ── Reset ──
 
@@ -275,10 +317,14 @@ export function BackupClient() {
                 : "border-gray-700 hover:border-brand-500"
             }`}>
               {restoring ? (
-                <>
-                  <RefreshCw size={28} className="text-gray-500 mb-2 animate-spin" />
-                  <span className="text-sm text-gray-400">{t("backup.restoring")}</span>
-                </>
+                <div className="flex flex-col items-center justify-center w-full px-8">
+                  <RefreshCw size={28} className="text-brand-500 mb-3 animate-spin" />
+                  <div className="w-full max-w-[200px] bg-surface-dark rounded-full h-2 mb-2 overflow-hidden border border-border">
+                    <div className="bg-brand-500 h-2 rounded-full transition-all duration-300" style={{ width: `${restoreProgress || 0}%` }}></div>
+                  </div>
+                  <span className="text-sm font-medium text-gray-300 mb-0.5">{restoreProgress || 0}%</span>
+                  <span className="text-xs text-gray-500">{restoreStep || t("backup.restoring")}</span>
+                </div>
               ) : (
                 <>
                   <Upload size={28} className="text-gray-500 mb-2" />

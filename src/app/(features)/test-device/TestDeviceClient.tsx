@@ -65,7 +65,7 @@ export default function TestDeviceClient({
     });
   };
 
-  const selectedDevicesList = Array.from(selectedDevices).map(id => initialDevices.find((d: any) => d.id === id)).filter(Boolean);
+  const selectedDevicesList = Array.from(selectedDevices).map(id => initialDevices.find((d: any) => d.id === id)).filter((d): d is NonNullable<typeof d> => Boolean(d));
   const devicesToBorrow = selectedDevicesList.filter(d => !d.testDeviceLogs?.length);
   const devicesToReturn = selectedDevicesList.filter(d => d.testDeviceLogs?.length > 0 && (d.testDeviceLogs[0].userId === currentUser.id || currentUser.role === "ADMIN" || !d.testDeviceLogs[0].userId));
 

@@ -268,235 +268,259 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  try {
-    const formData = await req.formData();
-    const file = formData.get("file") as File | null;
-    const mode = (formData.get("mode") as string) || "skip";
-    const password = (formData.get("password") as string) || "";
+  const formData = await req.formData();
+  const file = formData.get("file") as File | null;
+  const mode = (formData.get("mode") as string) || "skip";
+  const password = (formData.get("password") as string) || "";
 
-    if (!file) {
-      return NextResponse.json({ error: "file required" }, { status: 400 });
-    }
+  if (!file) {
+    return NextResponse.json({ error: "file required" }, { status: 400 });
+  }
 
-    let buffer: Buffer = Buffer.from(await file.arrayBuffer());
-
-    if (isEncryptedBackup(buffer)) {
-      if (!password) {
-        return NextResponse.json(
-          { error: "password_required", message: "This backup is password-protected" },
-          { status: 401 }
-        );
-      }
-      try {
-        buffer = decryptZip(buffer, password);
-      } catch {
-        return NextResponse.json(
-          { error: "password_wrong", message: "Incorrect password or corrupted backup" },
-          { status: 401 }
-        );
-      }
-    }
-
-    const zip = new AdmZip(buffer);
-
-    const dataEntry = zip.getEntry("data.json");
-    if (!dataEntry) {
-      return NextResponse.json({ error: "Invalid backup: data.json not found" }, { status: 400 });
-    }
-
-    const parsed = JSON.parse(dataEntry.getData().toString("utf-8"));
-    const { tables } = parsed as {
-      tables: {
-        users: any[];
-        assets: any[];
-        assetPhotos: any[];
-        assignments: any[];
-        maintenanceRecords: any[];
-        bookings: any[];
-        categories?: any[];
-        testDeviceLogs?: any[];
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    async start(controller) {
+      const sendProgress = (step: string, progress: number, stats?: any) => {
+        controller.enqueue(encoder.encode(JSON.stringify({ step, progress, stats }) + "\n"));
       };
-    };
 
-    // Map ZIP entries by filename for O(1) lookup against photo URLs
-    const imageEntries = new Map<string, Buffer>();
-    for (const entry of zip.getEntries()) {
-      if (entry.isDirectory) continue;
-      if (!entry.entryName.startsWith("uploads/")) continue;
-      imageEntries.set(path.basename(entry.entryName), entry.getData());
-    }
-
-    // Upload each photo to the CURRENT storage provider and rewrite URL,
-    // so a backup taken on Docker can be restored into Supabase (or vice versa)
-    // without leaving dangling references.
-    const photoUrlMap = new Map<string, string>();
-    let imagesRestored = 0;
-    let imagesMissing = 0;
-    for (const photo of tables.assetPhotos ?? []) {
-      const filename = typeof photo.url === "string" ? path.basename(photo.url) : "";
-      const buf = filename ? imageEntries.get(filename) : null;
-      if (!buf) { imagesMissing++; continue; }
       try {
-        const newUrl = await restoreImage(filename, buf);
-        photoUrlMap.set(photo.url, newUrl);
-        imagesRestored++;
-      } catch (e: any) {
-        console.error("Restore image failed:", filename, e?.message);
-        imagesMissing++;
-      }
-    }
+        sendProgress("Initializing...", 5);
+        let buffer: Buffer = Buffer.from(await file.arrayBuffer());
 
-    const stats = {
-      users: 0, assets: 0, assetPhotos: 0,
-      assignments: 0, maintenanceRecords: 0, bookings: 0,
-      categories: 0, testDeviceLogs: 0,
-      images: imagesRestored,
-      imagesMissing,
-    };
-
-    if (mode === "replace") {
-      // Reverse dependency order; skip users so admin doesn't lock self out
-      await prisma.testDeviceLog.deleteMany();
-      await prisma.booking.deleteMany();
-      await prisma.maintenanceRecord.deleteMany();
-      await prisma.assignment.deleteMany();
-      await prisma.assetPhoto.deleteMany();
-      await prisma.asset.deleteMany();
-      await prisma.category.deleteMany();
-    }
-
-    const CHUNK = 100;
-    async function batchUpsert<T>(items: T[], buildOp: (item: T) => any): Promise<number> {
-      let count = 0;
-      for (let c = 0; c < items.length; c += CHUNK) {
-        const chunk = items.slice(c, c + CHUNK);
-        try {
-          await prisma.$transaction(chunk.map(buildOp));
-          count += chunk.length;
-        } catch {
-          for (const item of chunk) {
-            try {
-              await (buildOp(item) as any);
-              count++;
-            } catch { /* skip on conflict */ }
+        if (isEncryptedBackup(buffer)) {
+          if (!password) {
+            controller.enqueue(encoder.encode(JSON.stringify({ error: "password_required", message: "This backup is password-protected" }) + "\n"));
+            controller.close();
+            return;
+          }
+          try {
+            buffer = decryptZip(buffer, password);
+          } catch {
+            controller.enqueue(encoder.encode(JSON.stringify({ error: "password_wrong", message: "Incorrect password or corrupted backup" }) + "\n"));
+            controller.close();
+            return;
           }
         }
+
+        sendProgress("Reading ZIP archive...", 10);
+        const zip = new AdmZip(buffer);
+
+        const dataEntry = zip.getEntry("data.json");
+        if (!dataEntry) {
+          controller.enqueue(encoder.encode(JSON.stringify({ error: "Invalid backup: data.json not found" }) + "\n"));
+          controller.close();
+          return;
+        }
+
+        const parsed = JSON.parse(dataEntry.getData().toString("utf-8"));
+        const { tables } = parsed as {
+          tables: {
+            users: any[];
+            assets: any[];
+            assetPhotos: any[];
+            assignments: any[];
+            maintenanceRecords: any[];
+            bookings: any[];
+            categories?: any[];
+            testDeviceLogs?: any[];
+          };
+        };
+
+        const imageEntries = new Map<string, Buffer>();
+        for (const entry of zip.getEntries()) {
+          if (entry.isDirectory) continue;
+          if (!entry.entryName.startsWith("uploads/")) continue;
+          imageEntries.set(path.basename(entry.entryName), entry.getData());
+        }
+
+        sendProgress("Restoring images...", 20);
+        const photoUrlMap = new Map<string, string>();
+        let imagesRestored = 0;
+        let imagesMissing = 0;
+        for (const photo of tables.assetPhotos ?? []) {
+          const filename = typeof photo.url === "string" ? path.basename(photo.url) : "";
+          const buf = filename ? imageEntries.get(filename) : null;
+          if (!buf) { imagesMissing++; continue; }
+          try {
+            const newUrl = await restoreImage(filename, buf);
+            photoUrlMap.set(photo.url, newUrl);
+            imagesRestored++;
+          } catch (e: any) {
+            console.error("Restore image failed:", filename, e?.message);
+            imagesMissing++;
+          }
+        }
+
+        const stats = {
+          users: 0, assets: 0, assetPhotos: 0,
+          assignments: 0, maintenanceRecords: 0, bookings: 0,
+          categories: 0, testDeviceLogs: 0,
+          images: imagesRestored,
+          imagesMissing,
+        };
+
+        if (mode === "replace") {
+          sendProgress("Clearing old data...", 30);
+          await prisma.testDeviceLog.deleteMany();
+          await prisma.booking.deleteMany();
+          await prisma.maintenanceRecord.deleteMany();
+          await prisma.assignment.deleteMany();
+          await prisma.assetPhoto.deleteMany();
+          await prisma.asset.deleteMany();
+          await prisma.category.deleteMany();
+        }
+
+        const CHUNK = 100;
+        async function batchUpsert<T>(items: T[], buildOp: (item: T) => any): Promise<number> {
+          let count = 0;
+          for (let c = 0; c < items.length; c += CHUNK) {
+            const chunk = items.slice(c, c + CHUNK);
+            try {
+              await prisma.$transaction(chunk.map(buildOp));
+              count += chunk.length;
+            } catch {
+              for (const item of chunk) {
+                try {
+                  await (buildOp(item) as any);
+                  count++;
+                } catch { /* skip on conflict */ }
+              }
+            }
+          }
+          return count;
+        }
+
+        sendProgress("Restoring Users...", 40);
+        stats.users = await batchUpsert(tables.users ?? [], (u: any) =>
+          prisma.user.upsert({
+            where: { email: u.email },
+            create: {
+              id: u.id, name: u.name, email: u.email,
+              hashedPassword: u.hashedPassword, role: u.role, image: u.image,
+              createdAt: new Date(u.createdAt),
+            },
+            update: mode === "replace" ? { name: u.name, role: u.role, image: u.image } : {},
+          })
+        );
+        
+        sendProgress("Restoring Categories...", 50);
+        stats.categories = await batchUpsert(tables.categories ?? [], (c: any) =>
+          prisma.category.upsert({
+            where: { id: c.id },
+            create: {
+              id: c.id, key: c.key, label: c.label, emoji: c.emoji,
+              order: c.order, isDefault: c.isDefault,
+              createdAt: new Date(c.createdAt),
+            },
+            update: mode === "replace" ? { key: c.key, label: c.label, emoji: c.emoji, order: c.order, isDefault: c.isDefault } : {},
+          })
+        );
+
+        sendProgress("Restoring Assets...", 60);
+        stats.assets = await batchUpsert(tables.assets ?? [], (a: any) => {
+          const assetData = {
+            code: a.code, name: a.name, brand: a.brand, model: a.model,
+            serialNumber: a.serialNumber, category: a.category, status: a.status,
+            purchaseDate: new Date(a.purchaseDate), purchasePrice: a.purchasePrice,
+            expectedLife: a.expectedLife,
+            warrantyEnd: a.warrantyEnd ? new Date(a.warrantyEnd) : null,
+            nextMaintenance: a.nextMaintenance ? new Date(a.nextMaintenance) : null,
+            location: a.location, notes: a.notes,
+            testDeviceNote: a.testDeviceNote, isTestDevice: a.isTestDevice ?? false,
+          };
+          return prisma.asset.upsert({
+            where: { id: a.id },
+            create: { id: a.id, ...assetData, createdAt: new Date(a.createdAt) },
+            update: mode === "replace" ? assetData : {},
+          });
+        });
+
+        sendProgress("Restoring Asset Photos...", 70);
+        stats.assetPhotos = await batchUpsert(tables.assetPhotos ?? [], (p: any) => {
+          const url = photoUrlMap.get(p.url) ?? p.url;
+          return prisma.assetPhoto.upsert({
+            where: { id: p.id },
+            create: {
+              id: p.id, assetId: p.assetId, url, caption: p.caption,
+              isPrimary: p.isPrimary, order: p.order, createdAt: new Date(p.createdAt),
+            },
+            update: mode === "replace" ? { url, isPrimary: p.isPrimary, order: p.order } : {},
+          });
+        });
+
+        sendProgress("Restoring Assignments...", 80);
+        stats.assignments = await batchUpsert(tables.assignments ?? [], (a: any) =>
+          prisma.assignment.upsert({
+            where: { id: a.id },
+            create: {
+              id: a.id, assetId: a.assetId, userId: a.userId, personName: a.personName,
+              department: a.department, dateOut: new Date(a.dateOut),
+              dateIn: a.dateIn ? new Date(a.dateIn) : null,
+              notes: a.notes, signatureUrl: a.signatureUrl, createdAt: new Date(a.createdAt),
+            },
+            update: {},
+          })
+        );
+
+        sendProgress("Restoring Bookings & Maintenance...", 90);
+        stats.maintenanceRecords = await batchUpsert(tables.maintenanceRecords ?? [], (m: any) =>
+          prisma.maintenanceRecord.upsert({
+            where: { id: m.id },
+            create: {
+              id: m.id, assetId: m.assetId, date: new Date(m.date),
+              description: m.description, cost: m.cost, vendor: m.vendor,
+              type: m.type, receiptUrl: m.receiptUrl, notes: m.notes,
+              createdAt: new Date(m.createdAt),
+            },
+            update: {},
+          })
+        );
+
+        stats.bookings = await batchUpsert(tables.bookings ?? [], (b: any) =>
+          prisma.booking.upsert({
+            where: { id: b.id },
+            create: {
+              id: b.id, assetId: b.assetId, userId: b.userId, personName: b.personName,
+              dateStart: new Date(b.dateStart), dateEnd: new Date(b.dateEnd),
+              purpose: b.purpose, conditionBefore: b.conditionBefore,
+              conditionAfter: b.conditionAfter, status: b.status,
+              createdAt: new Date(b.createdAt),
+            },
+            update: {},
+          })
+        );
+
+        stats.testDeviceLogs = await batchUpsert(tables.testDeviceLogs ?? [], (t: any) =>
+          prisma.testDeviceLog.upsert({
+            where: { id: t.id },
+            create: {
+              id: t.id, assetId: t.assetId, userId: t.userId, guestName: t.guestName,
+              borrowedAt: new Date(t.borrowedAt),
+              returnedAt: t.returnedAt ? new Date(t.returnedAt) : null,
+            },
+            update: {},
+          })
+        );
+
+        sendProgress("Completed", 100, stats);
+        revalidatePath("/", "layout");
+        controller.close();
+      } catch (error: any) {
+        console.error("POST /api/backup error:", error);
+        controller.enqueue(encoder.encode(JSON.stringify({ error: error.message || "Restore failed" }) + "\n"));
+        controller.close();
       }
-      return count;
-    }
+    },
+  });
 
-    stats.users = await batchUpsert(tables.users ?? [], (u: any) =>
-      prisma.user.upsert({
-        where: { email: u.email },
-        create: {
-          id: u.id, name: u.name, email: u.email,
-          hashedPassword: u.hashedPassword, role: u.role, image: u.image,
-          createdAt: new Date(u.createdAt),
-        },
-        update: mode === "replace" ? { name: u.name, role: u.role, image: u.image } : {},
-      })
-    );
-
-    stats.assets = await batchUpsert(tables.assets ?? [], (a: any) => {
-      const assetData = {
-        code: a.code, name: a.name, brand: a.brand, model: a.model,
-        serialNumber: a.serialNumber, category: a.category, status: a.status,
-        purchaseDate: new Date(a.purchaseDate), purchasePrice: a.purchasePrice,
-        expectedLife: a.expectedLife,
-        warrantyEnd: a.warrantyEnd ? new Date(a.warrantyEnd) : null,
-        nextMaintenance: a.nextMaintenance ? new Date(a.nextMaintenance) : null,
-        location: a.location, notes: a.notes,
-        testDeviceNote: a.testDeviceNote, isTestDevice: a.isTestDevice ?? false,
-      };
-      return prisma.asset.upsert({
-        where: { id: a.id },
-        create: { id: a.id, ...assetData, createdAt: new Date(a.createdAt) },
-        update: mode === "replace" ? assetData : {},
-      });
-    });
-
-    stats.assetPhotos = await batchUpsert(tables.assetPhotos ?? [], (p: any) => {
-      const url = photoUrlMap.get(p.url) ?? p.url;
-      return prisma.assetPhoto.upsert({
-        where: { id: p.id },
-        create: {
-          id: p.id, assetId: p.assetId, url, caption: p.caption,
-          isPrimary: p.isPrimary, order: p.order, createdAt: new Date(p.createdAt),
-        },
-        update: mode === "replace" ? { url, isPrimary: p.isPrimary, order: p.order } : {},
-      });
-    });
-
-    stats.assignments = await batchUpsert(tables.assignments ?? [], (a: any) =>
-      prisma.assignment.upsert({
-        where: { id: a.id },
-        create: {
-          id: a.id, assetId: a.assetId, userId: a.userId, personName: a.personName,
-          department: a.department, dateOut: new Date(a.dateOut),
-          dateIn: a.dateIn ? new Date(a.dateIn) : null,
-          notes: a.notes, signatureUrl: a.signatureUrl, createdAt: new Date(a.createdAt),
-        },
-        update: {},
-      })
-    );
-
-    stats.maintenanceRecords = await batchUpsert(tables.maintenanceRecords ?? [], (m: any) =>
-      prisma.maintenanceRecord.upsert({
-        where: { id: m.id },
-        create: {
-          id: m.id, assetId: m.assetId, date: new Date(m.date),
-          description: m.description, cost: m.cost, vendor: m.vendor,
-          type: m.type, receiptUrl: m.receiptUrl, notes: m.notes,
-          createdAt: new Date(m.createdAt),
-        },
-        update: {},
-      })
-    );
-
-    stats.bookings = await batchUpsert(tables.bookings ?? [], (b: any) =>
-      prisma.booking.upsert({
-        where: { id: b.id },
-        create: {
-          id: b.id, assetId: b.assetId, userId: b.userId, personName: b.personName,
-          dateStart: new Date(b.dateStart), dateEnd: new Date(b.dateEnd),
-          purpose: b.purpose, conditionBefore: b.conditionBefore,
-          conditionAfter: b.conditionAfter, status: b.status,
-          createdAt: new Date(b.createdAt),
-        },
-        update: {},
-      })
-    );
-
-    stats.categories = await batchUpsert(tables.categories ?? [], (c: any) =>
-      prisma.category.upsert({
-        where: { id: c.id },
-        create: {
-          id: c.id, key: c.key, label: c.label, emoji: c.emoji,
-          order: c.order, isDefault: c.isDefault,
-          createdAt: new Date(c.createdAt),
-        },
-        update: mode === "replace" ? { key: c.key, label: c.label, emoji: c.emoji, order: c.order, isDefault: c.isDefault } : {},
-      })
-    );
-
-    stats.testDeviceLogs = await batchUpsert(tables.testDeviceLogs ?? [], (t: any) =>
-      prisma.testDeviceLog.upsert({
-        where: { id: t.id },
-        create: {
-          id: t.id, assetId: t.assetId, userId: t.userId, guestName: t.guestName,
-          borrowedAt: new Date(t.borrowedAt),
-          returnedAt: t.returnedAt ? new Date(t.returnedAt) : null,
-        },
-        update: {},
-      })
-    );
-
-    revalidatePath("/", "layout");
-    return NextResponse.json({ ok: true, stats });
-  } catch (error) {
-    console.error("POST /api/backup error:", error);
-    return NextResponse.json({ error: "Restore failed" }, { status: 500 });
-  }
+  return new NextResponse(stream, {
+    headers: {
+      "Content-Type": "application/x-ndjson",
+      "Cache-Control": "no-cache, no-transform",
+      "Connection": "keep-alive",
+    },
+  });
 }
 
 // ── DELETE /api/backup — Factory reset: wipe all data + re-create admin (Admin only) ──

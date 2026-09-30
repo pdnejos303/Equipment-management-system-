@@ -31,6 +31,7 @@ ENV OPENAI_API_KEY=build-placeholder
 ENV BUILD_STANDALONE=1
 
 RUN npx prisma generate
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npm run build
 
 # ===== Stage 3: Runner =====

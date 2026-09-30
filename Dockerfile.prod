@@ -1,0 +1,36 @@
+# syntax=docker/dockerfile:1
+
+FROM node:20-alpine AS runner
+RUN apk add --no-cache \
+      libc6-compat openssl \
+      chromium nss freetype harfbuzz ca-certificates ttf-freefont \
+      font-noto font-noto-cjk font-noto-thai
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME=::
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+RUN addgroup --system --gid 1001 nodejs \
+ && adduser --system --uid 1001 nextjs
+
+COPY public ./public
+COPY --chown=nextjs:nodejs .next/standalone ./
+COPY --chown=nextjs:nodejs .next/static ./.next/static
+
+COPY --chown=nextjs:nodejs prisma ./prisma
+COPY --chown=nextjs:nodejs package.json pnpm-lock.yaml* ./
+RUN npm i -g pnpm@10 && pnpm install --frozen-lockfile --prod && npx prisma generate
+
+RUN mkdir -p /app/uploads \
+ && chown -R nextjs:nodejs /app/uploads
+
+COPY --chown=nextjs:nodejs scripts ./scripts
+
+USER nextjs
+EXPOSE 3000
+
+CMD ["sh", "-c", "npx prisma db push --skip-generate --accept-data-loss=false && node scripts/seed-admin.mjs && node server.js"]
