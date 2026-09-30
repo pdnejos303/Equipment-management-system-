@@ -1,5 +1,21 @@
 services:
-  # ── Next.js App (SQLite) ──────────────────────────────────────────────────
+  # ── Database (PostgreSQL) ──────────────────────────────────────────────────
+  db:
+    image: postgres:15-alpine
+    container_name: equiptrack-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: adminpass
+      POSTGRES_DB: equiptrackdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - equiptrack-pgdata:/var/lib/postgresql/data
+    networks:
+      - internal
+
+  # ── Next.js App ────────────────────────────────────────────────────────────
   app:
     build:
       context: .
@@ -9,10 +25,14 @@ services:
         NEXT_PUBLIC_COMPANY_NAME: ${NEXT_PUBLIC_COMPANY_NAME:-Asset Management}
     container_name: equiptrack
     restart: unless-stopped
+    depends_on:
+      - db
 
     environment:
-      # ── Database (SQLite) ──
-      DATABASE_URL: "file:./dev.db"
+      # ── Database (PostgreSQL) ──
+      # connect to the 'db' container via internal network on port 5432
+      DATABASE_URL: "postgresql://admin:adminpass@db:5432/equiptrackdb?schema=public"
+      DIRECT_URL: "postgresql://admin:adminpass@db:5432/equiptrackdb?schema=public"
 
       # ── Uploads (รูปจาก legacy + รูปใหม่) เก็บใน volume /app/uploads ──
       UPLOADS_DIR: "/app/uploads"
@@ -38,7 +58,6 @@ services:
 
     volumes:
       - equiptrack-uploads:/app/uploads
-      - equiptrack-sqlite:/app/prisma
 
     networks:
       - internal
@@ -75,7 +94,7 @@ services:
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
 volumes:
-  equiptrack-sqlite:
+  equiptrack-pgdata:
   equiptrack-uploads:
   certbot-certs:   # เก็บ SSL certificate
   certbot-www:     # เก็บ ACME challenge files
