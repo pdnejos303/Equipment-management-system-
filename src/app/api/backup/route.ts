@@ -407,13 +407,13 @@ export async function POST(req: NextRequest) {
         sendProgress("Restoring Categories...", 50);
         stats.categories = await batchUpsert(tables.categories ?? [], (c: any) =>
           prisma.category.upsert({
-            where: { id: c.id },
+            where: { key: c.key },
             create: {
               id: c.id, key: c.key, label: c.label, emoji: c.emoji,
               order: c.order, isDefault: c.isDefault,
               createdAt: new Date(c.createdAt),
             },
-            update: mode === "replace" ? { key: c.key, label: c.label, emoji: c.emoji, order: c.order, isDefault: c.isDefault } : {},
+            update: mode === "replace" ? { label: c.label, emoji: c.emoji, order: c.order, isDefault: c.isDefault } : {},
           })
         );
 
