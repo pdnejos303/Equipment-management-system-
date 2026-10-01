@@ -280,12 +280,16 @@ export async function POST(req: NextRequest) {
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
-      const sendProgress = (step: string, progress: number, stats?: any) => {
+      const sendProgress = async (step: string, progress: number, stats?: any) => {
         controller.enqueue(encoder.encode(JSON.stringify({ step, progress, stats }) + "\n"));
+        await new Promise((resolve) => setTimeout(resolve, 50)); // Yield to event loop to force flush
       };
 
       try {
-        sendProgress("Initializing...", 5);
+        // Send initial padding to force proxy/Next.js buffer flush
+        controller.enqueue(encoder.encode(" ".repeat(1024) + "\n"));
+        
+        await sendProgress("Initializing...", 5);
         let buffer: Buffer = Buffer.from(await file.arrayBuffer());
 
         if (isEncryptedBackup(buffer)) {
@@ -303,7 +307,7 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        sendProgress("Reading ZIP archive...", 10);
+        await sendProgress("Reading ZIP archive...", 10);
         const zip = new AdmZip(buffer);
 
         const dataEntry = zip.getEntry("data.json");
@@ -334,7 +338,7 @@ export async function POST(req: NextRequest) {
           imageEntries.set(path.basename(entry.entryName), entry.getData());
         }
 
-        sendProgress("Restoring images...", 20);
+        await sendProgress("Restoring images...", 20);
         const photoUrlMap = new Map<string, string>();
         let imagesRestored = 0;
         let imagesMissing = 0;
@@ -361,7 +365,7 @@ export async function POST(req: NextRequest) {
         };
 
         if (mode === "replace") {
-          sendProgress("Clearing old data...", 30);
+          await sendProgress("Clearing old data...", 30);
           await prisma.testDeviceLog.deleteMany();
           await prisma.booking.deleteMany();
           await prisma.maintenanceRecord.deleteMany();
@@ -391,7 +395,7 @@ export async function POST(req: NextRequest) {
           return count;
         }
 
-        sendProgress("Restoring Users...", 40);
+        await sendProgress("Restoring Users...", 40);
         stats.users = await batchUpsert(tables.users ?? [], (u: any) =>
           prisma.user.upsert({
             where: { email: u.email },
@@ -404,7 +408,7 @@ export async function POST(req: NextRequest) {
           })
         );
         
-        sendProgress("Restoring Categories...", 50);
+        await sendProgress("Restoring Categories...", 50);
         stats.categories = await batchUpsert(tables.categories ?? [], (c: any) =>
           prisma.category.upsert({
             where: { key: c.key },
@@ -417,7 +421,7 @@ export async function POST(req: NextRequest) {
           })
         );
 
-        sendProgress("Restoring Assets...", 60);
+        await sendProgress("Restoring Assets...", 60);
         stats.assets = await batchUpsert(tables.assets ?? [], (a: any) => {
           const assetData = {
             code: a.code, name: a.name, brand: a.brand, model: a.model,
@@ -436,7 +440,7 @@ export async function POST(req: NextRequest) {
           });
         });
 
-        sendProgress("Restoring Asset Photos...", 70);
+        await sendProgress("Restoring Asset Photos...", 70);
         stats.assetPhotos = await batchUpsert(tables.assetPhotos ?? [], (p: any) => {
           const url = photoUrlMap.get(p.url) ?? p.url;
           return prisma.assetPhoto.upsert({
@@ -449,7 +453,7 @@ export async function POST(req: NextRequest) {
           });
         });
 
-        sendProgress("Restoring Assignments...", 80);
+        await sendProgress("Restoring Assignments...", 80);
         stats.assignments = await batchUpsert(tables.assignments ?? [], (a: any) =>
           prisma.assignment.upsert({
             where: { id: a.id },
@@ -463,7 +467,7 @@ export async function POST(req: NextRequest) {
           })
         );
 
-        sendProgress("Restoring Bookings & Maintenance...", 90);
+        await sendProgress("Restoring Bookings & Maintenance...", 90);
         stats.maintenanceRecords = await batchUpsert(tables.maintenanceRecords ?? [], (m: any) =>
           prisma.maintenanceRecord.upsert({
             where: { id: m.id },
@@ -503,7 +507,7 @@ export async function POST(req: NextRequest) {
           })
         );
 
-        sendProgress("Completed", 100, stats);
+        await sendProgress("Completed", 100, stats);
         revalidatePath("/", "layout");
         controller.close();
       } catch (error: any) {
