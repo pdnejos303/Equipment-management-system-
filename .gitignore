@@ -76,3 +76,10 @@ prisma/*.db-journal
 /archive/
 test.html
 .sse_trigger
+
+Document/
+
+# Removed by AI
+/extract_test/
+wipe.js
+/extract_new/
